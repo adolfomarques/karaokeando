@@ -855,7 +855,17 @@ export default function RoomTV() {
   }
 
   return (
-    <>
+    <div
+      ref={fullScreenWrapperRef}
+      style={{
+        position: "relative",
+        width: "100vw",
+        height: "100vh",
+        overflow: "hidden",
+        backgroundColor: "#000",
+      }}
+    >
+      {/* Overlay inicial para interação (Browsers bloqueiam autoplay) */}
       {!hasInteracted && (
         <div
           style={{
@@ -898,9 +908,8 @@ export default function RoomTV() {
 
       {state.nowPlaying && !showScore && (
         <div
-          ref={fullScreenWrapperRef}
           style={{
-            position: "fixed",
+            position: "absolute",
             inset: 0,
             background: "#000",
             display: "flex",
@@ -1646,6 +1655,6 @@ export default function RoomTV() {
         }}
       />
       <Toaster position="top-right" />
-    </>
+    </div>
   );
 }
