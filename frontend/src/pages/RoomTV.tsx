@@ -259,6 +259,36 @@ const IconPlay = ({ size = 16 }: { size?: number }) => (
   </svg>
 );
 
+const IconMaximize = ({ size = 16 }: { size?: number }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
+  </svg>
+);
+
+const IconMinimize = ({ size = 16 }: { size?: number }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3" />
+  </svg>
+);
+
 const IconSkipForward = ({ size = 16 }: { size?: number }) => (
   <svg
     width={size}
@@ -292,10 +322,13 @@ export default function RoomTV() {
   const [hasInteracted, setHasInteracted] = useState(false);
   const [autoPlayCountdown, setAutoPlayCountdown] = useState<number | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [participantsCount, setParticipantsCount] = useState<number>(0);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const isTransitioningRef = useRef(false);
   const wsRef = useRef<WebSocket | null>(null);
   const playerRef = useRef<YTPlayer | null>(null);
   const playerContainerRef = useRef<HTMLDivElement | null>(null);
+  const fullScreenWrapperRef = useRef<HTMLDivElement | null>(null);
 
   // Track previous queue for toasts
   const prevQueueRef = useRef<QueueItem[]>([]);
@@ -426,6 +459,33 @@ export default function RoomTV() {
     },
     [code, tvToken]
   );
+  const toggleFullscreen = useCallback(async () => {
+    if (!document.fullscreenElement) {
+      try {
+        await fullScreenWrapperRef.current?.requestFullscreen();
+        setIsFullscreen(true);
+      } catch (err) {
+        console.error("Error attempting to enable fullscreen:", err);
+      }
+    } else {
+      if (document.exitFullscreen) {
+        await document.exitFullscreen();
+        setIsFullscreen(false);
+      }
+    }
+  }, []);
+
+  // Listen to fullscreenchange events to sync state (e.g., if user exits via Esc key)
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+    };
+  }, []);
+
   // Truncated text with tooltip on hover
   const TruncatedText = ({
     text,
@@ -578,6 +638,7 @@ export default function RoomTV() {
           title?: string;
           error?: string;
           action?: string;
+          participants?: { id: string; name: string }[];
         };
         if (m.type === "STATE" && m.state) {
           // Reset transitioning flag if something is now playing OR queue is empty (processed)
@@ -595,6 +656,8 @@ export default function RoomTV() {
           });
         } else if (m.type === "ERROR" && m.error === "room_not_found") {
           setError("Sala não encontrada. Verifique o código.");
+        } else if (m.type === "PARTICIPANTS" && m.participants) {
+          setParticipantsCount(m.participants.length);
         } else if (m.type === "FINALIZED") {
           setFinalized({ singer: m.singer!, score: m.score!, title: m.title! });
         } else if (m.type === "PLAYER_COMMAND") {
@@ -671,6 +734,7 @@ export default function RoomTV() {
           start: 0,
           playsinline: 1,
           enablejsapi: 1,
+          fs: 0, // Disable native YouTube fullscreen to use our custom wrapper
         },
         events: {
           onReady: e => {
@@ -827,6 +891,7 @@ export default function RoomTV() {
           ───────────────────────────────────────────────────────────── */}
       {state.nowPlaying && !showScore && (
         <div
+          ref={fullScreenWrapperRef}
           style={{
             position: "fixed",
             inset: 0,
@@ -873,7 +938,9 @@ export default function RoomTV() {
             <div
               style={{ textAlign: "right", opacity: 0.6, fontSize: "0.85rem" }}
             >
-              <div>Sala {code}</div>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 6, color: "#1bd25e" }}>
+                <IconUsers size={16} /> <b>{participantsCount}</b>
+              </div>
               {state.queue.length > 0 && (
                 <div>
                   Próxima:{" "}
@@ -918,6 +985,35 @@ export default function RoomTV() {
             </span>
           </button>
 
+          {/* Botão Tela Cheia Customizado */}
+          <button
+            onClick={toggleFullscreen}
+            style={{
+              position: "absolute",
+              bottom: 20,
+              right: 120, // Posição ao lado do botão Pular
+              background: "rgba(255,255,255,0.1)",
+              border: "1px solid rgba(255,255,255,0.2)",
+              padding: "8px 16px",
+              fontSize: "0.85rem",
+              opacity: 0.5,
+              transition: "opacity 0.2s",
+              zIndex: 10,
+              color: "#fff",
+              cursor: "pointer",
+            }}
+            onMouseEnter={e => (e.currentTarget.style.opacity = "1")}
+            onMouseLeave={e => (e.currentTarget.style.opacity = "0.5")}
+          >
+            <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              {isFullscreen ? (
+                <>Sair da Tela <IconMinimize size={16} /></>
+              ) : (
+                <>Tela Cheia <IconMaximize size={16} /></>
+              )}
+            </span>
+          </button>
+
           {/* QR Code discreto no canto inferior esquerdo */}
           <div
             style={{
@@ -938,12 +1034,12 @@ export default function RoomTV() {
             onMouseLeave={e => (e.currentTarget.style.opacity = "0.7")}
           >
             <img
-              src={`https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${encodeURIComponent(
+              src={`https://api.qrserver.com/v1/create-qr-code/?size=104x104&data=${encodeURIComponent(
                 window.location.origin + "/join/" + code
               )}`}
               alt="QR Code"
               loading="lazy"
-              style={{ width: 80, height: 80, display: "block" }}
+              style={{ width: 104, height: 104, display: "block" }}
             />
             <div
               style={{
