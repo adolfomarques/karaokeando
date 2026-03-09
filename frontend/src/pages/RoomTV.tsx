@@ -389,7 +389,7 @@ export default function RoomTV() {
             <div style={{ fontSize: '1rem', fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden' }}>
               {item.title.length > 25 ? (
                 // @ts-ignore
-                <marquee scrollamount="4" style={{ width: '100%', display: 'block' }}>
+                <marquee scrollamount="6" style={{ width: '100%', display: 'block' }}>
                   {item.title}
                 </marquee>
               ) : (
