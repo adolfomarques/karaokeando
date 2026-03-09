@@ -287,6 +287,7 @@ export default function RoomTV() {
   const [rankingView, setRankingView] = useState<RankingView>("solo");
   const [autoRotate, setAutoRotate] = useState(true);
   const [authChecked, setAuthChecked] = useState(false);
+  const [tvToken, setTvToken] = useState<string | null>(null);
   const [hasInteracted, setHasInteracted] = useState(false);
   const [autoPlayCountdown, setAutoPlayCountdown] = useState<number | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
@@ -296,11 +297,12 @@ export default function RoomTV() {
   // Check for tvToken on mount
   useEffect(() => {
     if (!code) return;
-    const tvToken = localStorage.getItem(`tvToken_${code}`);
-    if (!tvToken) {
+    const token = localStorage.getItem(`tvToken_${code}`);
+    if (!token) {
       // Redirect to TV login page
       navigate(`/room/${code}/tv/login`);
     } else {
+      setTvToken(token);
       setAuthChecked(true);
     }
   }, [code, navigate]);
@@ -332,25 +334,25 @@ export default function RoomTV() {
   const handleQueueRemove = useCallback(
     async (itemId: string) => {
       if (!code) return;
-      await removeQueueItem(code, itemId).catch(() => { });
+      await removeQueueItem(code, itemId, undefined, tvToken).catch(() => { });
     },
-    [code]
+    [code, tvToken]
   );
 
   const handleQueueMove = useCallback(
     async (itemId: string, direction: "up" | "down") => {
       if (!code) return;
-      await moveQueueItem(code, itemId, direction).catch(() => { });
+      await moveQueueItem(code, itemId, direction, undefined, tvToken).catch(() => { });
     },
-    [code]
+    [code, tvToken]
   );
 
   const handleQueueToTop = useCallback(
     async (itemId: string) => {
       if (!code) return;
-      await queueItemToTop(code, itemId).catch(() => { });
+      await queueItemToTop(code, itemId, undefined, tvToken).catch(() => { });
     },
-    [code]
+    [code, tvToken]
   );
   // Truncated text with tooltip on hover
   const TruncatedText = ({
@@ -431,20 +433,20 @@ export default function RoomTV() {
       return () => clearTimeout(timer);
     } else if (autoPlayCountdown === 0 && code) {
       // Countdown finished, play next song
-      nextSong(code);
+      nextSong(code, undefined, tvToken);
       setAutoPlayCountdown(null);
     }
-  }, [state, showScore, autoPlayCountdown, code]);
+  }, [state, showScore, autoPlayCountdown, code, tvToken]);
 
   // Auto-finalize when YouTube video ends
   const handleVideoEnd = useCallback(async () => {
     if (!code) return;
     try {
-      await finalizeSong(code, "Auto");
+      await finalizeSong(code, "Auto", undefined, tvToken);
     } catch (err) {
       console.error("[TV] finalize error", err);
     }
-  }, [code]);
+  }, [code, tvToken]);
 
   // Load YouTube IFrame API once
   useEffect(() => {
@@ -535,11 +537,12 @@ export default function RoomTV() {
       playerRef.current = null;
     }
 
-    if (!ytReady || !videoId || showScore) {
+    // Wait for user interaction before creating player (browser autoplay policy)
+    if (!ytReady || !videoId || showScore || !hasInteracted) {
       return;
     }
 
-    // Wait a tick for the container to be rendered
+    // Wait for the container to be rendered
     const timeoutId = setTimeout(() => {
       const container = playerContainerRef.current;
       if (!container) {
@@ -575,7 +578,7 @@ export default function RoomTV() {
           },
         },
       });
-    }, 100); // Small delay to ensure DOM is ready
+    }, 300); // Increased delay to ensure DOM is ready
 
     return () => {
       clearTimeout(timeoutId);
@@ -584,7 +587,7 @@ export default function RoomTV() {
         playerRef.current = null;
       }
     };
-  }, [ytReady, videoId, showScore, handleVideoEnd]);
+  }, [ytReady, videoId, showScore, hasInteracted, handleVideoEnd]);
 
   // ─────────────────────────────────────────────────────────────
   // Render
@@ -789,7 +792,7 @@ export default function RoomTV() {
 
           {/* Botão de pular discreto no canto */}
           <button
-            onClick={() => code && finalizeSong(code, "Host")}
+            onClick={() => code && finalizeSong(code, "Host", undefined, tvToken)}
             style={{
               position: "absolute",
               bottom: 20,
@@ -1020,7 +1023,7 @@ export default function RoomTV() {
                       <button
                         onClick={() => {
                           setAutoPlayCountdown(null);
-                          if (code) nextSong(code);
+                          if (code) nextSong(code, undefined, tvToken);
                         }}
                         style={{
                           background: "white",

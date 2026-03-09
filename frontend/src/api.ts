@@ -102,19 +102,23 @@ export async function enqueue(
   return res.json();
 }
 
-export async function nextSong(roomCode: string, userId?: string) {
+export async function nextSong(roomCode: string, userId?: string, tvToken?: string | null) {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (tvToken) headers["x-tv-token"] = tvToken;
   const res = await fetch(`${API_BASE}/api/rooms/${roomCode}/next`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers,
     body: JSON.stringify({ userId }),
   });
   return res.json();
 }
 
-export async function finalizeSong(roomCode: string, requester: string, userId?: string) {
+export async function finalizeSong(roomCode: string, requester: string, userId?: string, tvToken?: string | null) {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (tvToken) headers["x-tv-token"] = tvToken;
   const res = await fetch(`${API_BASE}/api/rooms/${roomCode}/finalize`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers,
     body: JSON.stringify({ requester, userId }),
   });
   return res.json();
@@ -146,10 +150,12 @@ export async function updateUserName(
   return res.json();
 }
 
-export async function removeQueueItem(roomCode: string, itemId: string, userId?: string) {
+export async function removeQueueItem(roomCode: string, itemId: string, userId?: string, tvToken?: string | null) {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (tvToken) headers["x-tv-token"] = tvToken;
   const res = await fetch(`${API_BASE}/api/rooms/${roomCode}/queue/remove`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers,
     body: JSON.stringify({ itemId, userId }),
   });
   return res.json();
@@ -158,21 +164,27 @@ export async function removeQueueItem(roomCode: string, itemId: string, userId?:
 export async function moveQueueItem(
   roomCode: string,
   itemId: string,
-  direction: "up" | "down"
+  direction: "up" | "down",
+  userId?: string,
+  tvToken?: string | null
 ) {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (tvToken) headers["x-tv-token"] = tvToken;
   const res = await fetch(`${API_BASE}/api/rooms/${roomCode}/queue/move`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ itemId, direction }),
+    headers,
+    body: JSON.stringify({ itemId, direction, userId }),
   });
   return res.json();
 }
 
-export async function queueItemToTop(roomCode: string, itemId: string) {
+export async function queueItemToTop(roomCode: string, itemId: string, userId?: string, tvToken?: string | null) {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (tvToken) headers["x-tv-token"] = tvToken;
   const res = await fetch(`${API_BASE}/api/rooms/${roomCode}/queue/to-top`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ itemId }),
+    headers,
+    body: JSON.stringify({ itemId, userId }),
   });
   return res.json();
 }

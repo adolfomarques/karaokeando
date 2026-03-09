@@ -512,7 +512,17 @@ app.post<{ Params: { roomCode: string }; Body: { userId?: string } }>(
     if (!room) return reply.code(404).send({ error: "room_not_found" });
 
     const { userId } = req.body;
-    if (userId !== room.ownerId) {
+    const tvTokenHeader = req.headers["x-tv-token"] as string | undefined;
+
+    // Allow if: userId is owner, OR a valid tvToken for this room is provided
+    const isOwner = userId === room.ownerId;
+    let isTvToken = false;
+    if (!isOwner && tvTokenHeader) {
+      const decoded = verifyToken(tvTokenHeader);
+      isTvToken = !!(decoded && decoded.type === "tv" && decoded.roomCode === room.code);
+    }
+
+    if (!isOwner && !isTvToken) {
       return reply.code(403).send({ error: "forbidden" });
     }
     touchRoom(req.params.roomCode);
@@ -560,12 +570,18 @@ app.post<{
   const item = room.queue.find(i => i.id === itemId);
   if (!item) return reply.code(404).send({ error: "not_found" });
 
-  // Permissions: Host OR Requester
+  // Permissions: Host OR Requester OR TV
   const isHost = userId === room.ownerId;
   const isRequester = userId === item.requesterId;
+  const tvTokenHeader = req.headers["x-tv-token"] as string | undefined;
+  let isTvToken = false;
+  if (!isHost && !isRequester && tvTokenHeader) {
+    const decoded = verifyToken(tvTokenHeader);
+    isTvToken = !!(decoded && decoded.type === "tv" && decoded.roomCode === room.code);
+  }
 
-  if (!isHost && !isRequester) {
-    return reply.code(403).send({ error: "forbidden", message: "Apenas o dono da sala ou quem adicionou a música pode removê-la." });
+  if (!isHost && !isRequester && !isTvToken) {
+    return reply.code(403).send({ error: "forbidden", message: "Apenas o dono da sala, o TV ou quem adicionou a música pode removê-la." });
   }
 
   room.queue = room.queue.filter(i => i.id !== itemId);
@@ -588,6 +604,20 @@ app.post<{
 
   const itemId = (req.body.itemId || "").trim();
   const direction = req.body.direction;
+  const { userId } = req.body as { userId?: string };
+  const tvTokenHeader = req.headers["x-tv-token"] as string | undefined;
+
+  const isHost = userId === room.ownerId;
+  let isTvToken = false;
+  if (!isHost && tvTokenHeader) {
+    const decoded = verifyToken(tvTokenHeader);
+    isTvToken = !!(decoded && decoded.type === "tv" && decoded.roomCode === room.code);
+  }
+
+  if (!isHost && !isTvToken) {
+    return reply.code(403).send({ error: "forbidden" });
+  }
+
   if (!itemId) return reply.code(400).send({ error: "missing_itemId" });
   if (direction !== "up" && direction !== "down") {
     return reply.code(400).send({ error: "invalid_direction" });
@@ -615,6 +645,20 @@ app.post<{
   if (!room) return reply.code(404).send({ error: "room_not_found" });
 
   const itemId = (req.body.itemId || "").trim();
+  const { userId } = req.body as { userId?: string };
+  const tvTokenHeader = req.headers["x-tv-token"] as string | undefined;
+
+  const isHost = userId === room.ownerId;
+  let isTvToken = false;
+  if (!isHost && tvTokenHeader) {
+    const decoded = verifyToken(tvTokenHeader);
+    isTvToken = !!(decoded && decoded.type === "tv" && decoded.roomCode === room.code);
+  }
+
+  if (!isHost && !isTvToken) {
+    return reply.code(403).send({ error: "forbidden" });
+  }
+
   if (!itemId) return reply.code(400).send({ error: "missing_itemId" });
 
   const idx = room.queue.findIndex(i => i.id === itemId);
@@ -637,7 +681,17 @@ app.post<{ Params: { roomCode: string }; Body: { requester?: string; userId?: st
     touchRoom(req.params.roomCode);
 
     const userId = (req.body.userId || "").trim();
-    if (userId !== room.ownerId) {
+    const tvTokenHeader = req.headers["x-tv-token"] as string | undefined;
+
+    // Allow if: userId is owner, OR a valid tvToken for this room is provided
+    const isOwner = userId === room.ownerId;
+    let isTvToken = false;
+    if (!isOwner && tvTokenHeader) {
+      const decoded = verifyToken(tvTokenHeader);
+      isTvToken = !!(decoded && decoded.type === "tv" && decoded.roomCode === room.code);
+    }
+
+    if (!isOwner && !isTvToken) {
       return reply.code(403).send({ error: "forbidden" });
     }
 
