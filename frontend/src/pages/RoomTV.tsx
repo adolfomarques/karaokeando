@@ -364,7 +364,8 @@ export default function RoomTV() {
             maxWidth: '350px',
             color: 'white',
             opacity: t.visible ? 1 : 0,
-            transition: 'opacity 0.3s ease-in-out',
+            transform: t.visible ? 'translateX(0)' : 'translateX(-50px)',
+            transition: 'all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1)',
           }}
         >
           <div style={{
@@ -381,19 +382,28 @@ export default function RoomTV() {
           }}>
             🎵
           </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
             <div style={{ fontSize: '0.85rem', color: '#a0aec0', marginBottom: '2px', fontWeight: 500 }}>
               Nova música na fila
             </div>
-            <div style={{ fontSize: '1rem', fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {item.title}
+            <div style={{ fontSize: '1rem', fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden' }}>
+              {item.title.length > 25 ? (
+                // @ts-ignore
+                <marquee scrollamount="4" style={{ width: '100%', display: 'block' }}>
+                  {item.title}
+                </marquee>
+              ) : (
+                <div style={{ textOverflow: 'ellipsis', overflow: 'hidden' }}>
+                  {item.title}
+                </div>
+              )}
             </div>
             <div style={{ fontSize: '0.85rem', color: '#e2e8f0', marginTop: '2px' }}>
               Pedido por <span style={{ color: '#ec4899', fontWeight: 600 }}>{item.requestedBy}</span>
             </div>
           </div>
         </div>
-      ), { duration: 5000 });
+      ), { duration: 5000, position: 'top-right' });
     });
 
     prevQueueRef.current = state.queue;
@@ -886,9 +896,6 @@ export default function RoomTV() {
         </div>
       )}
 
-      {/* ─────────────────────────────────────────────────────────────
-          MODO 1: TELA CHEIA - Quando está tocando música
-          ───────────────────────────────────────────────────────────── */}
       {state.nowPlaying && !showScore && (
         <div
           ref={fullScreenWrapperRef}
@@ -936,10 +943,31 @@ export default function RoomTV() {
               </div>
             </div>
             <div
-              style={{ textAlign: "right", opacity: 0.6, fontSize: "0.85rem" }}
+              style={{ textAlign: "right", opacity: 0.9, fontSize: "0.85rem" }}
             >
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 6, color: "#1bd25e" }}>
-                <IconUsers size={16} /> <b>{participantsCount}</b>
+              <div style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                background: "rgba(30, 30, 30, 0.7)",
+                backdropFilter: "blur(4px)",
+                border: "1px solid rgba(255, 255, 255, 0.1)",
+                borderRadius: "20px",
+                padding: "6px 14px",
+                color: "#e0e0e0",
+                fontSize: "0.95rem",
+                fontWeight: 600,
+                boxShadow: "0 4px 6px rgba(0,0,0,0.3)",
+                marginBottom: "8px"
+              }}>
+                <div style={{
+                  width: "12px",
+                  height: "12px",
+                  borderRadius: "50%",
+                  backgroundColor: "#2ecc71",
+                  boxShadow: "0 0 8px #2ecc71"
+                }} />
+                {participantsCount} pessoa{participantsCount !== 1 ? 's' : ''}
               </div>
               {state.queue.length > 0 && (
                 <div>
