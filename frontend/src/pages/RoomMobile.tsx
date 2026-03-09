@@ -1328,25 +1328,80 @@ export default function RoomMobile() {
                       ? singerNames.join(" e ")
                       : singerNames[0] || item.requestedBy;
                   return (
-                    <div key={item.id} className="queue-item">
-                      <span>
-                        {i + 1}.{" "}
-                        <TruncatedText text={item.title} maxLength={35} />
-                      </span>
-                      <span style={{ color: "#888" }}>{singersDisplay}</span>
+                    <div
+                      key={item.id}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 12,
+                        background: "#1e1e1e",
+                        borderRadius: 12,
+                        padding: "12px 16px",
+                        marginBottom: 10,
+                        border: "1px solid rgba(255,255,255,0.05)",
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontSize: "1rem",
+                          fontWeight: 700,
+                          color: "#888",
+                          minWidth: 24,
+                        }}
+                      >
+                        {i + 1}
+                      </div>
+                      <div
+                        style={{
+                          flex: 1,
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 4,
+                          minWidth: 0, /* Ensures truncation works */
+                        }}
+                      >
+                        <div
+                          style={{
+                            fontSize: "1rem",
+                            fontWeight: 600,
+                            color: "#fff",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          }}
+                        >
+                          {item.title}
+                        </div>
+                        <div
+                          style={{
+                            fontSize: "0.85rem",
+                            color: "#aaa",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          }}
+                        >
+                          Pedido por: <span style={{ color: "#ec4899", fontWeight: 500 }}>{singersDisplay}</span>
+                        </div>
+                      </div>
+
                       {(isHost || item.requesterId === myUserId) && (
                         <button
                           onClick={() => handleQueueRemove(item.id)}
                           style={{
-                            padding: "4px 8px",
-                            background: "rgba(192, 57, 43, 0.2)",
-                            color: "#e74c3c",
-                            border: "none",
-                            borderRadius: 4,
+                            padding: 10,
+                            background: "rgba(231, 76, 60, 0.15)",
+                            color: "#ff5252",
+                            border: "1px solid rgba(231, 76, 60, 0.2)",
+                            borderRadius: 8,
                             cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            flexShrink: 0,
                           }}
                         >
-                          <IconTrash size={14} />
+                          <IconTrash size={16} />
                         </button>
                       )}
                     </div>
