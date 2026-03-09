@@ -72,7 +72,7 @@ export default function ScoreOverlay({
 
       if (enableAudio) {
         // best-effort; browsers may block until a user gesture
-        void drums.play().catch(() => {});
+        void drums.play().catch(() => { });
       }
 
       const drumDuration = 4100;
@@ -113,25 +113,18 @@ export default function ScoreOverlay({
 
   return (
     <div className="pk-score">
-      <div className="pk-score__your">Sua Pontuação</div>
-      <div className="pk-score__number">{scoreText}</div>
-      <div className="pk-score__review">
-        {singer ? (
-          <div
-            style={{
-              fontSize: "2rem",
-              marginBottom: 8,
-              opacity: 0.9,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 10,
-            }}
-          >
+      <div className="pk-score__content">
+        <div className="pk-score__your">Sua Pontuação</div>
+        <div className="pk-score__number">{scoreText}</div>
+        <div className="pk-score__divider" />
+        {singer && (
+          <div className="pk-score__singer">
             <IconMic size={28} /> {singer}
           </div>
-        ) : null}
-        <div>{reviewText}</div>
+        )}
+        {reviewText && (
+          <div className="pk-score__review-text">{reviewText}</div>
+        )}
       </div>
       <canvas ref={canvasRef} className="pk-score__canvas" />
     </div>
