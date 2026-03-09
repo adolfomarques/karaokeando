@@ -143,11 +143,11 @@ export async function updateUserName(
   return res.json();
 }
 
-export async function removeQueueItem(roomCode: string, itemId: string) {
+export async function removeQueueItem(roomCode: string, itemId: string, userId?: string) {
   const res = await fetch(`${API_BASE}/api/rooms/${roomCode}/queue/remove`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ itemId }),
+    body: JSON.stringify({ itemId, userId }),
   });
   return res.json();
 }
@@ -258,7 +258,7 @@ export function connectWS(
     console.error("[WS] Error", err);
   };
 
-  ws.onclose = () => {};
+  ws.onclose = () => { };
 
   return ws;
 }

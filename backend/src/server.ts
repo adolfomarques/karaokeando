@@ -36,6 +36,7 @@ interface QueueItem {
   videoId: string;
   title: string;
   requestedBy: string;
+  requesterId: string; // ID of the user who added the song
   singers: Singer[]; // All singers with their IDs
 }
 
@@ -59,6 +60,8 @@ interface RoomState {
   queue: QueueItem[];
   ranking: Record<string, RankingEntry | number>; // odUserId -> { name, score } OR old format name -> score
   duetRanking?: Record<string, DuetRankingEntry>; // "id1|id2" -> { names, score, count }
+  ownerId: string; // The user who created the room
+  lastEnqueueAt: Record<string, number>; // userId -> timestamp of last successful enqueue
   lastFinalizeMs: number;
   showingScore: boolean; // true while TV is showing score overlay
 }
@@ -195,12 +198,12 @@ function getRoomState(room: RoomState) {
     roomCode: room.code,
     nowPlaying: room.nowPlaying
       ? {
-          id: room.nowPlaying.id,
-          videoId: room.nowPlaying.videoId,
-          title: room.nowPlaying.title,
-          requestedBy: room.nowPlaying.requestedBy,
-          singers: room.nowPlaying.singers,
-        }
+        id: room.nowPlaying.id,
+        videoId: room.nowPlaying.videoId,
+        title: room.nowPlaying.title,
+        requestedBy: room.nowPlaying.requestedBy,
+        singers: room.nowPlaying.singers,
+      }
       : null,
     queue: room.queue.map(item => ({
       id: item.id,
@@ -212,6 +215,8 @@ function getRoomState(room: RoomState) {
     ranking: rankingForFrontend,
     duetRanking: duetRankingArray,
     showingScore: room.showingScore,
+    ownerId: room.ownerId,
+    lastEnqueueAt: room.lastEnqueueAt,
   };
 }
 
@@ -335,6 +340,8 @@ async function getOrRestoreRoom(roomCode: string): Promise<RoomState | null> {
       queue: [],
       ranking: {},
       duetRanking: {},
+      ownerId: dbRoom.ownerId,
+      lastEnqueueAt: {},
       lastFinalizeMs: 0,
       showingScore: false,
     };
@@ -386,6 +393,8 @@ setRoomCallbacks({
         queue: [],
         ranking: {},
         duetRanking: {},
+        ownerId: ownerId,
+        lastEnqueueAt: {},
         lastFinalizeMs: 0,
         showingScore: false,
       });
@@ -452,6 +461,21 @@ app.post<{
 
   if (!videoId) return reply.code(400).send({ error: "missing_videoId" });
 
+  // 3-minute cooldown for non-hosts
+  const isHost = odUserId === room.ownerId;
+  const THREE_MINUTES = 3 * 60 * 1000;
+  const lastEnqueue = room.lastEnqueueAt[odUserId] || 0;
+  const now = Date.now();
+
+  if (!isHost && now - lastEnqueue < THREE_MINUTES) {
+    const remaining = Math.ceil((THREE_MINUTES - (now - lastEnqueue)) / 1000);
+    return reply.code(429).send({
+      error: "cooldown",
+      remainingSeconds: remaining,
+      message: `Aguarde ${remaining} segundos para adicionar outra música.`,
+    });
+  }
+
   // Build singers array with IDs
   const singers: Singer[] = [{ id: odUserId, name: requestedBy }];
   if (partner && partner !== requestedBy && partnerId) {
@@ -463,9 +487,11 @@ app.post<{
     videoId,
     title,
     requestedBy,
+    requesterId: odUserId,
     singers,
   };
   room.queue.push(item);
+  room.lastEnqueueAt[odUserId] = now;
 
   // Auto-save to database library (upsert - creates if not exists)
   addSongToLibrary(videoId, title, requestedBy).catch(() => {
@@ -513,21 +539,34 @@ app.post<{ Params: { roomCode: string } }>(
   }
 );
 
-// Queue management (host controls)
+// Queue management (host/requester controls)
 app.post<{
   Params: { roomCode: string };
-  Body: { itemId: string };
+  Body: { itemId: string; userId?: string };
 }>("/api/rooms/:roomCode/queue/remove", async (req, reply) => {
   const room = await getOrRestoreRoom(req.params.roomCode);
   if (!room) return reply.code(404).send({ error: "room_not_found" });
 
   const itemId = (req.body.itemId || "").trim();
+  const userId = (req.body.userId || "").trim();
   if (!itemId) return reply.code(400).send({ error: "missing_itemId" });
 
-  const before = room.queue.length;
+  const item = room.queue.find(i => i.id === itemId);
+  if (!item) return reply.code(404).send({ error: "not_found" });
+
+  // Permissions: Host OR Requester
+  const isHost = userId === room.ownerId;
+  const isRequester = userId === item.requesterId;
+
+  if (!isHost && !isRequester) {
+    return reply.code(403).send({ error: "forbidden", message: "Apenas o dono da sala ou quem adicionou a música pode removê-la." });
+  }
+
   room.queue = room.queue.filter(i => i.id !== itemId);
-  if (room.queue.length === before) {
-    return reply.code(404).send({ error: "not_found" });
+
+  // If requester removed their own song, clear cooldown
+  if (isRequester) {
+    delete room.lastEnqueueAt[userId];
   }
 
   broadcast(room.code, { type: "STATE", state: getRoomState(room) });
@@ -664,8 +703,8 @@ app.post<{ Params: { roomCode: string }; Body: { requester?: string } }>(
     const singerDisplay =
       singerNames.length > 1
         ? singerNames.slice(0, -1).join(", ") +
-          " e " +
-          singerNames[singerNames.length - 1]
+        " e " +
+        singerNames[singerNames.length - 1]
         : singerNames[0];
 
     // Set showingScore flag - TV will clear it when done
@@ -1107,7 +1146,7 @@ app.get<{ Params: { roomCode: string } }>(
               broadcastParticipants(roomCode);
 
               // Record room visit (async, don't wait)
-              recordRoomVisit(roomCode, odUserId).catch(() => {});
+              recordRoomVisit(roomCode, odUserId).catch(() => { });
             }
           } else {
             // Legacy flow: no token (for users without accounts yet)

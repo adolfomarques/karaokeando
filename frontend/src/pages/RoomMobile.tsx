@@ -12,6 +12,7 @@ import {
   sendPlayerCommand,
   nextSong,
   finalizeSong,
+  removeQueueItem,
   searchYouTube,
   getVideoInfo,
   updateUserName,
@@ -30,6 +31,7 @@ interface QueueItem {
   videoId: string;
   title: string;
   requestedBy: string;
+  requesterId: string;
   singers?: Singer[];
 }
 
@@ -56,6 +58,8 @@ interface RoomState {
   ranking: Record<string, RankingEntry>;
   duetRanking: DuetRankingEntry[];
   showingScore: boolean;
+  ownerId: string;
+  lastEnqueueAt: Record<string, number>;
 }
 
 type Tab = "queue" | "ranking" | "saved";
@@ -404,6 +408,7 @@ export default function RoomMobile() {
     source: "search" | "library" | "top";
   } | null>(null);
   const [modalPartner, setModalPartner] = useState<string>(""); // Partner ID selected in modal
+  const [cooldownRemaining, setCooldownRemaining] = useState<number>(0);
   const wsRef = useRef<WebSocket | null>(null);
 
   // Check auth on mount
@@ -422,6 +427,30 @@ export default function RoomMobile() {
   }, [user?.name, nickname]);
 
   const myUserId = user?.id || "";
+  const isHost = state?.ownerId === myUserId;
+
+  // Cooldown effect
+  useEffect(() => {
+    if (!state || isHost) {
+      setCooldownRemaining(0);
+      return;
+    }
+
+    const last = state.lastEnqueueAt[myUserId] || 0;
+    const now = Date.now();
+    const diff = now - last;
+    const THREE_MINUTES = 3 * 60 * 1000;
+
+    if (diff < THREE_MINUTES) {
+      setCooldownRemaining(Math.ceil((THREE_MINUTES - diff) / 1000));
+      const timer = setInterval(() => {
+        setCooldownRemaining(prev => Math.max(0, prev - 1));
+      }, 1000);
+      return () => clearInterval(timer);
+    } else {
+      setCooldownRemaining(0);
+    }
+  }, [state, myUserId, isHost]);
 
   const handleSaveName = async () => {
     const trimmed = nameInput.trim();
@@ -451,10 +480,10 @@ export default function RoomMobile() {
   useEffect(() => {
     getSongLibrary()
       .then(setSongLibrary)
-      .catch(() => {});
+      .catch(() => { });
     getTopSongs(10)
       .then(setTopSongs)
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   // Salvar última sala visitada
@@ -478,7 +507,7 @@ export default function RoomMobile() {
           setState(s);
         }
       })
-      .catch(() => {});
+      .catch(() => { });
 
     const ws = connectWS(
       code,
@@ -540,7 +569,7 @@ export default function RoomMobile() {
           setParticipants(data.participants);
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }, [code]);
 
   // Refresh song library when tab changes to saved
@@ -548,7 +577,7 @@ export default function RoomMobile() {
     if (tab === "saved") {
       getSongLibrary()
         .then(setSongLibrary)
-        .catch(() => {});
+        .catch(() => { });
     }
   }, [tab]);
 
@@ -571,8 +600,8 @@ export default function RoomMobile() {
   // Filter library songs that match query
   const matchingLibrarySongs = searchQuery.trim()
     ? songLibrary.filter(song =>
-        song.title.toLowerCase().includes(searchQuery.toLowerCase())
-      )
+      song.title.toLowerCase().includes(searchQuery.toLowerCase())
+    )
     : [];
 
   const handleSearch = async () => {
@@ -664,6 +693,7 @@ export default function RoomMobile() {
 
   // Opens modal to choose solo/duet for search result
   const handleAddFromSearch = (result: YouTubeSearchResult) => {
+    if (cooldownRemaining > 0) return;
     const title =
       isLinkMode && customTitle.trim() ? customTitle.trim() : result.title;
     openAddSongModal(result.videoId, title, "search");
@@ -714,7 +744,16 @@ export default function RoomMobile() {
     // Refresh library
     getSongLibrary()
       .then(setSongLibrary)
-      .catch(() => {});
+      .catch(() => { });
+  };
+
+  const handleQueueRemove = async (itemId: string) => {
+    if (!code) return;
+    try {
+      await removeQueueItem(code, itemId, myUserId);
+    } catch (err) {
+      console.error("Error removing song", err);
+    }
   };
 
   // Legacy function - now opens modal
@@ -1149,7 +1188,7 @@ export default function RoomMobile() {
               <div style={{ display: "flex", gap: 8 }}>
                 <button
                   onClick={() => {
-                    if (code) {
+                    if (code && isHost) {
                       sendPlayerCommand(code, isPlaying ? "pause" : "play");
                       setIsPlaying(!isPlaying);
                     }
@@ -1162,6 +1201,8 @@ export default function RoomMobile() {
                     alignItems: "center",
                     justifyContent: "center",
                     gap: 6,
+                    opacity: isHost ? 1 : 0.5,
+                    cursor: isHost ? "pointer" : "not-allowed",
                   }}
                 >
                   {isPlaying ? (
@@ -1175,7 +1216,7 @@ export default function RoomMobile() {
                   )}
                 </button>
                 <button
-                  onClick={() => code && finalizeSong(code, nickname)}
+                  onClick={() => code && isHost && finalizeSong(code, nickname)}
                   style={{
                     flex: 1,
                     background: "#e74c3c",
@@ -1184,6 +1225,8 @@ export default function RoomMobile() {
                     alignItems: "center",
                     justifyContent: "center",
                     gap: 6,
+                    opacity: isHost ? 1 : 0.5,
+                    cursor: isHost ? "pointer" : "not-allowed",
                   }}
                 >
                   <IconSkipForward size={16} /> Pular
@@ -1251,17 +1294,19 @@ export default function RoomMobile() {
                       .join(" e ") || state.queue[0].requestedBy}
                   </div>
                   <button
-                    onClick={() => code && nextSong(code)}
+                    onClick={() => code && isHost && nextSong(code)}
                     style={{
-                      background: "#2ecc71",
+                      background: isHost ? "#2ecc71" : "#444",
                       width: "100%",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                       gap: 8,
+                      cursor: isHost ? "pointer" : "not-allowed",
+                      opacity: isHost ? 1 : 0.7,
                     }}
                   >
-                    <IconPlay size={18} /> Começar!
+                    <IconPlay size={18} /> {isHost ? "Começar!" : "Aguardando Host..."}
                   </button>
                 </>
               ) : (
@@ -1300,6 +1345,21 @@ export default function RoomMobile() {
                         <TruncatedText text={item.title} maxLength={35} />
                       </span>
                       <span style={{ color: "#888" }}>{singersDisplay}</span>
+                      {(isHost || item.requesterId === myUserId) && (
+                        <button
+                          onClick={() => handleQueueRemove(item.id)}
+                          style={{
+                            padding: "4px 8px",
+                            background: "rgba(192, 57, 43, 0.2)",
+                            color: "#e74c3c",
+                            border: "none",
+                            borderRadius: 4,
+                            cursor: "pointer",
+                          }}
+                        >
+                          <IconTrash size={14} />
+                        </button>
+                      )}
                     </div>
                   );
                 }
@@ -1562,18 +1622,21 @@ export default function RoomMobile() {
                         </div>
                         <button
                           onClick={() => handleAddFromSearch(result)}
-                          disabled={adding === result.videoId}
+                          disabled={adding === result.videoId || cooldownRemaining > 0}
                           style={{
                             width: "100%",
-                            background: "#2ecc71",
+                            background: cooldownRemaining > 0 ? "#444" : "#2ecc71",
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
                             gap: 8,
+                            cursor: cooldownRemaining > 0 ? "not-allowed" : "pointer",
                           }}
                         >
                           {adding === result.videoId ? (
                             "Adicionando..."
+                          ) : cooldownRemaining > 0 ? (
+                            "Aguarde"
                           ) : (
                             <>
                               <IconPlus size={16} /> Adicionar à fila
@@ -1677,10 +1740,10 @@ export default function RoomMobile() {
                             i === 0
                               ? "#f1c40f"
                               : i === 1
-                              ? "#bdc3c7"
-                              : i === 2
-                              ? "#cd6133"
-                              : "#555",
+                                ? "#bdc3c7"
+                                : i === 2
+                                  ? "#cd6133"
+                                  : "#555",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
@@ -1697,58 +1760,58 @@ export default function RoomMobile() {
                 ))
             )
           ) : // Duet ranking
-          !state.duetRanking || state.duetRanking.length === 0 ? (
-            <p style={{ color: "#888" }}>Nenhuma dupla pontuou ainda</p>
-          ) : (
-            [...state.duetRanking]
-              .sort((a, b) => b.score - a.score)
-              .map((duet, i) => (
-                <div key={duet.names.join("-")} className="ranking-item">
-                  <span
-                    style={{ display: "flex", alignItems: "center", gap: 8 }}
-                  >
+            !state.duetRanking || state.duetRanking.length === 0 ? (
+              <p style={{ color: "#888" }}>Nenhuma dupla pontuou ainda</p>
+            ) : (
+              [...state.duetRanking]
+                .sort((a, b) => b.score - a.score)
+                .map((duet, i) => (
+                  <div key={duet.names.join("-")} className="ranking-item">
+                    <span
+                      style={{ display: "flex", alignItems: "center", gap: 8 }}
+                    >
+                      <span
+                        style={{
+                          width: 24,
+                          height: 24,
+                          borderRadius: "50%",
+                          background:
+                            i === 0
+                              ? "#f1c40f"
+                              : i === 1
+                                ? "#bdc3c7"
+                                : i === 2
+                                  ? "#cd6133"
+                                  : "#555",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: "0.75rem",
+                          fontWeight: 700,
+                        }}
+                      >
+                        {i + 1}
+                      </span>
+                      <span>
+                        {duet.names[0]} & {duet.names[1]}
+                      </span>
+                    </span>
                     <span
                       style={{
-                        width: 24,
-                        height: 24,
-                        borderRadius: "50%",
-                        background:
-                          i === 0
-                            ? "#f1c40f"
-                            : i === 1
-                            ? "#bdc3c7"
-                            : i === 2
-                            ? "#cd6133"
-                            : "#555",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: "0.75rem",
                         fontWeight: 700,
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "flex-end",
                       }}
                     >
-                      {i + 1}
+                      <span>{duet.score} pts</span>
+                      <span style={{ fontSize: "0.7rem", color: "#888" }}>
+                        {duet.count} música{duet.count > 1 ? "s" : ""}
+                      </span>
                     </span>
-                    <span>
-                      {duet.names[0]} & {duet.names[1]}
-                    </span>
-                  </span>
-                  <span
-                    style={{
-                      fontWeight: 700,
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "flex-end",
-                    }}
-                  >
-                    <span>{duet.score} pts</span>
-                    <span style={{ fontSize: "0.7rem", color: "#888" }}>
-                      {duet.count} música{duet.count > 1 ? "s" : ""}
-                    </span>
-                  </span>
-                </div>
-              ))
-          )}
+                  </div>
+                ))
+            )}
         </div>
       )}
 
@@ -1788,10 +1851,10 @@ export default function RoomMobile() {
                           i === 0
                             ? "#f1c40f"
                             : i === 1
-                            ? "#bdc3c7"
-                            : i === 2
-                            ? "#cd6133"
-                            : "#555",
+                              ? "#bdc3c7"
+                              : i === 2
+                                ? "#cd6133"
+                                : "#555",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
@@ -1828,14 +1891,15 @@ export default function RoomMobile() {
                       onClick={() =>
                         openAddSongModal(song.videoId, song.title, "top")
                       }
-                      disabled={adding === song.videoId}
+                      disabled={adding === song.videoId || cooldownRemaining > 0}
                       style={{
                         padding: "8px 12px",
                         fontSize: "0.8rem",
-                        background: "#2ecc71",
+                        background: cooldownRemaining > 0 ? "#444" : "#2ecc71",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
+                        cursor: cooldownRemaining > 0 ? "not-allowed" : "pointer",
                       }}
                     >
                       <IconPlus size={16} />
@@ -1904,44 +1968,49 @@ export default function RoomMobile() {
                       </div>
                       <button
                         onClick={() => handleAddFromSaved(song)}
-                        disabled={adding === song.videoId}
+                        disabled={adding === song.videoId || cooldownRemaining > 0}
                         style={{
                           padding: "8px 12px",
                           fontSize: "0.85rem",
-                          background: "#2ecc71",
+                          background: cooldownRemaining > 0 ? "#444" : "#2ecc71",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
+                          cursor: cooldownRemaining > 0 ? "not-allowed" : "pointer",
                         }}
                       >
                         {adding === song.videoId ? (
                           "..."
+                        ) : cooldownRemaining > 0 ? (
+                          "Aguarde"
                         ) : (
                           <IconPlus size={16} />
                         )}
                       </button>
-                      <button
-                        onClick={() => handleDeleteSaved(song.id)}
-                        style={{
-                          padding: "8px 12px",
-                          fontSize: "0.85rem",
-                          background: "#c0392b",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <IconTrash size={16} />
-                      </button>
+                      {isHost && (
+                        <button
+                          onClick={() => handleDeleteSaved(song.id)}
+                          style={{
+                            padding: "8px 12px",
+                            fontSize: "0.85rem",
+                            background: "#c0392b",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          <IconTrash size={16} />
+                        </button>
+                      )}
                     </div>
                   ))}
                 {songLibrary.filter(song =>
                   song.title.toLowerCase().includes(savedFilter.toLowerCase())
                 ).length === 0 && (
-                  <p style={{ color: "#888", textAlign: "center" }}>
-                    Nenhuma música encontrada
-                  </p>
-                )}
+                    <p style={{ color: "#888", textAlign: "center" }}>
+                      Nenhuma música encontrada
+                    </p>
+                  )}
               </div>
             </>
           )}

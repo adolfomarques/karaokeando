@@ -287,6 +287,8 @@ export default function RoomTV() {
   const [rankingView, setRankingView] = useState<RankingView>("solo");
   const [autoRotate, setAutoRotate] = useState(true);
   const [authChecked, setAuthChecked] = useState(false);
+  const [hasInteracted, setHasInteracted] = useState(false);
+  const [autoPlayCountdown, setAutoPlayCountdown] = useState<number | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const playerRef = useRef<YTPlayer | null>(null);
   const playerContainerRef = useRef<HTMLDivElement | null>(null);
@@ -312,10 +314,25 @@ export default function RoomTV() {
     return () => clearInterval(interval);
   }, [autoRotate]);
 
+  // Global listener for user interaction to allow autoplay
+  useEffect(() => {
+    const handler = () => setHasInteracted(true);
+    window.addEventListener("click", handler, { once: true });
+    window.addEventListener("touchstart", handler, { once: true });
+    window.addEventListener("keydown", handler, { once: true });
+    return () => {
+      window.removeEventListener("click", handler);
+      window.removeEventListener("touchstart", handler);
+      window.removeEventListener("keydown", handler);
+    };
+  }, []);
+
+  const [ytReady, setYtReady] = useState(!!window.YT);
+
   const handleQueueRemove = useCallback(
     async (itemId: string) => {
       if (!code) return;
-      await removeQueueItem(code, itemId).catch(() => {});
+      await removeQueueItem(code, itemId).catch(() => { });
     },
     [code]
   );
@@ -323,7 +340,7 @@ export default function RoomTV() {
   const handleQueueMove = useCallback(
     async (itemId: string, direction: "up" | "down") => {
       if (!code) return;
-      await moveQueueItem(code, itemId, direction).catch(() => {});
+      await moveQueueItem(code, itemId, direction).catch(() => { });
     },
     [code]
   );
@@ -331,12 +348,10 @@ export default function RoomTV() {
   const handleQueueToTop = useCallback(
     async (itemId: string) => {
       if (!code) return;
-      await queueItemToTop(code, itemId).catch(() => {});
+      await queueItemToTop(code, itemId).catch(() => { });
     },
     [code]
   );
-  const [ytReady, setYtReady] = useState(!!window.YT);
-
   // Truncated text with tooltip on hover
   const TruncatedText = ({
     text,
@@ -395,6 +410,31 @@ export default function RoomTV() {
   // Derive values from state (safe even when state is null)
   const videoId = state?.nowPlaying?.videoId ?? null;
   const showScore = !!finalized;
+
+  // Auto-play next song countdown
+  useEffect(() => {
+    // Only start countdown if there's a queue, nothing is playing, and no score is showing
+    if (!state || state.nowPlaying || showScore || state.queue.length === 0) {
+      setAutoPlayCountdown(null);
+      return;
+    }
+
+    if (autoPlayCountdown === null) {
+      setAutoPlayCountdown(10);
+      return;
+    }
+
+    if (autoPlayCountdown > 0) {
+      const timer = setTimeout(() => {
+        setAutoPlayCountdown(prev => (prev !== null ? prev - 1 : null));
+      }, 1000);
+      return () => clearTimeout(timer);
+    } else if (autoPlayCountdown === 0 && code) {
+      // Countdown finished, play next song
+      nextSong(code);
+      setAutoPlayCountdown(null);
+    }
+  }, [state, showScore, autoPlayCountdown, code]);
 
   // Auto-finalize when YouTube video ends
   const handleVideoEnd = useCallback(async () => {
@@ -634,6 +674,46 @@ export default function RoomTV() {
 
   return (
     <>
+      {!hasInteracted && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.9)",
+            zIndex: 9999,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "#fff",
+          }}
+          onClick={() => setHasInteracted(true)}
+        >
+          <div style={{ padding: 40, textAlign: "center", background: "#222", borderRadius: 16 }}>
+            <IconPlay size={64} />
+            <h2 style={{ fontSize: "2rem", margin: "20px 0 10px" }}>Clique para Ativar a TV</h2>
+            <p style={{ color: "#aaa", fontSize: "1.1rem", maxWidth: 400 }}>
+              Navegadores bloqueiam vídeos automáticos. Clique em qualquer lugar desta tela uma vez para o karaokê funcionar sozinho.
+            </p>
+            <button
+              style={{
+                marginTop: 24,
+                background: "#ff4081",
+                color: "#fff",
+                border: "none",
+                padding: "16px 32px",
+                fontSize: "1.2rem",
+                fontWeight: "bold",
+                borderRadius: 8,
+                cursor: "pointer",
+              }}
+            >
+              Começar Sessão
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* ─────────────────────────────────────────────────────────────
           MODO 1: TELA CHEIA - Quando está tocando música
           ───────────────────────────────────────────────────────────── */}
@@ -938,7 +1018,10 @@ export default function RoomTV() {
                       }}
                     >
                       <button
-                        onClick={() => code && nextSong(code)}
+                        onClick={() => {
+                          setAutoPlayCountdown(null);
+                          if (code) nextSong(code);
+                        }}
                         style={{
                           background: "white",
                           color: "#7c4dff",
@@ -950,7 +1033,10 @@ export default function RoomTV() {
                           gap: 10,
                         }}
                       >
-                        <IconPlay size={20} /> Começar!
+                        <IconPlay size={20} />
+                        {autoPlayCountdown !== null
+                          ? `Começar! (${autoPlayCountdown}s)`
+                          : "Começar!"}
                       </button>
                       <button
                         onClick={() => handleQueueRemove(state.queue[0].id)}
@@ -1200,10 +1286,10 @@ export default function RoomTV() {
                                   i === 0
                                     ? "#f1c40f"
                                     : i === 1
-                                    ? "#bdc3c7"
-                                    : i === 2
-                                    ? "#cd6133"
-                                    : "#555",
+                                      ? "#bdc3c7"
+                                      : i === 2
+                                        ? "#cd6133"
+                                        : "#555",
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
@@ -1228,82 +1314,82 @@ export default function RoomTV() {
                   </div>
                 )
               ) : // Duet ranking
-              !state.duetRanking || state.duetRanking.length === 0 ? (
-                <p style={{ color: "#888", fontSize: "1.1rem" }}>
-                  Nenhuma dupla pontuou ainda.
-                  <br />
-                  Cante em dupla para aparecer aqui!
-                </p>
-              ) : (
-                <div>
-                  {[...state.duetRanking]
-                    .sort((a, b) => b.score - a.score)
-                    .map((duet, i) => (
-                      <div
-                        key={duet.names.join("-")}
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                          padding: "12px 0",
-                          borderBottom: "1px solid #333",
-                          fontSize: i < 3 ? "1.2rem" : "1rem",
-                        }}
-                      >
-                        <span
+                !state.duetRanking || state.duetRanking.length === 0 ? (
+                  <p style={{ color: "#888", fontSize: "1.1rem" }}>
+                    Nenhuma dupla pontuou ainda.
+                    <br />
+                    Cante em dupla para aparecer aqui!
+                  </p>
+                ) : (
+                  <div>
+                    {[...state.duetRanking]
+                      .sort((a, b) => b.score - a.score)
+                      .map((duet, i) => (
+                        <div
+                          key={duet.names.join("-")}
                           style={{
                             display: "flex",
+                            justifyContent: "space-between",
                             alignItems: "center",
-                            gap: 10,
+                            padding: "12px 0",
+                            borderBottom: "1px solid #333",
+                            fontSize: i < 3 ? "1.2rem" : "1rem",
                           }}
                         >
                           <span
                             style={{
-                              width: 28,
-                              height: 28,
-                              borderRadius: "50%",
-                              background:
-                                i === 0
-                                  ? "#f1c40f"
-                                  : i === 1
-                                  ? "#bdc3c7"
-                                  : i === 2
-                                  ? "#cd6133"
-                                  : "#555",
                               display: "flex",
                               alignItems: "center",
-                              justifyContent: "center",
-                              fontSize: "0.85rem",
-                              fontWeight: 700,
+                              gap: 10,
                             }}
                           >
-                            {i + 1}
+                            <span
+                              style={{
+                                width: 28,
+                                height: 28,
+                                borderRadius: "50%",
+                                background:
+                                  i === 0
+                                    ? "#f1c40f"
+                                    : i === 1
+                                      ? "#bdc3c7"
+                                      : i === 2
+                                        ? "#cd6133"
+                                        : "#555",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                fontSize: "0.85rem",
+                                fontWeight: 700,
+                              }}
+                            >
+                              {i + 1}
+                            </span>
+                            {duet.names[0]} & {duet.names[1]}
                           </span>
-                          {duet.names[0]} & {duet.names[1]}
-                        </span>
-                        <span
-                          style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "flex-end",
-                          }}
-                        >
                           <span
                             style={{
-                              fontWeight: 700,
-                              color: i === 0 ? "#ffd700" : "inherit",
+                              display: "flex",
+                              flexDirection: "column",
+                              alignItems: "flex-end",
                             }}
                           >
-                            {duet.score} pts
+                            <span
+                              style={{
+                                fontWeight: 700,
+                                color: i === 0 ? "#ffd700" : "inherit",
+                              }}
+                            >
+                              {duet.score} pts
+                            </span>
+                            <span style={{ fontSize: "0.8rem", color: "#888" }}>
+                              {duet.count} música{duet.count > 1 ? "s" : ""}
+                            </span>
                           </span>
-                          <span style={{ fontSize: "0.8rem", color: "#888" }}>
-                            {duet.count} música{duet.count > 1 ? "s" : ""}
-                          </span>
-                        </span>
-                      </div>
-                    ))}
-                </div>
-              )}
+                        </div>
+                      ))}
+                  </div>
+                )}
             </div>
           </div>
         </div>
@@ -1322,7 +1408,7 @@ export default function RoomTV() {
             try {
               const s = await getState(code);
               if (s && !s.error) setState(s);
-            } catch {}
+            } catch { }
             scoreDone(code);
           }
         }}
