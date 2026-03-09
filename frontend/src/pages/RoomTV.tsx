@@ -11,6 +11,7 @@ import {
   scoreDone,
 } from "../api";
 import ScoreOverlay from "../components/ScoreOverlay";
+import toast, { Toaster } from "react-hot-toast";
 
 // Declare global YouTube IFrame API types
 declare global {
@@ -290,9 +291,80 @@ export default function RoomTV() {
   const [tvToken, setTvToken] = useState<string | null>(null);
   const [hasInteracted, setHasInteracted] = useState(false);
   const [autoPlayCountdown, setAutoPlayCountdown] = useState<number | null>(null);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const isTransitioningRef = useRef(false);
   const wsRef = useRef<WebSocket | null>(null);
   const playerRef = useRef<YTPlayer | null>(null);
   const playerContainerRef = useRef<HTMLDivElement | null>(null);
+
+  // Track previous queue for toasts
+  const prevQueueRef = useRef<QueueItem[]>([]);
+  const isInitialLoadRef = useRef(true);
+
+  // Toast notifications for new songs in queue
+  useEffect(() => {
+    if (!state) return;
+
+    if (isInitialLoadRef.current) {
+      isInitialLoadRef.current = false;
+      prevQueueRef.current = state.queue;
+      return;
+    }
+
+    const newItems = state.queue.filter(
+      item => !prevQueueRef.current.some(prev => prev.id === item.id)
+    );
+
+    newItems.forEach(item => {
+      toast.custom((t) => (
+        <div
+          style={{
+            background: 'rgba(26, 28, 41, 0.95)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.5)',
+            borderRadius: '12px',
+            padding: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            maxWidth: '350px',
+            color: 'white',
+            opacity: t.visible ? 1 : 0,
+            transition: 'opacity 0.3s ease-in-out',
+          }}
+        >
+          <div style={{
+            width: '40px',
+            height: '40px',
+            borderRadius: '50%',
+            background: 'linear-gradient(135deg, #a855f7, #ec4899)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '1.2rem',
+            flexShrink: 0,
+            boxShadow: '0 4px 10px rgba(236, 72, 153, 0.3)'
+          }}>
+            🎵
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: '0.85rem', color: '#a0aec0', marginBottom: '2px', fontWeight: 500 }}>
+              Nova música na fila
+            </div>
+            <div style={{ fontSize: '1rem', fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {item.title}
+            </div>
+            <div style={{ fontSize: '0.85rem', color: '#e2e8f0', marginTop: '2px' }}>
+              Pedido por <span style={{ color: '#ec4899', fontWeight: 600 }}>{item.requestedBy}</span>
+            </div>
+          </div>
+        </div>
+      ), { duration: 5000 });
+    });
+
+    prevQueueRef.current = state.queue;
+  }, [state?.queue]);
 
   // Check for tvToken on mount
   useEffect(() => {
@@ -416,7 +488,7 @@ export default function RoomTV() {
   // Auto-play next song countdown
   useEffect(() => {
     // Only start countdown if there's a queue, nothing is playing, and no score is showing
-    if (!state || state.nowPlaying || showScore || state.queue.length === 0) {
+    if (!state || state.nowPlaying || showScore || state.queue.length === 0 || isTransitioning) {
       setAutoPlayCountdown(null);
       return;
     }
@@ -431,12 +503,19 @@ export default function RoomTV() {
         setAutoPlayCountdown(prev => (prev !== null ? prev - 1 : null));
       }, 1000);
       return () => clearTimeout(timer);
-    } else if (autoPlayCountdown === 0 && code) {
+    } else if (autoPlayCountdown === 0 && code && !isTransitioningRef.current) {
       // Countdown finished, play next song
-      nextSong(code, undefined, tvToken);
+      console.log("[TV] Countdown finished, advancing queue...");
+      isTransitioningRef.current = true;
+      setIsTransitioning(true);
+      nextSong(code, undefined, tvToken).catch(err => {
+        console.error("[TV] nextSong error", err);
+        isTransitioningRef.current = false;
+        setIsTransitioning(false);
+      });
       setAutoPlayCountdown(null);
     }
-  }, [state, showScore, autoPlayCountdown, code, tvToken]);
+  }, [state, showScore, autoPlayCountdown, code, tvToken, isTransitioning]);
 
   // Auto-finalize when YouTube video ends
   const handleVideoEnd = useCallback(async () => {
@@ -501,6 +580,12 @@ export default function RoomTV() {
           action?: string;
         };
         if (m.type === "STATE" && m.state) {
+          // Reset transitioning flag if something is now playing OR queue is empty (processed)
+          if (m.state.nowPlaying || m.state.queue.length === 0) {
+            isTransitioningRef.current = false;
+            setIsTransitioning(false);
+          }
+
           // Don't update state while showing score to avoid re-triggering
           setFinalized(prev => {
             if (!prev) {
@@ -526,8 +611,28 @@ export default function RoomTV() {
     );
     wsRef.current = ws;
 
-    return () => ws.close();
-  }, [code, authChecked]);
+    // Polling fallback to maintain state if WebSocket fails
+    const pollInterval = setInterval(() => {
+      if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+        getState(code)
+          .then(s => {
+            if (s && !s.error && !finalized) {
+              setState(s);
+              if (s.nowPlaying || s.queue.length === 0) {
+                isTransitioningRef.current = false;
+                setIsTransitioning(false);
+              }
+            }
+          })
+          .catch(() => { });
+      }
+    }, 5000);
+
+    return () => {
+      ws.close();
+      clearInterval(pollInterval);
+    };
+  }, [code, authChecked, finalized]);
 
   // Create / destroy YouTube player
   useEffect(() => {
@@ -1416,6 +1521,7 @@ export default function RoomTV() {
           }
         }}
       />
+      <Toaster position="top-right" />
     </>
   );
 }
