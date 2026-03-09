@@ -1426,10 +1426,25 @@ export default function RoomMobile() {
               />
               <button
                 onClick={handleSearch}
-                disabled={searching || !searchQuery.trim()}
-                style={{ flex: 0, whiteSpace: "nowrap" }}
+                disabled={searching || !searchQuery.trim() || cooldownRemaining > 0}
+                style={{
+                  flex: 0,
+                  whiteSpace: "nowrap",
+                  background: cooldownRemaining > 0 ? "#444" : undefined,
+                  cursor: cooldownRemaining > 0 ? "not-allowed" : "pointer",
+                }}
               >
-                {searching ? "..." : isLinkMode ? "OK" : "Buscar"}
+                {searching ? (
+                  "..."
+                ) : cooldownRemaining > 0 ? (
+                  `${Math.floor(cooldownRemaining / 60)}:${(cooldownRemaining % 60)
+                    .toString()
+                    .padStart(2, "0")}`
+                ) : isLinkMode ? (
+                  "OK"
+                ) : (
+                  "Buscar"
+                )}
               </button>
             </div>
 
@@ -1490,18 +1505,21 @@ export default function RoomMobile() {
                       </span>
                       <button
                         onClick={() => handleAddFromSaved(song)}
-                        disabled={adding === song.videoId}
+                        disabled={adding === song.videoId || cooldownRemaining > 0}
                         style={{
                           padding: "8px 12px",
                           fontSize: "0.85rem",
-                          background: "#2ecc71",
+                          background: cooldownRemaining > 0 ? "#444" : "#2ecc71",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
+                          cursor: cooldownRemaining > 0 ? "not-allowed" : "pointer",
                         }}
                       >
                         {adding === song.videoId ? (
                           "..."
+                        ) : cooldownRemaining > 0 ? (
+                          "Espere"
                         ) : (
                           <IconPlus size={16} />
                         )}
@@ -2087,18 +2105,21 @@ export default function RoomMobile() {
                   handleAddFromSearch(previewVideo);
                   setPreviewVideo(null);
                 }}
-                disabled={adding === previewVideo.videoId}
+                disabled={adding === previewVideo.videoId || cooldownRemaining > 0}
                 style={{
                   width: "100%",
-                  background: "#2ecc71",
+                  background: cooldownRemaining > 0 ? "#444" : "#2ecc71",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   gap: 8,
+                  cursor: cooldownRemaining > 0 ? "not-allowed" : "pointer",
                 }}
               >
                 {adding === previewVideo.videoId ? (
                   "Adicionando..."
+                ) : cooldownRemaining > 0 ? (
+                  "Aguarde o Cooldown"
                 ) : (
                   <>
                     <IconPlus size={16} /> Adicionar à fila
@@ -2222,16 +2243,16 @@ export default function RoomMobile() {
               </button>
               <button
                 onClick={handleConfirmAddSong}
-                disabled={adding === addSongModal.videoId}
+                disabled={adding === addSongModal.videoId || cooldownRemaining > 0}
                 style={{
                   flex: 1,
                   padding: "12px",
-                  background: "#2ecc71",
+                  background: cooldownRemaining > 0 ? "#444" : "#2ecc71",
                   border: "none",
                   borderRadius: 8,
                   color: "#fff",
                   fontWeight: 600,
-                  cursor: "pointer",
+                  cursor: cooldownRemaining > 0 ? "not-allowed" : "pointer",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -2240,6 +2261,8 @@ export default function RoomMobile() {
               >
                 {adding === addSongModal.videoId ? (
                   "..."
+                ) : cooldownRemaining > 0 ? (
+                  "Cooldown"
                 ) : (
                   <>
                     <IconPlus size={16} /> Adicionar
