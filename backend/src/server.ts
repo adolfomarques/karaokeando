@@ -210,6 +210,7 @@ function getRoomState(room: RoomState) {
       videoId: item.videoId,
       title: item.title,
       requestedBy: item.requestedBy,
+      requesterId: item.requesterId,
       singers: item.singers,
     })),
     ranking: rankingForFrontend,
@@ -504,11 +505,16 @@ app.post<{
 });
 
 // Next song
-app.post<{ Params: { roomCode: string } }>(
+app.post<{ Params: { roomCode: string }; Body: { userId?: string } }>(
   "/api/rooms/:roomCode/next",
   async (req, reply) => {
     const room = await getOrRestoreRoom(req.params.roomCode);
     if (!room) return reply.code(404).send({ error: "room_not_found" });
+
+    const { userId } = req.body;
+    if (userId !== room.ownerId) {
+      return reply.code(403).send({ error: "forbidden" });
+    }
     touchRoom(req.params.roomCode);
 
     room.nowPlaying = room.queue.shift() || null;
@@ -623,12 +629,17 @@ app.post<{
 });
 
 // Finalize (party-friendly, minimal cooldown)
-app.post<{ Params: { roomCode: string }; Body: { requester?: string } }>(
+app.post<{ Params: { roomCode: string }; Body: { requester?: string; userId?: string } }>(
   "/api/rooms/:roomCode/finalize",
   async (req, reply) => {
     const room = await getOrRestoreRoom(req.params.roomCode);
     if (!room) return reply.code(404).send({ error: "room_not_found" });
     touchRoom(req.params.roomCode);
+
+    const userId = (req.body.userId || "").trim();
+    if (userId !== room.ownerId) {
+      return reply.code(403).send({ error: "forbidden" });
+    }
 
     const requester = (req.body.requester || "").trim() || "Convidado";
     const now = Date.now();
@@ -844,11 +855,16 @@ app.post<{ Params: { roomCode: string } }>(
 );
 
 // Remote play control (mobile -> TV)
-app.post<{ Params: { roomCode: string }; Body: { action: string } }>(
+app.post<{ Params: { roomCode: string }; Body: { action: string; userId?: string } }>(
   "/api/rooms/:roomCode/player",
   async (req, reply) => {
     const room = await getOrRestoreRoom(req.params.roomCode);
     if (!room) return reply.code(404).send({ error: "room_not_found" });
+
+    const { userId } = req.body;
+    if (userId !== room.ownerId) {
+      return reply.code(403).send({ error: "forbidden" });
+    }
     touchRoom(req.params.roomCode);
 
     const action = req.body.action; // 'play' | 'pause'

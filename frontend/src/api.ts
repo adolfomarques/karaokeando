@@ -102,30 +102,33 @@ export async function enqueue(
   return res.json();
 }
 
-export async function nextSong(roomCode: string) {
+export async function nextSong(roomCode: string, userId?: string) {
   const res = await fetch(`${API_BASE}/api/rooms/${roomCode}/next`, {
     method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId }),
   });
   return res.json();
 }
 
-export async function finalizeSong(roomCode: string, requester: string) {
+export async function finalizeSong(roomCode: string, requester: string, userId?: string) {
   const res = await fetch(`${API_BASE}/api/rooms/${roomCode}/finalize`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ requester }),
+    body: JSON.stringify({ requester, userId }),
   });
   return res.json();
 }
 
 export async function sendPlayerCommand(
   roomCode: string,
-  action: "play" | "pause"
+  action: "play" | "pause",
+  userId?: string
 ) {
   const res = await fetch(`${API_BASE}/api/rooms/${roomCode}/player`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ action }),
+    body: JSON.stringify({ action, userId }),
   });
   return res.json();
 }

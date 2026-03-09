@@ -1170,68 +1170,57 @@ export default function RoomMobile() {
               >
                 <TruncatedText text={state.nowPlaying.title} maxLength={50} />
               </div>
-              <div
-                style={{
-                  fontSize: "0.9rem",
-                  opacity: 0.9,
-                  marginBottom: 12,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                }}
-              >
+              <div style={{ color: "#888", fontSize: "0.9rem", display: "flex", alignItems: "center", gap: 6, marginBottom: isHost ? 12 : 0 }}>
                 <IconMic size={14} />
                 {state.nowPlaying.singers
                   ?.map(s => (typeof s === "string" ? s : s.name))
                   .join(" e ") || state.nowPlaying.requestedBy}
               </div>
-              <div style={{ display: "flex", gap: 8 }}>
-                <button
-                  onClick={() => {
-                    if (code && isHost) {
-                      sendPlayerCommand(code, isPlaying ? "pause" : "play");
-                      setIsPlaying(!isPlaying);
-                    }
-                  }}
-                  style={{
-                    flex: 1,
-                    background: isPlaying ? "#e67e22" : "#2ecc71",
-                    padding: "10px 16px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: 6,
-                    opacity: isHost ? 1 : 0.5,
-                    cursor: isHost ? "pointer" : "not-allowed",
-                  }}
-                >
-                  {isPlaying ? (
-                    <>
-                      <IconPause size={16} /> Pausar
-                    </>
-                  ) : (
-                    <>
-                      <IconPlay size={16} /> Continuar
-                    </>
-                  )}
-                </button>
-                <button
-                  onClick={() => code && isHost && finalizeSong(code, nickname)}
-                  style={{
-                    flex: 1,
-                    background: "#e74c3c",
-                    padding: "10px 16px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: 6,
-                    opacity: isHost ? 1 : 0.5,
-                    cursor: isHost ? "pointer" : "not-allowed",
-                  }}
-                >
-                  <IconSkipForward size={16} /> Pular
-                </button>
-              </div>
+              {isHost && (
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button
+                    onClick={() => {
+                      if (code) {
+                        sendPlayerCommand(code, isPlaying ? "pause" : "play", myUserId);
+                        setIsPlaying(!isPlaying);
+                      }
+                    }}
+                    style={{
+                      flex: 1,
+                      background: isPlaying ? "#e67e22" : "#2ecc71",
+                      padding: "10px 16px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 6,
+                    }}
+                  >
+                    {isPlaying ? (
+                      <>
+                        <IconPause size={16} /> Pausar
+                      </>
+                    ) : (
+                      <>
+                        <IconPlay size={16} /> Continuar
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => code && finalizeSong(code, nickname, myUserId)}
+                    style={{
+                      flex: 1,
+                      background: "#e74c3c",
+                      padding: "10px 16px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 6,
+                    }}
+                  >
+                    <IconSkipForward size={16} /> Pular
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
             <div
@@ -1294,7 +1283,7 @@ export default function RoomMobile() {
                       .join(" e ") || state.queue[0].requestedBy}
                   </div>
                   <button
-                    onClick={() => code && isHost && nextSong(code)}
+                    onClick={() => code && isHost && nextSong(code, myUserId)}
                     style={{
                       background: isHost ? "#2ecc71" : "#444",
                       width: "100%",
