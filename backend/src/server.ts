@@ -23,7 +23,31 @@ import {
 const execAsync = promisify(exec);
 
 // ─────────────────────────────────────────────────────────────
-// Types
+// YouTube Search Cache
+// Prevents spawning duplicate yt-dlp processes for the same query.
+// ─────────────────────────────────────────────────────────────
+
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+interface CacheEntry {
+  results: YouTubeSearchResult[];
+  expiresAt: number;
+}
+
+// Results cache: key = normalized query string
+const searchCache = new Map<string, CacheEntry>();
+
+// In-flight deduplication: same query that's still in progress shares one Promise
+const inFlightSearches = new Map<string, Promise<YouTubeSearchResult[]>>();
+
+// Housekeeping: clear expired entries every 10 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, entry] of searchCache.entries()) {
+    if (now > entry.expiresAt) searchCache.delete(key);
+  }
+}, 10 * 60 * 1000).unref();
+
 // ─────────────────────────────────────────────────────────────
 
 interface Singer {
@@ -955,15 +979,16 @@ interface YouTubeSearchResult {
 }
 
 // Search YouTube using yt-dlp (same method as PiKaraoke)
-async function searchWithYtDlp(query: string): Promise<YouTubeSearchResult[]> {
+async function searchWithYtDlp(
+  query: string,
+  cacheKey: string
+): Promise<YouTubeSearchResult[]> {
   const numResults = 10;
-  // Format exactly like PiKaraoke: ytsearch10:"query"
-  // Escape shell special characters
   const safeQuery = query.replace(/[`$\\]/g, "\\$&").replace(/"/g, '\\"');
   const cmd = `yt-dlp -j --no-playlist --flat-playlist "ytsearch${numResults}:${safeQuery}"`;
 
   try {
-    const { stdout, stderr } = await execAsync(cmd, { timeout: 30000 }); // 30s timeout
+    const { stdout } = await execAsync(cmd, { timeout: 30000 });
 
     const results: YouTubeSearchResult[] = [];
     for (const line of stdout.split("\n")) {
@@ -982,25 +1007,52 @@ async function searchWithYtDlp(query: string): Promise<YouTubeSearchResult[]> {
       }
     }
 
+    // Store in cache before returning
+    searchCache.set(cacheKey, { results, expiresAt: Date.now() + CACHE_TTL_MS });
     return results;
   } catch {
     return [];
+  } finally {
+    // Remove in-flight entry regardless of success/failure
+    inFlightSearches.delete(cacheKey);
   }
 }
 
-// Search YouTube
+// Search YouTube (with cache + in-flight deduplication)
 app.get<{ Querystring: { q: string } }>(
   "/api/youtube/search",
   async (req, reply) => {
     const query = (req.query.q || "").trim();
     if (!query) return reply.code(400).send({ error: "missing_query" });
 
-    try {
-      // ALWAYS add "karaoke" to the search (like PiKaraoke does)
-      const searchTerm = query + " karaoke";
+    const searchTerm = query + " karaoke";
+    const cacheKey = searchTerm.toLowerCase();
 
-      const results = await searchWithYtDlp(searchTerm);
-      return results;
+    // 1) Cache hit → return immediately
+    const cached = searchCache.get(cacheKey);
+    if (cached && Date.now() < cached.expiresAt) {
+      console.log(`[search] CACHE HIT: "${query}"`);
+      return cached.results;
+    }
+
+    // 2) Deduplicate in-flight requests for the same query
+    const existing = inFlightSearches.get(cacheKey);
+    if (existing) {
+      console.log(`[search] IN-FLIGHT HIT: "${query}"`);
+      try {
+        return await existing;
+      } catch {
+        return reply.code(500).send({ error: "search_failed" });
+      }
+    }
+
+    // 3) New search — spawn yt-dlp and register as in-flight
+    console.log(`[search] NEW SEARCH: "${query}"`);
+    const promise = searchWithYtDlp(searchTerm, cacheKey);
+    inFlightSearches.set(cacheKey, promise);
+
+    try {
+      return await promise;
     } catch {
       return reply.code(500).send({ error: "search_failed" });
     }
