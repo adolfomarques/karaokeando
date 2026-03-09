@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth, getToken } from "../context/AuthContext";
+import { getDeviceFingerprint } from "../lib/deviceId";
 import {
   connectWS,
   enqueue,
@@ -719,6 +720,7 @@ export default function RoomMobile() {
     if (!code || !addSongModal) return;
 
     const partner = participants.find(p => p.id === modalPartner);
+    const deviceFP = await getDeviceFingerprint();
 
     setAdding(addSongModal.videoId);
     await enqueue(
@@ -728,7 +730,8 @@ export default function RoomMobile() {
       nickname,
       partner?.name || undefined,
       myUserId,
-      partner?.id || undefined
+      partner?.id || undefined,
+      deviceFP
     );
     setAdding(null);
     setAddSongModal(null);

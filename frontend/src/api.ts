@@ -85,7 +85,8 @@ export async function enqueue(
   requestedBy: string,
   partner?: string,
   userId?: string,
-  partnerId?: string
+  partnerId?: string,
+  deviceFingerprint?: string
 ) {
   const res = await fetch(`${API_BASE}/api/rooms/${roomCode}/enqueue`, {
     method: "POST",
@@ -97,6 +98,7 @@ export async function enqueue(
       partner,
       userId,
       partnerId,
+      deviceFingerprint,
     }),
   });
   return res.json();

@@ -86,6 +86,7 @@ interface RoomState {
   duetRanking?: Record<string, DuetRankingEntry>; // "id1|id2" -> { names, score, count }
   ownerId: string; // The user who created the room
   lastEnqueueAt: Record<string, number>; // userId -> timestamp of last successful enqueue
+  lastEnqueueAtByDevice: Record<string, number>; // deviceFingerprint -> timestamp (anti-abuse)
   lastFinalizeMs: number;
   showingScore: boolean; // true while TV is showing score overlay
 }
@@ -367,6 +368,7 @@ async function getOrRestoreRoom(roomCode: string): Promise<RoomState | null> {
       duetRanking: {},
       ownerId: dbRoom.ownerId,
       lastEnqueueAt: {},
+      lastEnqueueAtByDevice: {},
       lastFinalizeMs: 0,
       showingScore: false,
     };
@@ -420,6 +422,7 @@ setRoomCallbacks({
         duetRanking: {},
         ownerId: ownerId,
         lastEnqueueAt: {},
+        lastEnqueueAtByDevice: {},
         lastFinalizeMs: 0,
         showingScore: false,
       });
@@ -471,6 +474,7 @@ app.post<{
     partner?: string;
     userId?: string;
     partnerId?: string;
+    deviceFingerprint?: string;
   };
 }>("/api/rooms/:roomCode/enqueue", async (req, reply) => {
   const room = await getOrRestoreRoom(req.params.roomCode);
@@ -483,22 +487,41 @@ app.post<{
   const partner = (req.body.partner || "").trim();
   const odUserId = (req.body.userId || "").trim() || `anon_${randomId()}`;
   const partnerId = (req.body.partnerId || "").trim();
+  const deviceFingerprint = (req.body.deviceFingerprint || "").trim();
 
   if (!videoId) return reply.code(400).send({ error: "missing_videoId" });
 
   // 3-minute cooldown for non-hosts
   const isHost = odUserId === room.ownerId;
   const THREE_MINUTES = 3 * 60 * 1000;
-  const lastEnqueue = room.lastEnqueueAt[odUserId] || 0;
   const now = Date.now();
 
-  if (!isHost && now - lastEnqueue < THREE_MINUTES) {
-    const remaining = Math.ceil((THREE_MINUTES - (now - lastEnqueue)) / 1000);
-    return reply.code(429).send({
-      error: "cooldown",
-      remainingSeconds: remaining,
-      message: `Aguarde ${remaining} segundos para adicionar outra música.`,
-    });
+  if (!isHost) {
+    // Check by userId
+    const lastByUser = room.lastEnqueueAt[odUserId] || 0;
+    if (now - lastByUser < THREE_MINUTES) {
+      const remaining = Math.ceil((THREE_MINUTES - (now - lastByUser)) / 1000);
+      return reply.code(429).send({
+        error: "cooldown",
+        remainingSeconds: remaining,
+        message: `Aguarde ${remaining} segundos para adicionar outra música.`,
+      });
+    }
+
+    // Check by device fingerprint (blocks same device / different userId bypass)
+    if (deviceFingerprint) {
+      // We hash only the stable deviceId part (before "::" which is the browser fingerprint)
+      const deviceKey = deviceFingerprint.slice(0, 40); // first ~40 chars is the stable deviceId
+      const lastByDevice = room.lastEnqueueAtByDevice[deviceKey] || 0;
+      if (now - lastByDevice < THREE_MINUTES) {
+        const remaining = Math.ceil((THREE_MINUTES - (now - lastByDevice)) / 1000);
+        return reply.code(429).send({
+          error: "cooldown",
+          remainingSeconds: remaining,
+          message: `Aguarde ${remaining} segundos para adicionar outra música.`,
+        });
+      }
+    }
   }
 
   // Build singers array with IDs
@@ -517,6 +540,11 @@ app.post<{
   };
   room.queue.push(item);
   room.lastEnqueueAt[odUserId] = now;
+  // Also record device fingerprint timestamp to enforce cooldown across accounts
+  if (deviceFingerprint) {
+    const deviceKey = deviceFingerprint.slice(0, 40);
+    room.lastEnqueueAtByDevice[deviceKey] = now;
+  }
 
   // Auto-save to database library (upsert - creates if not exists)
   addSongToLibrary(videoId, title, requestedBy).catch(() => {
