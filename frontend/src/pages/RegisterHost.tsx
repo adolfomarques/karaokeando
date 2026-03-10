@@ -27,7 +27,7 @@ export default function RegisterHost() {
     setError("");
 
     if (password !== confirmPassword) {
-      setError("As senhas não coincidem");
+      setError(t("createRoom.passwordsDontMatch", "As senhas não coincidem"));
       return;
     }
 
@@ -47,10 +47,10 @@ export default function RegisterHost() {
       if (result.success) {
         navigate("/create-room");
       } else {
-        setError(result.error || "Erro ao criar conta");
+        setError(result.error || t("register.error", "Erro ao criar conta"));
       }
     } catch {
-      setError("Erro de conexão");
+      setError(t("tvLogin.connError", "Erro de conexão"));
     } finally {
       setLoading(false);
     }
@@ -89,7 +89,7 @@ export default function RegisterHost() {
               color: "#888",
             }}
           >
-            Dados pessoais
+            {t("register.personalData", "Dados pessoais")}
           </h3>
 
           <input
@@ -128,7 +128,7 @@ export default function RegisterHost() {
               color: "#888",
             }}
           >
-            Dados para criar salas
+            {t("register.roomData", "Dados para criar salas")}
           </h3>
 
           <input
@@ -164,7 +164,7 @@ export default function RegisterHost() {
             type="date"
             value={birthDate}
             onChange={e => setBirthDate(e.target.value)}
-            placeholder="Data de nascimento"
+            placeholder={t("complete.dob", "Data de nascimento")}
             required
             style={{ marginBottom: 12 }}
           />
@@ -185,7 +185,7 @@ export default function RegisterHost() {
             }}
           >
             <option value="" disabled>
-              Gênero
+              {t("register.gender", "Gênero")}
             </option>
             <option value="masculino">{t("register.male", "Masculino")}</option>
             <option value="feminino">{t("register.female", "Feminino")}</option>
@@ -203,16 +203,16 @@ export default function RegisterHost() {
         </form>
 
         <p style={{ textAlign: "center", color: "#888", fontSize: "0.9rem" }}>
-          Já tem conta?{" "}
+          {t("home.noAccount", "Já tem conta?")}{" "}
           <Link to="/login" style={{ color: "#4CAF50" }}>
-            Fazer login
+            {t("auth.login", "Fazer login")}
           </Link>
         </p>
       </div>
 
       <div style={{ textAlign: "center", marginTop: 20 }}>
         <Link to="/" style={{ color: "#888" }}>
-          ← Voltar ao início
+          {t("common.backToHome", "← Voltar ao início")}
         </Link>
       </div>
     </div>

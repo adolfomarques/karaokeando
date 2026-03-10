@@ -12,6 +12,7 @@ import {
   scoreDone,
 } from "../api";
 import ScoreOverlay from "../components/ScoreOverlay";
+import Logo from "../components/Logo";
 import toast, { Toaster } from "react-hot-toast";
 
 // Declare global YouTube IFrame API types
@@ -351,7 +352,7 @@ export default function RoomTV() {
     );
 
     newItems.forEach(item => {
-      toast.custom((t) => (
+      toast.custom((toastRef) => (
         <div
           style={{
             background: 'rgba(26, 28, 41, 0.95)',
@@ -365,8 +366,8 @@ export default function RoomTV() {
             gap: '12px',
             maxWidth: '350px',
             color: 'white',
-            opacity: t.visible ? 1 : 0,
-            transform: t.visible ? 'translateX(0)' : 'translateX(-50px)',
+            opacity: toastRef.visible ? 1 : 0,
+            transform: toastRef.visible ? 'translateX(0)' : 'translateX(-50px)',
             transition: 'all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1)',
           }}
         >
@@ -386,7 +387,7 @@ export default function RoomTV() {
           </div>
           <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
             <div style={{ fontSize: '0.85rem', color: '#a0aec0', marginBottom: '2px', fontWeight: 500 }}>
-              Nova música na fila
+              {t("tv.newSongToast", "New song in queue")}
             </div>
             <div style={{ fontSize: '1rem', fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden' }}>
               {item.title.length > 25 ? (
@@ -401,7 +402,7 @@ export default function RoomTV() {
               )}
             </div>
             <div style={{ fontSize: '0.85rem', color: '#e2e8f0', marginTop: '2px' }}>
-              Pedido por <span style={{ color: '#ec4899', fontWeight: 600 }}>{item.requestedBy}</span>
+              {t("tv.requestedBy", "Requested by")} <span style={{ color: '#ec4899', fontWeight: 600 }}>{item.requestedBy}</span>
             </div>
           </div>
         </div>
@@ -672,7 +673,7 @@ export default function RoomTV() {
             setIsTransitioning(false);
           }
         } else if (m.type === "ERROR" && m.error === "room_not_found") {
-          setError("Sala não encontrada. Verifique o código.");
+          setError(t("home.roomNotFound", "Room not found. Check the code."));
         } else if (m.type === "PARTICIPANTS" && m.participants) {
           setParticipantsCount(m.participants.length);
         } else if (m.type === "FINALIZED") {
@@ -814,13 +815,13 @@ export default function RoomTV() {
           <IconX size={24} /> {error}
         </h2>
         <p style={{ color: "#888", marginTop: 16 }}>
-          Volte e crie uma nova sala.
+          {t("tv.noRoomFound", "Go back and create a new room.")}
         </p>
         <a
           href="/"
           style={{ color: "#3498db", marginTop: 20, display: "inline-block" }}
         >
-          ← Voltar ao início
+          {t("common.backToHome", "← Back to home")}
         </a>
       </div>
     );
@@ -849,7 +850,7 @@ export default function RoomTV() {
           <IconMic size={64} />
         </div>
         <h2 style={{ margin: 0, fontSize: "1.5rem", fontWeight: 500 }}>
-          Conectando à sala {code}...
+          {t("mobile.connecting", { code })}
         </h2>
         <style>{`
           @keyframes pulse {
@@ -892,7 +893,7 @@ export default function RoomTV() {
             <IconPlay size={64} />
             <h2 style={{ fontSize: "2rem", margin: "20px 0 10px" }}>{t("tv.clickToActivate", "Clique para Ativar a TV")}</h2>
             <p style={{ color: "#aaa", fontSize: "1.1rem", maxWidth: 400 }}>
-              Navegadores bloqueiam vídeos automáticos. Clique em qualquer lugar desta tela uma vez para o karaokê funcionar sozinho.
+              {t("tv.autoplayWarning", "Browsers block autoplay videos. Click anywhere on this screen once for autoplay karaoke.")}
             </p>
             <button
               style={{
@@ -907,7 +908,7 @@ export default function RoomTV() {
                 cursor: "pointer",
               }}
             >
-              Começar Sessão
+              {t("common.continue", "Continue")}
             </button>
           </div>
         </div>
@@ -962,7 +963,7 @@ export default function RoomTV() {
                 </>
               ) : (
                 <div style={{ fontSize: "1.1rem", fontWeight: 700, opacity: 0.8 }}>
-                  Preparando próxima música...
+                  {t("tv.preparingNext", "Preparing next song...")}
                 </div>
               )}
             </div>
@@ -995,7 +996,7 @@ export default function RoomTV() {
               </div>
               {state.queue.length > 0 && (
                 <div>
-                  Próxima:{" "}
+                  {t("tv.nextSong", "Next song")}:{" "}
                   {state.queue[0].singers
                     ?.map(s => (typeof s === "string" ? s : s.name))
                     .join(" e ") || state.queue[0].requestedBy}
@@ -1033,7 +1034,7 @@ export default function RoomTV() {
             onMouseLeave={e => (e.currentTarget.style.opacity = "0.5")}
           >
             <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              Pular <IconSkipForward size={16} />
+              {t("common.skip", "Skip")} <IconSkipForward size={16} />
             </span>
           </button>
 
@@ -1059,9 +1060,9 @@ export default function RoomTV() {
           >
             <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
               {isFullscreen ? (
-                <>Sair da Tela <IconMinimize size={16} /></>
+                <>{t("tv.exitScreen", "Exit Screen")} <IconMinimize size={16} /></>
               ) : (
-                <>Tela Cheia <IconMaximize size={16} /></>
+                <>{t("tv.fullScreen", "Full Screen")} <IconMaximize size={16} /></>
               )}
             </span>
           </button>
@@ -1157,7 +1158,7 @@ export default function RoomTV() {
                 >
                   <path d="M15 18l-6-6 6-6" />
                 </svg>
-                Sair
+                {t("auth.logout", "Logout")}
               </button>
               <h1
                 style={{
@@ -1165,10 +1166,10 @@ export default function RoomTV() {
                   fontSize: "2rem",
                   display: "flex",
                   alignItems: "center",
-                  gap: 12,
+                  gap: 16,
                 }}
               >
-                <IconMic size={32} /> Karaokê - Sala {code}
+                <Logo width={160} /> - {t("tv.room", "Room")}: {code}
               </h1>
             </div>
             <div
@@ -1195,7 +1196,7 @@ export default function RoomTV() {
               <div
                 style={{ color: "#000", fontSize: "0.8rem", fontWeight: 600 }}
               >
-                Escaneie para entrar
+                {t("tv.scanToJoin", "Scan to join")}
               </div>
             </div>
           </div>
@@ -1238,7 +1239,7 @@ export default function RoomTV() {
                           gap: 8,
                         }}
                       >
-                        <IconMusic size={16} /> Próxima música
+                        <IconMusic size={16} /> {t("tv.nextSong", "Next song")}
                       </span>
                     </div>
                     <div
@@ -1291,8 +1292,8 @@ export default function RoomTV() {
                       >
                         <IconPlay size={20} />
                         {autoPlayCountdown !== null
-                          ? `Começar! (${autoPlayCountdown}s)`
-                          : "Começar!"}
+                          ? `${t("mobile.start", "Start!")} (${autoPlayCountdown}s)`
+                          : t("mobile.start", "Start!")}
                       </button>
                       <button
                         onClick={() => handleQueueRemove(state.queue[0].id)}
@@ -1416,9 +1417,9 @@ export default function RoomTV() {
                   >
                     <IconMusic size={64} />
                   </div>
-                  <h2 style={{ margin: "0 0 12px" }}>{t("tv.emptyQueue", "Fila vazia")}</h2>
+                  <h2 style={{ margin: "0 0 12px" }}>{t("tv.emptyQueue", "Empty queue")}</h2>
                   <p style={{ color: "#888", fontSize: "1.1rem" }}>
-                    Escaneie o QR code e adicione músicas!
+                    {t("tv.scanToAdd", "Scan QR code to add songs!")}
                   </p>
                 </div>
               )}
@@ -1443,7 +1444,7 @@ export default function RoomTV() {
                     gap: 10,
                   }}
                 >
-                  <IconTrophy size={28} /> Ranking
+                  <IconTrophy size={28} /> {t("tv.ranking", "Ranking")}
                 </h2>
                 {/* Toggle Solo/Duplas */}
                 <div
@@ -1475,7 +1476,7 @@ export default function RoomTV() {
                       cursor: "pointer",
                     }}
                   >
-                    <IconUser size={14} /> Solo
+                    <IconUser size={14} /> {t("tv.solo", "Solo")}
                   </button>
                   <button
                     onClick={() => {
@@ -1497,7 +1498,7 @@ export default function RoomTV() {
                       cursor: "pointer",
                     }}
                   >
-                    <IconUsers size={14} /> Duplas
+                    <IconUsers size={14} /> {t("tv.duets", "Duets")}
                   </button>
                 </div>
               </div>
@@ -1506,9 +1507,9 @@ export default function RoomTV() {
                 // Solo ranking
                 Object.keys(state.ranking).length === 0 ? (
                   <p style={{ color: "#888", fontSize: "1.1rem" }}>
-                    Ninguém pontuou ainda.
+                    {t("tv.nobodyScored", "Nobody scored yet.")}
                     <br />
-                    Cante uma música para aparecer aqui!
+                    {t("tv.singToAppear", "Sing a song to appear here!")}
                   </p>
                 ) : (
                   <div>
@@ -1572,9 +1573,9 @@ export default function RoomTV() {
               ) : // Duet ranking
                 !state.duetRanking || state.duetRanking.length === 0 ? (
                   <p style={{ color: "#888", fontSize: "1.1rem" }}>
-                    Nenhuma dupla pontuou ainda.
+                    {t("tv.noDuetScored", "No duet scored yet.")}
                     <br />
-                    Cante em dupla para aparecer aqui!
+                    {t("tv.singDuetToAppear", "Sing a duet to appear here!")}
                   </p>
                 ) : (
                   <div>

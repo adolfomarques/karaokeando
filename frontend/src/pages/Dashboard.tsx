@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import Logo from "../components/Logo";
 import { useState, useEffect, useCallback } from "react";
 import { getActiveRooms, type ActiveRoom, API_BASE } from "../api";
 import "./Dashboard.css";
@@ -126,7 +127,7 @@ export default function Dashboard() {
       ]);
 
       if (!songsRes.ok) {
-        setError("Chave inválida ou erro ao carregar dados");
+        setError(t("admin.invalidKey", "Invalid key or error loading data"));
         setIsAuthed(false);
         localStorage.removeItem("pk_admin_key");
         return;
@@ -137,11 +138,11 @@ export default function Dashboard() {
       setActiveRooms(rooms);
       setIsAuthed(true);
     } catch {
-      setError("Erro ao conectar com o servidor");
+      setError(t("admin.connError", "Error connecting to server"));
     } finally {
       setLoading(false);
     }
-  }, [adminKey]);
+  }, [adminKey, t]);
 
   useEffect(() => {
     if (adminKey) {
@@ -175,26 +176,19 @@ export default function Dashboard() {
     return (
       <div className="dashboard-login">
         <div className="login-card">
-          <h1
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 10,
-            }}
-          >
-            <IconMic size={32} /> Pikaroke
-          </h1>
+          <div style={{ marginBottom: 20, display: "flex", justifyContent: "center" }}>
+            <Logo width={150} />
+          </div>
           <h2>{t("admin.title", "Dashboard Admin")}</h2>
           {error && <p className="error">{error}</p>}
           <input
             type="password"
-            placeholder={t("admin.key", "Chave de acesso")}
+            placeholder={t("admin.key", "Access key")}
             value={keyInput}
             onChange={e => setKeyInput(e.target.value)}
             onKeyDown={e => e.key === "Enter" && handleLogin()}
           />
-          <button onClick={handleLogin}>Entrar</button>
+          <button onClick={handleLogin}>{t("common.enter", "Enter")}</button>
         </div>
       </div>
     );
@@ -204,11 +198,11 @@ export default function Dashboard() {
     <div className="dashboard">
       <header className="dashboard-header">
         <div className="header-left">
-          <h1 style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <IconMic size={28} /> Pikaroke Dashboard
-          </h1>
+          <div style={{ marginRight: 20 }}>
+            <Logo width={120} />
+          </div>
           <span className="last-update">
-            Atualizado: {new Date().toLocaleTimeString("pt-BR")}
+            {t("admin.updatedAt", { time: new Date().toLocaleTimeString() })}
           </span>
         </div>
         <div className="header-right">
@@ -217,10 +211,10 @@ export default function Dashboard() {
             onClick={fetchData}
             disabled={loading}
           >
-            {loading ? "..." : "🔄 Atualizar"}
+            {loading ? "..." : `🔄 ${t("admin.refresh", "Refresh")}`}
           </button>
           <button className="btn-logout" onClick={handleLogout}>
-            Sair
+            {t("auth.logout", "Logout")}
           </button>
         </div>
       </header>
@@ -228,7 +222,7 @@ export default function Dashboard() {
       {/* Active Rooms */}
       <section className="dashboard-section">
         <h2 style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <IconRadio size={20} /> Salas Ativas Agora
+          <IconRadio size={20} /> {t("admin.activeRooms", "Active Rooms Now")}
         </h2>
         {activeRooms.length > 0 ? (
           <div className="active-rooms-grid">
@@ -239,12 +233,12 @@ export default function Dashboard() {
                   <span
                     style={{ display: "flex", alignItems: "center", gap: 4 }}
                   >
-                    <IconUsers size={14} /> {room.participantsCount} online
+                    <IconUsers size={14} /> {room.participantsCount} {t("admin.online", "online")}
                   </span>
                   <span
                     style={{ display: "flex", alignItems: "center", gap: 4 }}
                   >
-                    <IconList size={14} /> {room.queueLength} na fila
+                    <IconList size={14} /> {room.queueLength} {t("admin.inQueue", "in queue")}
                   </span>
                 </div>
                 {room.nowPlaying && (
@@ -259,14 +253,14 @@ export default function Dashboard() {
             ))}
           </div>
         ) : (
-          <p className="empty-state">{t("admin.noActive", "Nenhuma sala ativa no momento")}</p>
+          <p className="empty-state">{t("admin.noActive", "No active rooms right now")}</p>
         )}
       </section>
 
       {/* Top Songs */}
       <section className="dashboard-section">
         <h2 style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <IconTrophy size={20} /> Top Músicas (Histórico)
+          <IconTrophy size={20} /> {t("admin.topSongs", "Top Songs (History)")}
         </h2>
         <div className="top-list">
           {topSongs.slice(0, 15).map((song, i) => (
@@ -279,7 +273,7 @@ export default function Dashboard() {
               />
               <div className="song-info">
                 <span className="song-title">{song.title}</span>
-                <span className="play-count">{song.playCount}x tocada</span>
+                <span className="play-count">{t("admin.playedX", { count: song.playCount })}</span>
               </div>
               <div className="bar-container">
                 <div
@@ -294,13 +288,13 @@ export default function Dashboard() {
             </div>
           ))}
           {topSongs.length === 0 && (
-            <p className="empty-state">{t("admin.noSongs", "Nenhuma música tocada ainda")}</p>
+            <p className="empty-state">{t("admin.noSongs", "No songs played yet")}</p>
           )}
         </div>
       </section>
 
       <footer style={{ textAlign: "center", padding: 20, opacity: 0.5 }}>
-        📊 Dashboard simplificado • Analytics detalhado em breve
+        {t("admin.comingSoon", "📊 Simplified dashboard • Detailed analytics coming soon")}
       </footer>
     </div>
   );

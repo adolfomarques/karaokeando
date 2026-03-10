@@ -95,7 +95,7 @@ export default function CompleteProfile() {
           )}
 
           <label style={{ display: "block", marginBottom: 4, fontWeight: 500 }}>
-            Telefone
+            {t("complete.phone", "Telefone")}
           </label>
           <input
             type="tel"
@@ -107,7 +107,7 @@ export default function CompleteProfile() {
           />
 
           <label style={{ display: "block", marginBottom: 4, fontWeight: 500 }}>
-            Cidade
+            {t("complete.city", "Cidade")}
           </label>
           <input
             type="text"
@@ -119,7 +119,7 @@ export default function CompleteProfile() {
           />
 
           <label style={{ display: "block", marginBottom: 4, fontWeight: 500 }}>
-            Data de Nascimento
+            {t("complete.dob", "Data de Nascimento")}
           </label>
           <input
             type="date"
@@ -130,7 +130,7 @@ export default function CompleteProfile() {
           />
 
           <label style={{ display: "block", marginBottom: 4, fontWeight: 500 }}>
-            Gênero
+            {t("register.gender", "Gênero")}
           </label>
           <select
             value={gender}
@@ -154,7 +154,7 @@ export default function CompleteProfile() {
           </select>
 
           <label style={{ display: "block", marginBottom: 4, fontWeight: 500 }}>
-            Senha
+            {t("complete.password", "Senha")}
           </label>
           <input
             type="password"
@@ -166,7 +166,7 @@ export default function CompleteProfile() {
           />
 
           <label style={{ display: "block", marginBottom: 4, fontWeight: 500 }}>
-            Confirmar Senha
+            {t("complete.confirmPassword", "Confirmar Senha")}
           </label>
           <input
             type="password"

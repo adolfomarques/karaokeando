@@ -36,7 +36,9 @@
     "modeTVDesc1": "Show video and lyrics",
     "modeTVDesc2": "for everyone to see",
     "joining": "Checking...",
-    "continue": "Continue"
+    "continue": "Continue",
+    "roomNotFound": "Room not found. Check the code.",
+    "checkRoomError": "Error checking room. Try again."
   },
   "auth": {
     "logout": "Logout",
@@ -54,7 +56,10 @@
     "yourEmail": "Your email",
     "yourPhone": "Your phone (ex: 11999998888)",
     "entering": "Entering...",
-    "enterRoomBtn": "Join room"
+    "enterRoomBtn": "Join room",
+    "invalidEmail": "Invalid email",
+    "invalidPhone": "Invalid phone (min 10 digits)",
+    "fillAllFields": "Fill all fields"
   },
   "tv": {
     "passwordTitle": "Room password",
@@ -80,7 +85,9 @@
     "nobodyScored": "Nobody scored yet.",
     "singToAppear": "Sing a song to appear here!",
     "noDuetScored": "No duet scored yet.",
-    "singDuetToAppear": "Sing a duet to appear here!"
+    "singDuetToAppear": "Sing a duet to appear here!",
+    "newSongToast": "New song in queue",
+    "requestedBy": "Requested by"
   },
   "mobile": {
     "invalidCode": "Go back and enter a valid code.",
@@ -96,7 +103,7 @@
     "libraryEmpty": "Library is empty.",
     "searchToAddLibrary": "Search and add a song in the Queue tab!",
     "upNext": "Up next:",
-    "requestedBy": "Requested by:",
+    "requestedBy": "Requested by",
     "addSong": "Add song",
     "pasteLink": "Paste a YouTube link or type song name",
     "inLibrary": "In library:",
@@ -105,7 +112,7 @@
     "youtubeResults": "YouTube results:",
     "addToQueue": "Add to queue",
     "mostPlayed": "Most Played",
-    "mostPopular": "Most popular songs from all parties.",
+    "mostPopular": "As músicas mais populares de todas as festas.",
     "songLibrary": "Song Library",
     "libraryDesc": "Added songs are saved here for everyone.",
     "noSongFound": "No song found",
@@ -120,7 +127,19 @@
     "filterSongs": "Filter songs...",
     "waitCooldown": "Wait for Cooldown",
     "cooldown": "Cooldown",
-    "yourScore": "Your Score"
+    "yourScore": "Your Score",
+    "connecting": "Connecting to room {{code}}...",
+    "nicknameAssigned": "Your nickname is \"{{nickname}}\" (someone already had your name)",
+    "nameAlreadyUsed": "This name is already used.",
+    "chooseAnother": "Choose another one.",
+    "showMore": "▼ View {{count}} more songs",
+    "showLess": "▲ Show less",
+    "waitingHost": "Waiting for Host...",
+    "start": "Start!",
+    "search": "Search",
+    "song": "song",
+    "playTime": "play",
+    "playTimes": "plays"
   },
   "tvLogin": {
     "title": "📺 TV Mode",
@@ -193,13 +212,15 @@
     "error": "Error creating room",
     "passwordsDontMatch": "Passwords do not match",
     "sixChars": "Enter exactly 6 characters",
-    "creating": "Creating..."
+    "creating": "Creating...",
+    "desc3": "of the room. Share only with those who should control the TV."
   },
   "joinRedirect": {
     "redirecting": "Redirecting..."
   },
   "login": {
     "title": "Login to your account",
+    "desc": "Login to your account",
     "email": "Email",
     "password": "Password",
     "createHost": "Create Host account",
@@ -211,8 +232,14 @@
     "noActive": "No active rooms right now",
     "topSongs": "Top Songs (History)",
     "noSongs": "No songs played yet",
-    "comingSoon": "Simplified dashboard • Detailed analytics coming soon",
+    "comingSoon": "📊 Simplified dashboard • Detailed analytics coming soon",
     "title": "Dashboard Admin",
-    "key": "Access key"
+    "key": "Access key",
+    "invalidKey": "Invalid key or error loading data",
+    "connError": "Error connecting to server",
+    "updatedAt": "Updated: {{time}}",
+    "online": "online",
+    "inQueue": "in queue",
+    "playedX": "{{count}}x played"
   }
 }

@@ -28,7 +28,7 @@ export default function Login() {
     if (result.success) {
       navigate(returnTo);
     } else {
-      setError(result.error || "Erro ao fazer login");
+      setError(result.error || t("login.invalidCredentials", "Email or password invalid"));
     }
   };
 

@@ -111,8 +111,8 @@ export default function CreateRoom() {
             }}
           >
             <p style={{ margin: 0 }}>
-              💡 Esta senha será usada para acessar o <strong>{t("createRoom.tvMode", "modo TV")}</strong>{" "}
-              da sala. Compartilhe apenas com quem deve controlar a TV.
+              💡 {t("createRoom.desc2", "This password will be used to access")} <strong>{t("createRoom.tvMode", "TV mode")}</strong>{" "}
+              {t("createRoom.desc3", "of the room. Share only with those who should control the TV.")}
             </p>
           </div>
 

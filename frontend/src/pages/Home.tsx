@@ -12,7 +12,7 @@ interface MyRoom {
 }
 
 export default function Home() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { user, loading: authLoading, logout, registerGuest } = useAuth();
 
@@ -73,7 +73,7 @@ export default function Home() {
       const state = await getState(code);
 
       if (!state || state.error === "room_not_found") {
-        setJoinError("Sala não encontrada. Verifique o código.");
+        setJoinError(t("home.roomNotFound", "Sala não encontrada. Verifique o código."));
         setJoining(false);
         return;
       }
@@ -95,7 +95,7 @@ export default function Home() {
         }
       }
     } catch {
-      setJoinError("Erro ao verificar sala. Tente novamente.");
+      setJoinError(t("home.checkRoomError", "Erro ao verificar sala. Tente novamente."));
     } finally {
       setJoining(false);
     }
@@ -127,7 +127,7 @@ export default function Home() {
         setTvPasswordError(data.message || "Senha incorreta");
       }
     } catch {
-      setTvPasswordError("Erro de conexão");
+      setTvPasswordError(t("tvLogin.connError", "Erro de conexão"));
     } finally {
       setTvPasswordLoading(false);
     }
@@ -157,18 +157,18 @@ export default function Home() {
   // Submete registro de visitante e entra na sala
   const handleGuestSubmit = async () => {
     if (!guestName.trim() || !guestEmail.trim() || !guestPhone.trim()) {
-      setGuestError("Preencha todos os campos");
+      setGuestError(t("guest.fillAllFields", "Preencha todos os campos"));
       return;
     }
 
     if (!guestEmail.includes("@")) {
-      setGuestError("Email inválido");
+      setGuestError(t("guest.invalidEmail", "Email inválido"));
       return;
     }
 
     const phoneDigits = guestPhone.replace(/\D/g, "");
     if (phoneDigits.length < 10) {
-      setGuestError("Telefone inválido (mínimo 10 dígitos)");
+      setGuestError(t("guestReg.invalidPhone", "Telefone inválido (mínimo 10 dígitos)"));
       return;
     }
 
@@ -303,7 +303,7 @@ export default function Home() {
                       {room.code}
                     </span>
                     <small style={{ color: "#888" }}>
-                      {new Date(room.createdAt).toLocaleDateString("pt-BR")}
+                      {new Date(room.createdAt).toLocaleDateString(i18n.language === "pt" ? "pt-BR" : "en-US")}
                     </small>
                   </div>
                   <div style={{ display: "flex", gap: 8 }}>

@@ -43,13 +43,13 @@ export default function TvLogin() {
   return (
     <div className="container" style={{ paddingTop: 60, maxWidth: 400 }}>
       <h1 style={{ textAlign: "center", fontSize: "2rem", marginBottom: 8 }}>
-        📺 Modo TV
+        {t("tvLogin.title", "📺 Modo TV")}
       </h1>
       <p style={{ textAlign: "center", color: "#888", marginBottom: 8 }}>
-        Sala: <strong>{code}</strong>
+        {t("tvLogin.room", "Sala")}: <strong>{code}</strong>
       </p>
       <p style={{ textAlign: "center", color: "#888", marginBottom: 32 }}>
-        Digite a senha para acessar o modo TV
+        {t("tvLogin.desc", "Digite a senha para acessar o modo TV")}
       </p>
 
       <div className="card">
@@ -70,7 +70,7 @@ export default function TvLogin() {
           )}
 
           <label style={{ display: "block", marginBottom: 4, fontWeight: 500 }}>
-            Senha do TV
+            {t("tvLogin.password", "Senha do TV")}
           </label>
           <input
             type="text"
@@ -106,7 +106,7 @@ export default function TvLogin() {
           marginTop: 24,
         }}
       >
-        Quer entrar como participante?{" "}
+        {t("tvLogin.wantToJoin", "Quer entrar como participante?")}{" "}
         <a
           href={`/room/${code}`}
           onClick={e => {
@@ -115,7 +115,7 @@ export default function TvLogin() {
           }}
           style={{ color: "#007bff" }}
         >
-          Clique aqui
+          {t("tvLogin.clickHere", "Clique aqui")}
         </a>
       </p>
     </div>

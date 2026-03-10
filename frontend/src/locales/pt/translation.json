@@ -36,7 +36,9 @@
     "modeTVDesc1": "Mostrar vídeo e letra",
     "modeTVDesc2": "para todos verem",
     "joining": "Verificando...",
-    "continue": "Continuar"
+    "continue": "Continuar",
+    "roomNotFound": "Sala não encontrada. Verifique o código.",
+    "checkRoomError": "Erro ao verificar sala. Tente novamente."
   },
   "auth": {
     "logout": "Sair",
@@ -54,7 +56,10 @@
     "yourEmail": "Seu email",
     "yourPhone": "Seu celular (ex: 11999998888)",
     "entering": "Entrando...",
-    "enterRoomBtn": "Entrar na sala"
+    "enterRoomBtn": "Entrar na sala",
+    "invalidEmail": "Email inválido",
+    "invalidPhone": "Telefone inválido (mínimo 10 dígitos)",
+    "fillAllFields": "Preencha todos os campos"
   },
   "tv": {
     "passwordTitle": "Senha da sala",
@@ -80,7 +85,9 @@
     "nobodyScored": "Ninguém pontuou ainda.",
     "singToAppear": "Cante uma música para aparecer aqui!",
     "noDuetScored": "Nenhuma dupla pontuou ainda.",
-    "singDuetToAppear": "Cante em dupla para aparecer aqui!"
+    "singDuetToAppear": "Cante em dupla para aparecer aqui!",
+    "newSongToast": "Nova música na fila",
+    "requestedBy": "Pedido por"
   },
   "mobile": {
     "invalidCode": "Volte e entre com um código válido.",
@@ -96,7 +103,7 @@
     "libraryEmpty": "A biblioteca está vazia.",
     "searchToAddLibrary": "Busque e adicione uma música na aba Fila!",
     "upNext": "Próximas:",
-    "requestedBy": "Pedido por:",
+    "requestedBy": "Pedido por",
     "addSong": "Adicionar música",
     "pasteLink": "Cole um link do YouTube ou digite o nome da música",
     "inLibrary": "Na biblioteca:",
@@ -120,7 +127,19 @@
     "filterSongs": "Filtrar músicas...",
     "waitCooldown": "Aguarde o Cooldown",
     "cooldown": "Cooldown",
-    "yourScore": "Sua Pontuação"
+    "yourScore": "Sua Pontuação",
+    "connecting": "Conectando à sala {{code}}...",
+    "nicknameAssigned": "Seu apelido é \"{{nickname}}\" (já havia alguém com seu nome)",
+    "nameAlreadyUsed": "Este nome já está sendo usado.",
+    "chooseAnother": "Escolha outro.",
+    "showMore": "▼ Ver mais {{count}} músicas",
+    "showLess": "▲ Mostrar menos",
+    "waitingHost": "Aguardando Host...",
+    "start": "Começar!",
+    "search": "Buscar",
+    "song": "música",
+    "playTime": "vez",
+    "playTimes": "vezes"
   },
   "tvLogin": {
     "title": "📺 Modo TV",
@@ -193,13 +212,15 @@
     "error": "Erro ao criar sala",
     "passwordsDontMatch": "Senhas não conferem",
     "sixChars": "Preencha uma senha de exatos 6 caracteres",
-    "creating": "Criando..."
+    "creating": "Criando...",
+    "desc3": "da sala. Compartilhe apenas com quem deve controlar a TV."
   },
   "joinRedirect": {
     "redirecting": "Redirecionando..."
   },
   "login": {
     "title": "Entrar na sua conta",
+    "desc": "Entrar na sua conta",
     "email": "Email",
     "password": "Senha",
     "createHost": "Criar conta de Host",
@@ -213,6 +234,12 @@
     "noSongs": "Nenhuma música tocada ainda",
     "comingSoon": "📊 Dashboard simplificado • Analytics detalhado em breve",
     "title": "Dashboard Admin",
-    "key": "Chave de acesso"
+    "key": "Chave de acesso",
+    "invalidKey": "Chave inválida ou erro ao carregar dados",
+    "connError": "Erro ao conectar com o servidor",
+    "updatedAt": "Atualizado: {{time}}",
+    "online": "online",
+    "inQueue": "na fila",
+    "playedX": "{{count}}x tocada"
   }
 }

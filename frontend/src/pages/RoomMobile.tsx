@@ -461,7 +461,7 @@ export default function RoomMobile() {
       try {
         const result = await updateUserName(code, myUserId, trimmed);
         if (result.error === "duplicate_name") {
-          setNameError(result.message || "Este nome já está sendo usado.");
+          setNameError(result.message || t("mobile.nameAlreadyUsed", "This name is already used."));
           return;
         }
         // Update local nickname
@@ -505,7 +505,7 @@ export default function RoomMobile() {
     getState(code)
       .then(s => {
         if (s && s.error === "room_not_found") {
-          setError("Sala não encontrada. Verifique o código.");
+          setError(t("home.roomNotFound", "Room not found. Check the code."));
         } else if (s && !s.error) {
           setState(s);
         }
@@ -542,16 +542,16 @@ export default function RoomMobile() {
           if (m.wasModified) {
             // Show a brief toast notification that name was changed
             setToast(
-              `Seu apelido é "${m.nickname}" (já havia alguém com seu nome)`
+              t("mobile.nicknameAssigned", { nickname: m.nickname })
             );
             // Clear the toast after 5 seconds
             setTimeout(() => setToast(null), 5000);
           }
         } else if (m.type === "ERROR" && m.error === "room_not_found") {
-          setError("Sala não encontrada. Verifique o código.");
+          setError(t("home.roomNotFound", "Room not found. Check the code."));
         } else if (m.type === "ERROR" && m.error === "duplicate_name") {
           setError(
-            m.message || "Este nome já está sendo usado. Escolha outro."
+            m.message || t("mobile.nameAlreadyUsed", "This name is already used. Choose another.")
           );
         }
         // FINALIZED is now only handled by TV - mobile ignores it
@@ -661,14 +661,14 @@ export default function RoomMobile() {
       const results = await searchYouTube(query);
       if (results.length === 0) {
         setSearchError(
-          "Nenhum resultado encontrado. Tente outro termo ou cole o link do YouTube."
+          t("mobile.noSongFound", "No song found. Try another term or paste YouTube link.")
         );
       }
       setSearchResults(results);
     } catch (err) {
       console.error("Search error:", err);
       setSearchError(
-        "Erro na busca. Tente novamente ou cole o link do YouTube."
+        t("mobile.searchError", "Search error. Try again or paste YouTube link.")
       );
     }
     setSearching(false);
@@ -685,11 +685,11 @@ export default function RoomMobile() {
     try {
       const results = await searchYouTube(query);
       if (results.length === 0) {
-        setSearchError("Nenhum resultado encontrado no YouTube.");
+        setSearchError(t("mobile.noSongFound", "No song found on YouTube."));
       }
       setSearchResults(results);
     } catch {
-      setSearchError("Erro na busca. Tente novamente.");
+      setSearchError(t("mobile.searchError", "Search error. Try again."));
     }
     setSearching(false);
   };
@@ -799,7 +799,7 @@ export default function RoomMobile() {
                 gap: 8,
               }}
             >
-              <IconMic size={24} /> Alterar Nome
+              <IconMic size={24} /> {t("mobile.changeNameTitle", "Change Name")}
             </span>
           </h3>
           <p
@@ -810,7 +810,7 @@ export default function RoomMobile() {
               fontSize: 14,
             }}
           >
-            Digite seu novo nome
+            {t("mobile.enterNewName", "Enter your new name")}
           </p>
           {nameError && (
             <div
@@ -864,7 +864,7 @@ export default function RoomMobile() {
               cursor: nameInput.trim() ? "pointer" : "not-allowed",
             }}
           >
-            Atualizar Nome
+            {t("mobile.updateName", "Update Name")}
           </button>
         </div>
       </div>
@@ -901,13 +901,13 @@ export default function RoomMobile() {
           <IconX size={24} /> {error}
         </h2>
         <p style={{ color: "#888", marginTop: 16 }}>
-          Volte e entre com um código válido.
+          {t("mobile.invalidCode", "Go back and enter a valid code.")}
         </p>
         <a
           href="/"
           style={{ color: "#3498db", marginTop: 20, display: "inline-block" }}
         >
-          ← Voltar ao início
+          {t("common.backToHome", "← Back to home")}
         </a>
       </div>
     );
@@ -919,7 +919,7 @@ export default function RoomMobile() {
         className="container"
         style={{ paddingTop: 60, textAlign: "center" }}
       >
-        <h2>Conectando à sala {code}...</h2>
+        <h2>{t("mobile.connecting", { code })}</h2>
       </div>
     );
   }
@@ -984,7 +984,7 @@ export default function RoomMobile() {
           >
             <path d="M15 18l-6-6 6-6" />
           </svg>
-          Sair da sala
+          {t("mobile.leaveRoom", "Leave room")}
         </button>
         <h2
           style={{
@@ -1015,7 +1015,7 @@ export default function RoomMobile() {
             cursor: "pointer",
           }}
         >
-          {nickname || "Convidado"} <IconEdit size={14} />
+          {nickname || t("common.guest", "Guest")} <IconEdit size={14} />
         </button>
       </div>
 
@@ -1043,7 +1043,7 @@ export default function RoomMobile() {
             }}
           >
             <h3 style={{ margin: "0 0 16px", textAlign: "center" }}>
-              Mudar apelido
+              {t("mobile.changeNickname", "Change nickname")}
             </h3>
             {nameError && (
               <div
@@ -1099,7 +1099,7 @@ export default function RoomMobile() {
                   cursor: "pointer",
                 }}
               >
-                Cancelar
+                {t("common.cancel", "Cancel")}
               </button>
               <button
                 onClick={handleSaveName}
@@ -1116,7 +1116,7 @@ export default function RoomMobile() {
                   cursor: nameInput.trim() ? "pointer" : "not-allowed",
                 }}
               >
-                Salvar
+                {t("common.save", "Save")}
               </button>
             </div>
           </div>
@@ -1128,25 +1128,25 @@ export default function RoomMobile() {
           className={tab === "queue" ? "active" : ""}
           onClick={() => setTab("queue")}
         >
-          Fila
+          {t("mobile.queue", "Queue")}
         </button>
         <button
           className={tab === "ranking" ? "active" : ""}
           onClick={() => setTab("ranking")}
         >
-          Ranking
+          {t("tv.ranking", "Ranking")}
         </button>
         <button
           className={tab === "saved" ? "active" : ""}
           onClick={() => setTab("saved")}
         >
-          Músicas
+          {t("mobile.songs", "Songs")}
         </button>
       </div>
 
       {tab === "queue" && (
         <div className="card">
-          <h3>Fila ({state.queue.length})</h3>
+          <h3>{t("mobile.queue", "Queue")} ({state.queue.length})</h3>
 
           {/* Música tocando agora */}
           {state.nowPlaying ? (
@@ -1168,7 +1168,7 @@ export default function RoomMobile() {
                   gap: 6,
                 }}
               >
-                <IconMusic size={14} /> Tocando agora
+                <IconMusic size={14} /> {t("mobile.nowPlaying", "Now playing")}
               </div>
               <div
                 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: 4 }}
@@ -1202,11 +1202,11 @@ export default function RoomMobile() {
                   >
                     {isPlaying ? (
                       <>
-                        <IconPause size={16} /> Pausar
+                        <IconPause size={16} /> {t("common.pause", "Pause")}
                       </>
                     ) : (
                       <>
-                        <IconPlay size={16} /> Continuar
+                        <IconPlay size={16} /> {t("common.continue", "Continue")}
                       </>
                     )}
                   </button>
@@ -1222,7 +1222,7 @@ export default function RoomMobile() {
                       gap: 6,
                     }}
                   >
-                    <IconSkipForward size={16} /> Pular
+                    <IconSkipForward size={16} /> {t("common.skip", "Skip")}
                   </button>
                 </div>
               )}
@@ -1250,10 +1250,10 @@ export default function RoomMobile() {
                       gap: 8,
                     }}
                   >
-                    <IconTrophy size={20} /> Calculando pontuação...
+                    <IconTrophy size={20} /> {t("mobile.calculatingScore", "Calculating score...")}
                   </div>
                   <p style={{ color: "#888", margin: 0 }}>
-                    Aguarde a TV mostrar o resultado
+                    {t("mobile.waitTV", "Wait for TV to show result")}
                   </p>
                 </>
               ) : state.queue.length > 0 ? (
@@ -1268,7 +1268,7 @@ export default function RoomMobile() {
                       gap: 6,
                     }}
                   >
-                    <IconMusic size={16} /> Próxima:{" "}
+                    <IconMusic size={16} /> {t("mobile.upNext", "Up next")}:{" "}
                     <strong>{state.queue[0].title}</strong>
                   </div>
                   <div
@@ -1300,7 +1300,7 @@ export default function RoomMobile() {
                       opacity: isHost ? 1 : 0.7,
                     }}
                   >
-                    <IconPlay size={18} /> {isHost ? "Começar!" : "Aguardando Host..."}
+                    <IconPlay size={18} /> {isHost ? t("mobile.start", "Start!") : t("mobile.waitingHost", "Waiting for Host...")}
                   </button>
                 </>
               ) : (
@@ -1312,14 +1312,14 @@ export default function RoomMobile() {
           {/* Próximas na fila */}
           {state.queue.length === 0 ? (
             <p style={{ color: "#888" }}>
-              Fila vazia - busque uma música abaixo!
+              {t("mobile.queueEmptySearch", "Queue is empty - search for a song below!")}
             </p>
           ) : (
             <>
               <div
                 style={{ fontSize: "0.85rem", color: "#888", marginBottom: 8 }}
               >
-                Próximas:
+                {t("mobile.upNext", "Up next")}:
               </div>
               {(showAllQueue ? state.queue : state.queue.slice(0, 5)).map(
                 (item, i) => {
@@ -1386,7 +1386,7 @@ export default function RoomMobile() {
                             textOverflow: "ellipsis",
                           }}
                         >
-                          Pedido por: <span style={{ color: "#ec4899", fontWeight: 500 }}>{singersDisplay}</span>
+                          {t("mobile.requestedBy", "Requested by")}: <span style={{ color: "#ec4899", fontWeight: 500 }}>{singersDisplay}</span>
                         </div>
                       </div>
 
@@ -1426,8 +1426,8 @@ export default function RoomMobile() {
                   }}
                 >
                   {showAllQueue
-                    ? "▲ Mostrar menos"
-                    : `▼ Ver mais ${state.queue.length - 5} músicas`}
+                    ? t("mobile.showLess", "▲ Show less")
+                    : t("mobile.showMore", { count: state.queue.length - 5 })}
                 </button>
               )}
             </>
@@ -1449,11 +1449,11 @@ export default function RoomMobile() {
                 gap: 8,
               }}
             >
-              <IconSearch size={16} /> Adicionar música
+              <IconSearch size={16} /> {t("mobile.addSong", "Add song")}
             </h4>
 
             <p style={{ color: "#888", fontSize: "0.8rem", marginBottom: 8 }}>
-              Cole um link do YouTube ou digite o nome da música
+              {t("mobile.pasteLink", "Paste a YouTube link or type song name")}
             </p>
             <div
               style={{
@@ -1589,7 +1589,7 @@ export default function RoomMobile() {
                       gap: 8,
                     }}
                   >
-                    <IconSearch size={16} /> Buscar no YouTube também
+                    <IconSearch size={16} /> {t("mobile.searchYouTubeToo", "Search YouTube too")}
                   </button>
                 )}
               </>
@@ -1598,7 +1598,7 @@ export default function RoomMobile() {
             {/* Resultados da busca */}
             {searching && (
               <p style={{ color: "#888", textAlign: "center" }}>
-                Buscando no YouTube...
+                {t("mobile.searchingYouTube", "Searching YouTube...")}
               </p>
             )}
             {searchError && (
@@ -1622,7 +1622,7 @@ export default function RoomMobile() {
                       marginBottom: 8,
                     }}
                   >
-                    Resultados do YouTube:
+                    {t("mobile.youtubeResults", "YouTube results:")}
                   </div>
                 )}
                 <div
@@ -1706,7 +1706,7 @@ export default function RoomMobile() {
                             t("common.waitAction", "Aguarde")
                           ) : (
                             <>
-                              <IconPlus size={16} /> Adicionar à fila
+                              <IconPlus size={16} /> {t("mobile.addToQueue", "Add to queue")}
                             </>
                           )}
                         </button>
@@ -1730,7 +1730,7 @@ export default function RoomMobile() {
               marginBottom: 16,
             }}
           >
-            <IconTrophy size={20} /> Ranking
+            <IconTrophy size={20} /> {t("tv.ranking", "Ranking")}
           </h3>
 
           {/* Toggle Solo/Duplas */}
@@ -1762,7 +1762,7 @@ export default function RoomMobile() {
                 cursor: "pointer",
               }}
             >
-              <IconUser size={14} /> Solo
+              <IconUser size={14} /> {t("tv.solo", "Solo")}
             </button>
             <button
               onClick={() => setRankingView("duet")}
@@ -1782,7 +1782,7 @@ export default function RoomMobile() {
                 cursor: "pointer",
               }}
             >
-              <IconUsers size={14} /> Duplas
+              <IconUsers size={14} /> {t("tv.duets", "Duets")}
             </button>
           </div>
 
@@ -1873,7 +1873,7 @@ export default function RoomMobile() {
                     >
                       <span>{duet.score} pts</span>
                       <span style={{ fontSize: "0.7rem", color: "#888" }}>
-                        {duet.count} música{duet.count > 1 ? "s" : ""}
+                        {duet.count} {duet.count > 1 ? t("mobile.songs", "songs") : t("mobile.song", "song")}
                       </span>
                     </span>
                   </div>
@@ -1888,12 +1888,12 @@ export default function RoomMobile() {
           {topSongs.length > 0 && (
             <div style={{ marginBottom: 24 }}>
               <h3 style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <IconTrendingUp size={20} /> Mais Tocadas
+                <IconTrendingUp size={20} /> {t("mobile.mostPlayed", "Most Played")}
               </h3>
               <p
                 style={{ color: "#888", fontSize: "0.85rem", marginBottom: 12 }}
               >
-                As músicas mais populares de todas as festas.
+                {t("mobile.mostPopular", "The most popular songs in all parties.")}
               </p>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 {topSongs.slice(0, 5).map((song, i) => (
@@ -1951,7 +1951,7 @@ export default function RoomMobile() {
                       </div>
                       <div style={{ fontSize: "0.7rem", color: "#888" }}>
                         {song.playCount}{" "}
-                        {song.playCount === 1 ? "vez" : "vezes"}
+                        {song.playCount === 1 ? t("mobile.playTime", "play") : t("mobile.playTimes", "plays")}
                       </div>
                     </div>
                     <button
@@ -1979,16 +1979,16 @@ export default function RoomMobile() {
 
           {/* Library Section */}
           <h3 style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <IconLibrary size={20} /> Biblioteca de Músicas
+            <IconLibrary size={20} /> {t("mobile.songLibrary", "Song Library")}
           </h3>
           <p style={{ color: "#888", fontSize: "0.85rem", marginBottom: 12 }}>
-            Músicas adicionadas ficam salvas aqui para todos.
+            {t("mobile.libraryDesc", "Added songs stay saved here for everyone.")}
           </p>
           {songLibrary.length === 0 ? (
             <p style={{ color: "#888" }}>
-              A biblioteca está vazia.
+              {t("mobile.libraryEmpty", "The library is empty.")}
               <br />
-              Busque e adicione uma música na aba Fila!
+              {t("mobile.searchToAddLibrary", "Search and add a song in the Queue tab!")}
             </p>
           ) : (
             <>
@@ -2075,7 +2075,7 @@ export default function RoomMobile() {
                   song.title.toLowerCase().includes(savedFilter.toLowerCase())
                 ).length === 0 && (
                     <p style={{ color: "#888", textAlign: "center" }}>
-                      Nenhuma música encontrada
+                      {t("mobile.noSongFound", "No song found")}
                     </p>
                   )}
               </div>
@@ -2166,12 +2166,12 @@ export default function RoomMobile() {
                 }}
               >
                 {adding === previewVideo.videoId ? (
-                  "Adicionando..."
+                  t("mobile.adding", "Adding...")
                 ) : cooldownRemaining > 0 ? (
-                  t("mobile.waitCooldown", "Aguarde o Cooldown")
+                  t("mobile.waitCooldown", "Wait for Cooldown")
                 ) : (
                   <>
-                    <IconPlus size={16} /> Adicionar à fila
+                    <IconPlus size={16} /> {t("mobile.addToQueue", "Add to queue")}
                   </>
                 )}
               </button>
@@ -2213,7 +2213,7 @@ export default function RoomMobile() {
               <div
                 style={{ fontSize: "0.85rem", color: "#888", marginBottom: 4 }}
               >
-                🎵 Adicionar à fila
+                🎵 {t("mobile.addToQueue", "Add to queue")}
               </div>
               <div style={{ fontSize: "1.1rem", fontWeight: 600 }}>
                 {addSongModal.title}
@@ -2229,7 +2229,7 @@ export default function RoomMobile() {
                   marginBottom: 8,
                 }}
               >
-                Quem vai cantar?
+                {t("mobile.whoWillSing", "Who will sing?")}
               </label>
 
               <select
@@ -2258,7 +2258,7 @@ export default function RoomMobile() {
                   value=""
                   style={{ background: "#1a1a1a", color: "#fff" }}
                 >
-                  Sozinho(a)
+                  {t("mobile.alone", "Solo")}
                 </option>
                 {participants
                   .filter(p => p.id !== myUserId)
@@ -2288,7 +2288,7 @@ export default function RoomMobile() {
                   cursor: "pointer",
                 }}
               >
-                Cancelar
+                {t("common.cancel", "Cancel")}
               </button>
               <button
                 onClick={handleConfirmAddSong}
@@ -2309,12 +2309,12 @@ export default function RoomMobile() {
                 }}
               >
                 {adding === addSongModal.videoId ? (
-                  "..."
+                  t("mobile.adding", "Adding...")
                 ) : cooldownRemaining > 0 ? (
                   t("mobile.cooldown", "Cooldown")
                 ) : (
                   <>
-                    <IconPlus size={16} /> Adicionar
+                    <IconPlus size={16} /> {t("common.add", "Add")}
                   </>
                 )}
               </button>

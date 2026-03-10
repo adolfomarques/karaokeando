@@ -31,7 +31,7 @@ export default function GuestRegister() {
     setError("");
 
     if (!phone.trim()) {
-      setError("Informe seu telefone");
+      setError(t("guestReg.phoneRequired", "Informe seu telefone"));
       return;
     }
 
@@ -59,7 +59,7 @@ export default function GuestRegister() {
         navigate(redirectTo);
       }
     } else {
-      setError(result.error || "Erro ao registrar");
+      setError(result.error || t("guestReg.registerError", "Erro ao registrar"));
     }
   };
 
@@ -108,7 +108,7 @@ export default function GuestRegister() {
             type="email"
             value={email}
             onChange={e => setEmail(e.target.value)}
-            placeholder="seu@email.com"
+            placeholder="user@email.com"
             required
             style={{ marginBottom: 16 }}
           />
