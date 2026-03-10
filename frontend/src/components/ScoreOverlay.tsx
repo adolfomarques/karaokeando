@@ -82,10 +82,16 @@ export default function ScoreOverlay({
       if (cancelled) return;
 
       setScoreText(String(scoreValue).padStart(2, "0"));
-      
-      const localizedReview = t(`reviews.${scoreData.bucket}.${scoreData.reviewIndex}`, { 
-        name: singer || t("mobile.alone", "Sozinho(a)") 
-      });
+
+      const name = singer || t("mobile.alone", "Sozinho(a)");
+      const scoreKey = `reviews.scores.${scoreValue}`;
+      const exactTranslation = t(scoreKey, { name });
+
+      // If i18next returns the key itself, it means the translation is missing for that specific score.
+      const localizedReview = exactTranslation !== scoreKey
+        ? exactTranslation
+        : t(`reviews.${scoreData.bucket}.${scoreData.reviewIndex}`, { name });
+
       setReviewText(localizedReview);
 
       const canvas = canvasRef.current;
