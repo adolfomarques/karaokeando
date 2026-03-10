@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react";
+import Logo from "../components/Logo";
 import { useNavigate } from "react-router-dom";
 import { useAuth, getToken } from "../context/AuthContext";
 import { getState, API_BASE } from "../api";
+import { useTranslation } from "react-i18next";
+import LanguageSwitcher from "../components/LanguageSwitcher";
 
 interface MyRoom {
   code: string;
@@ -9,6 +12,7 @@ interface MyRoom {
 }
 
 export default function Home() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { user, loading: authLoading, logout, registerGuest } = useAuth();
 
@@ -208,18 +212,17 @@ export default function Home() {
         className="container"
         style={{ paddingTop: 60, textAlign: "center" }}
       >
-        <p>Carregando...</p>
+        <p>{t("home.loading", "Carregando...")}</p>
       </div>
     );
   }
 
   return (
-    <div className="container" style={{ paddingTop: 60 }}>
-      <h1 style={{ textAlign: "center", fontSize: "2.5rem" }}>
-        🎤 Karaokêando
-      </h1>
-      <p style={{ textAlign: "center", color: "#888", marginBottom: 40 }}>
-        Karaokê em grupo, fácil e divertido
+    <div className="container" style={{ paddingTop: 40 }}>
+      <LanguageSwitcher />
+      <Logo width={480} />
+      <p style={{ textAlign: "center", color: "#888", marginTop: -10, marginBottom: 30 }}>
+        {t("home.slogan", "Karaokê em grupo, fácil e divertido")}
       </p>
 
       {/* Usuário logado */}
@@ -233,10 +236,10 @@ export default function Home() {
             }}
           >
             <div>
-              <strong>{user.name}</strong>
+              <strong>{user?.name}</strong>
               <br />
-              <small style={{ color: "#888" }}>{user.email}</small>
-              {user.canHost && (
+              <small style={{ color: "#888" }}>{user?.email}</small>
+              {user?.canHost && (
                 <span
                   style={{
                     marginLeft: 10,
@@ -260,7 +263,7 @@ export default function Home() {
                 fontSize: "0.9rem",
               }}
             >
-              Sair
+              {t("auth.logout", "Sair")}
             </button>
           </div>
         </div>
@@ -269,13 +272,13 @@ export default function Home() {
       {/* Minhas Salas (só para hosts) */}
       {user?.canHost && (
         <div className="card" style={{ marginBottom: 20 }}>
-          <h2>📺 Minhas Salas</h2>
+          <h2>📺 {t("home.myRooms", "Minhas Salas")}</h2>
 
           {loadingMyRooms ? (
-            <p style={{ color: "#888" }}>Carregando...</p>
+            <p style={{ color: "#888" }}>{t("home.loading", "Carregando...")}</p>
           ) : myRooms.length === 0 ? (
             <p style={{ color: "#888", fontSize: "0.9rem" }}>
-              Você ainda não tem salas criadas.
+              {t("home.noRoomsYet", "Você ainda não tem salas criadas.")}
             </p>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -313,7 +316,7 @@ export default function Home() {
                         background: "#7c4dff",
                       }}
                     >
-                      🖥️ Exibir
+                      🖥️ {t("home.showOnTV", "Exibir")}
                     </button>
                     <button
                       onClick={() => navigate(`/room/${room.code}`)}
@@ -324,7 +327,7 @@ export default function Home() {
                         background: "#444",
                       }}
                     >
-                      🎤 Cantar
+                      🎤 {t("home.singBtn", "Cantar")}
                     </button>
                   </div>
                 </div>
@@ -336,20 +339,20 @@ export default function Home() {
             onClick={handleCreateRoom}
             style={{ width: "100%", marginTop: 16 }}
           >
-            + Criar nova sala
+            + {t("home.createRoom", "Criar nova sala")}
           </button>
         </div>
       )}
 
       {/* Entrar em sala */}
       <div className="card">
-        <h2>🎵 Entrar em uma sala</h2>
+        <h2>🎵 {t("home.joinRoom", "Entrar em uma sala")}</h2>
         <p style={{ color: "#888", fontSize: "0.9rem", marginBottom: 16 }}>
-          Digite o código da sala ou escaneie o QR Code na TV
+          {t("home.joinInstruction", "Digite o código da sala ou escaneie o QR Code na TV")}
         </p>
 
         <input
-          placeholder="Código da sala (ex: ABC12)"
+          placeholder={t("home.roomCodePlaceholder", "Código da sala (ex: ABC12)")}
           value={joinCode}
           onChange={e => {
             setJoinCode(e.target.value.toUpperCase());
@@ -368,7 +371,7 @@ export default function Home() {
             fontWeight: 500,
           }}
         >
-          O que você quer fazer?
+          {t("home.whatToDo", "O que você quer fazer?")}
         </p>
         <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
           <button
@@ -389,7 +392,7 @@ export default function Home() {
           >
             <div style={{ fontSize: "1.6rem", marginBottom: 8 }}>🎤</div>
             <div style={{ fontWeight: 600, fontSize: "1.05rem" }}>
-              Quero cantar
+              {t("home.modeSinger", "Quero cantar")}
             </div>
             <div
               style={{
@@ -399,8 +402,9 @@ export default function Home() {
                 lineHeight: 1.4,
               }}
             >
-              Escolher músicas e<br />
-              acompanhar a fila
+              {t("home.modeSingerDesc1", "Escolher músicas e")}
+              <br />
+              {t("home.modeSingerDesc2", "acompanhar a fila")}
             </div>
           </button>
           <button
@@ -419,7 +423,7 @@ export default function Home() {
           >
             <div style={{ fontSize: "1.6rem", marginBottom: 8 }}>🖥️</div>
             <div style={{ fontWeight: 600, fontSize: "1.05rem" }}>
-              Exibir na tela
+              {t("home.modeTV", "Exibir na tela")}
             </div>
             <div
               style={{
@@ -429,9 +433,9 @@ export default function Home() {
                 lineHeight: 1.4,
               }}
             >
-              Mostrar vídeo e letra
+              {t("home.modeTVDesc1", "Mostrar vídeo e letra")}
               <br />
-              para todos verem
+              {t("home.modeTVDesc2", "para todos verem")}
             </div>
           </button>
         </div>
@@ -444,24 +448,24 @@ export default function Home() {
 
         <button
           onClick={joinRoom}
-          disabled={joinCode.length < 4 || joining}
-          style={{ width: "100%" }}
+          disabled={joining || !joinCode.trim()}
+          style={{ width: "100%", fontSize: "1.1rem" }}
         >
-          {joining ? "Verificando..." : "Continuar"}
+          {joining ? t("home.joining", "Verificando...") : t("home.continue", "Continuar")}
         </button>
       </div>
 
       {/* Criar sala (só se não for host ainda) */}
-      {(!user || !user.canHost) && (
+      {(!user || !user?.canHost) && (
         <div className="card">
-          <h2>🎤 Criar sala</h2>
+          <h2>🎤 {t("home.createRoomHeader", "Criar sala")}</h2>
           <p style={{ color: "#888", marginBottom: 12, fontSize: "0.9rem" }}>
             {!user
-              ? "Faça login para criar sua própria sala de karaokê"
-              : "Complete seu cadastro para virar Host"}
+              ? t("home.loginToCreate", "Faça login para criar sua própria sala de karaokê")
+              : t("home.completeProfileToHost", "Complete seu cadastro para virar Host")}
           </p>
           <button onClick={handleCreateRoom} style={{ width: "100%" }}>
-            {!user ? "Fazer login" : "Completar cadastro"}
+            {!user ? t("auth.login", "Fazer login") : t("home.completeRegistration", "Completar cadastro")}
           </button>
         </div>
       )}
@@ -469,7 +473,7 @@ export default function Home() {
       {/* Link criar conta se não logado */}
       {!user && (
         <div style={{ textAlign: "center", marginTop: 20 }}>
-          <span style={{ color: "#888" }}>Não tem conta? </span>
+          <span style={{ color: "#888" }}>{t("home.noAccount", "Não tem conta?")} </span>
           <a
             href="/register"
             style={{ color: "#4CAF50" }}
@@ -478,7 +482,7 @@ export default function Home() {
               navigate("/register");
             }}
           >
-            Criar conta
+            {t("auth.createAccount", "Criar conta")}
           </a>
         </div>
       )}
@@ -518,7 +522,7 @@ export default function Home() {
               // Tela de "precisa fazer login"
               <>
                 <h3 style={{ margin: "0 0 16px", textAlign: "center" }}>
-                  👋 Você já tem uma conta!
+                  👋 {t("guest.alreadyHaveAccount", "Você já tem uma conta!")}
                 </h3>
                 <p
                   style={{
@@ -529,9 +533,9 @@ export default function Home() {
                     lineHeight: 1.5,
                   }}
                 >
-                  O email{" "}
-                  <strong style={{ color: "#fff" }}>{guestEmail}</strong> já
-                  está cadastrado. Faça login para continuar.
+                  {t("guest.emailAlreadyRegistered1", "O email")} {" "}
+                  <strong style={{ color: "#fff" }}>{guestEmail}</strong>{" "}
+                  {t("guest.emailAlreadyRegistered2", "já está cadastrado. Faça login para continuar.")}
                 </p>
 
                 <button
@@ -555,7 +559,7 @@ export default function Home() {
                     marginBottom: 12,
                   }}
                 >
-                  Fazer login
+                  {t("auth.login", "Fazer login")}
                 </button>
 
                 <button
@@ -574,14 +578,14 @@ export default function Home() {
                     cursor: "pointer",
                   }}
                 >
-                  Usar outro email
+                  {t("guest.useAnotherEmail", "Usar outro email")}
                 </button>
               </>
             ) : (
               // Formulário normal de guest
               <>
                 <h3 style={{ margin: "0 0 8px", textAlign: "center" }}>
-                  🎵 Entrar na sala {pendingRoomCode}
+                  🎵 {t("guest.enterRoom", "Entrar na sala")} {pendingRoomCode}
                 </h3>
                 <p
                   style={{
@@ -591,7 +595,7 @@ export default function Home() {
                     fontSize: "0.9rem",
                   }}
                 >
-                  Identifique-se para participar
+                  {t("guest.identifyYourself", "Identifique-se para participar")}
                 </p>
 
                 {guestError && (
@@ -614,7 +618,7 @@ export default function Home() {
                   type="text"
                   value={guestName}
                   onChange={e => setGuestName(e.target.value)}
-                  placeholder="Seu nome"
+                  placeholder={t("guest.yourName", "Seu nome")}
                   autoFocus
                   style={{
                     width: "100%",
@@ -633,7 +637,7 @@ export default function Home() {
                   type="email"
                   value={guestEmail}
                   onChange={e => setGuestEmail(e.target.value)}
-                  placeholder="Seu email"
+                  placeholder={t("guest.yourEmail", "Seu email")}
                   style={{
                     width: "100%",
                     padding: 12,
@@ -651,7 +655,7 @@ export default function Home() {
                   type="tel"
                   value={guestPhone}
                   onChange={e => setGuestPhone(e.target.value)}
-                  placeholder="Seu celular (ex: 11999998888)"
+                  placeholder={t("guest.yourPhone", "Seu celular (ex: 11999998888)")}
                   onKeyDown={e => e.key === "Enter" && handleGuestSubmit()}
                   style={{
                     width: "100%",
@@ -687,7 +691,7 @@ export default function Home() {
                     marginBottom: 12,
                   }}
                 >
-                  {guestLoading ? "Entrando..." : "Entrar na sala"}
+                  {guestLoading ? t("guest.entering", "Entrando...") : t("guest.enterRoomBtn", "Entrar na sala")}
                 </button>
 
                 <button
@@ -706,7 +710,7 @@ export default function Home() {
                     cursor: "pointer",
                   }}
                 >
-                  Cancelar
+                  {t("common.cancel", "Cancelar")}
                 </button>
               </>
             )}
@@ -743,7 +747,7 @@ export default function Home() {
             onClick={e => e.stopPropagation()}
           >
             <h3 style={{ margin: "0 0 8px", textAlign: "center" }}>
-              🔐 Senha da sala
+              🔐 {t("tv.passwordTitle", "Senha da sala")}
             </h3>
             <p
               style={{
@@ -753,7 +757,7 @@ export default function Home() {
                 fontSize: "0.9rem",
               }}
             >
-              Digite a senha para abrir a exibição na sala{" "}
+              {t("tv.passwordInstruction", "Digite a senha para abrir a exibição na sala")}{" "}
               <strong>{pendingRoomCode}</strong>
             </p>
 
@@ -780,7 +784,7 @@ export default function Home() {
               autoCapitalize="off"
               value={tvPassword}
               onChange={e => setTvPassword(e.target.value.slice(0, 6))}
-              placeholder="Ex: abc123"
+              placeholder={t("tv.passwordPlaceholder", "Ex: abc123")}
               autoFocus
               maxLength={6}
               style={{
@@ -815,7 +819,7 @@ export default function Home() {
                 marginBottom: 12,
               }}
             >
-              {tvPasswordLoading ? "Verificando..." : "Entrar"}
+              {tvPasswordLoading ? t("tv.verifying", "Verificando...") : t("common.enter", "Entrar")}
             </button>
 
             <button
@@ -831,7 +835,7 @@ export default function Home() {
                 cursor: "pointer",
               }}
             >
-              Cancelar
+              {t("common.cancel", "Cancelar")}
             </button>
           </div>
         </div>

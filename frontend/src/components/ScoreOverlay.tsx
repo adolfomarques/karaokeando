@@ -4,6 +4,7 @@ import {
   getScoreValue,
   rotateScore,
 } from "../score/pikaraokeScore";
+import { useTranslation } from "react-i18next";
 import { launchFireworkShow } from "../score/fireworks";
 import "./ScoreOverlay.css";
 
@@ -43,6 +44,7 @@ export default function ScoreOverlay({
   enableAudio = false,
   onDone,
 }: Props) {
+  const { t } = useTranslation();
   const [scoreText, setScoreText] = useState("");
   const [reviewText, setReviewText] = useState("");
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -114,7 +116,7 @@ export default function ScoreOverlay({
   return (
     <div className="pk-score">
       <div className="pk-score__content">
-        <div className="pk-score__your">Sua Pontuação</div>
+        <div className="pk-score__your">{t("mobile.yourScore", "Sua Pontuação")}</div>
         <div className="pk-score__number">{scoreText}</div>
         <div className="pk-score__divider" />
         {singer && (

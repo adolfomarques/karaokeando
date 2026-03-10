@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth, getToken } from "../context/AuthContext";
 import { getDeviceFingerprint } from "../lib/deviceId";
 import {
@@ -375,6 +376,7 @@ const TruncatedText = ({
 };
 
 export default function RoomMobile() {
+  const { t } = useTranslation();
   const { code } = useParams<{ code: string }>();
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
@@ -833,7 +835,7 @@ export default function RoomMobile() {
               if (nameError) setNameError(null);
             }}
             onKeyDown={e => e.key === "Enter" && handleSaveName()}
-            placeholder="Seu nome"
+            placeholder={t("guest.yourName", "Seu nome")}
             autoFocus
             style={{
               width: "100%",
@@ -876,7 +878,7 @@ export default function RoomMobile() {
         className="container"
         style={{ paddingTop: 60, textAlign: "center" }}
       >
-        <h2>Carregando...</h2>
+        <h2>{t("home.loading", "Carregando...")}</h2>
       </div>
     );
   }
@@ -1066,7 +1068,7 @@ export default function RoomMobile() {
                 if (nameError) setNameError(null);
               }}
               onKeyDown={e => e.key === "Enter" && handleSaveName()}
-              placeholder="Digite seu apelido"
+              placeholder={t("mobile.typeNickname", "Digite seu apelido")}
               autoFocus
               style={{
                 width: "100%",
@@ -1302,7 +1304,7 @@ export default function RoomMobile() {
                   </button>
                 </>
               ) : (
-                <span style={{ color: "#888" }}>Nenhuma música na fila</span>
+                <span style={{ color: "#888" }}>{t("mobile.noSongInQueue", "Nenhuma música na fila")}</span>
               )}
             </div>
           )}
@@ -1461,7 +1463,7 @@ export default function RoomMobile() {
               }}
             >
               <input
-                placeholder="Link ou nome da música..."
+                placeholder={t("mobile.linkOrNamePlaceholder", "Link ou nome da música...")}
                 value={searchQuery}
                 onChange={e => {
                   setSearchQuery(e.target.value);
@@ -1498,7 +1500,7 @@ export default function RoomMobile() {
             {/* Campo de título quando é link */}
             {isLinkMode && (
               <input
-                placeholder="Nome da música (opcional)"
+                placeholder={t("mobile.optionalNamePlaceholder", "Nome da música (opcional)")}
                 value={customTitle}
                 onChange={e => setCustomTitle(e.target.value)}
                 style={{ marginBottom: 12 }}
@@ -1566,7 +1568,7 @@ export default function RoomMobile() {
                         {adding === song.videoId ? (
                           "..."
                         ) : cooldownRemaining > 0 ? (
-                          "Espere"
+                          t("common.wait", "Espere")
                         ) : (
                           <IconPlus size={16} />
                         )}
@@ -1701,7 +1703,7 @@ export default function RoomMobile() {
                           {adding === result.videoId ? (
                             "Adicionando..."
                           ) : cooldownRemaining > 0 ? (
-                            "Aguarde"
+                            t("common.waitAction", "Aguarde")
                           ) : (
                             <>
                               <IconPlus size={16} /> Adicionar à fila
@@ -1787,7 +1789,7 @@ export default function RoomMobile() {
           {rankingView === "solo" ? (
             // Solo ranking
             Object.keys(state.ranking).length === 0 ? (
-              <p style={{ color: "#888" }}>Ninguém pontuou ainda</p>
+              <p style={{ color: "#888" }}>{t("tv.nobodyScored", "Ninguém pontuou ainda")}</p>
             ) : (
               Object.entries(state.ranking)
                 .sort(([, a], [, b]) => b.score - a.score)
@@ -1826,7 +1828,7 @@ export default function RoomMobile() {
             )
           ) : // Duet ranking
             !state.duetRanking || state.duetRanking.length === 0 ? (
-              <p style={{ color: "#888" }}>Nenhuma dupla pontuou ainda</p>
+              <p style={{ color: "#888" }}>{t("tv.noDuetScored", "Nenhuma dupla pontuou ainda")}</p>
             ) : (
               [...state.duetRanking]
                 .sort((a, b) => b.score - a.score)
@@ -1991,7 +1993,7 @@ export default function RoomMobile() {
           ) : (
             <>
               <input
-                placeholder="Filtrar músicas..."
+                placeholder={t("mobile.filterSongs", "Filtrar músicas...")}
                 value={savedFilter}
                 onChange={e => setSavedFilter(e.target.value)}
                 style={{ marginBottom: 12 }}
@@ -2047,7 +2049,7 @@ export default function RoomMobile() {
                         {adding === song.videoId ? (
                           "..."
                         ) : cooldownRemaining > 0 ? (
-                          "Aguarde"
+                          t("common.waitAction", "Aguarde")
                         ) : (
                           <IconPlus size={16} />
                         )}
@@ -2166,7 +2168,7 @@ export default function RoomMobile() {
                 {adding === previewVideo.videoId ? (
                   "Adicionando..."
                 ) : cooldownRemaining > 0 ? (
-                  "Aguarde o Cooldown"
+                  t("mobile.waitCooldown", "Aguarde o Cooldown")
                 ) : (
                   <>
                     <IconPlus size={16} /> Adicionar à fila
@@ -2309,7 +2311,7 @@ export default function RoomMobile() {
                 {adding === addSongModal.videoId ? (
                   "..."
                 ) : cooldownRemaining > 0 ? (
-                  "Cooldown"
+                  t("mobile.cooldown", "Cooldown")
                 ) : (
                   <>
                     <IconPlus size={16} /> Adicionar

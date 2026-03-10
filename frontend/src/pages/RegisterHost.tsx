@@ -1,8 +1,11 @@
+import { useTranslation } from 'react-i18next';
+import Logo from "../components/Logo";
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 export default function RegisterHost() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { registerHost } = useAuth();
 
@@ -55,11 +58,9 @@ export default function RegisterHost() {
 
   return (
     <div className="container" style={{ paddingTop: 40, maxWidth: 400 }}>
-      <h1 style={{ textAlign: "center", fontSize: "2rem", marginBottom: 8 }}>
-        🎤 Criar conta Host
-      </h1>
+      <Logo width={300} />
       <p style={{ textAlign: "center", color: "#888", marginBottom: 24 }}>
-        Crie sua conta para poder criar salas de karaokê
+        {t("register.desc", "Crie sua conta para poder criar salas de karaokê")}
       </p>
 
       <div className="card">
@@ -95,7 +96,7 @@ export default function RegisterHost() {
             type="text"
             value={name}
             onChange={e => setName(e.target.value)}
-            placeholder="Seu nome"
+            placeholder={t("register.namePlaceholder", "Seu nome")}
             required
             style={{ marginBottom: 12 }}
           />
@@ -104,7 +105,7 @@ export default function RegisterHost() {
             type="email"
             value={email}
             onChange={e => setEmail(e.target.value)}
-            placeholder="Seu email"
+            placeholder={t("register.emailPlaceholder", "Seu email")}
             required
             style={{ marginBottom: 12 }}
           />
@@ -113,7 +114,7 @@ export default function RegisterHost() {
             type="tel"
             value={phone}
             onChange={e => setPhone(e.target.value)}
-            placeholder="Celular (ex: 11999998888)"
+            placeholder={t("register.phonePlaceholder", "Celular (ex: 11999998888)")}
             required
             style={{ marginBottom: 20 }}
           />
@@ -134,7 +135,7 @@ export default function RegisterHost() {
             type="password"
             value={password}
             onChange={e => setPassword(e.target.value)}
-            placeholder="Crie uma senha (mín. 6 caracteres)"
+            placeholder={t("register.passwordPlaceholder", "Crie uma senha (mín. 6 caracteres)")}
             required
             minLength={6}
             style={{ marginBottom: 12 }}
@@ -144,7 +145,7 @@ export default function RegisterHost() {
             type="password"
             value={confirmPassword}
             onChange={e => setConfirmPassword(e.target.value)}
-            placeholder="Confirme sua senha"
+            placeholder={t("register.confirmPasswordPlaceholder", "Confirme sua senha")}
             required
             minLength={6}
             style={{ marginBottom: 12 }}
@@ -154,7 +155,7 @@ export default function RegisterHost() {
             type="text"
             value={city}
             onChange={e => setCity(e.target.value)}
-            placeholder="Sua cidade"
+            placeholder={t("register.cityPlaceholder", "Sua cidade")}
             required
             style={{ marginBottom: 12 }}
           />
@@ -186,10 +187,10 @@ export default function RegisterHost() {
             <option value="" disabled>
               Gênero
             </option>
-            <option value="masculino">Masculino</option>
-            <option value="feminino">Feminino</option>
-            <option value="outro">Outro</option>
-            <option value="prefiro_nao_informar">Prefiro não informar</option>
+            <option value="masculino">{t("register.male", "Masculino")}</option>
+            <option value="feminino">{t("register.female", "Feminino")}</option>
+            <option value="outro">{t("register.other", "Outro")}</option>
+            <option value="prefiro_nao_informar">{t("register.preferNotToSay", "Prefiro não informar")}</option>
           </select>
 
           <button
@@ -197,7 +198,7 @@ export default function RegisterHost() {
             disabled={loading}
             style={{ width: "100%", marginBottom: 16 }}
           >
-            {loading ? "Criando conta..." : "Criar conta e continuar"}
+            {loading ? t("register.creating", "Criando conta...") : t("register.createBtn", "Criar conta e continuar")}
           </button>
         </form>
 

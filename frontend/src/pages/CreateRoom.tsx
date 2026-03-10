@@ -1,9 +1,12 @@
+import { useTranslation } from 'react-i18next';
+import Logo from "../components/Logo";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth, getToken } from "../context/AuthContext";
 import { API_BASE } from "../api";
 
 export default function CreateRoom() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [tvPassword, setTvPassword] = useState("");
@@ -22,12 +25,12 @@ export default function CreateRoom() {
     setError("");
 
     if (tvPassword.length !== 6) {
-      setError("A senha do TV deve ter exatamente 6 caracteres");
+      setError(t("createRoom.sixChars", "A senha do TV deve ter exatamente 6 caracteres"));
       return;
     }
 
     if (tvPassword !== confirmPassword) {
-      setError("As senhas não coincidem");
+      setError(t("createRoom.passwordsDontMatch", "As senhas não coincidem"));
       return;
     }
 
@@ -65,10 +68,10 @@ export default function CreateRoom() {
         // Navigate to TV view
         navigate(`/room/${data.roomCode}/tv`);
       } else {
-        setError(data.message || "Erro ao criar sala");
+        setError(data.message || t("createRoom.error", "Erro ao criar sala"));
       }
     } catch {
-      setError("Erro de conexão");
+      setError(t("tvLogin.connError", "Erro de conexão"));
     } finally {
       setLoading(false);
     }
@@ -76,11 +79,9 @@ export default function CreateRoom() {
 
   return (
     <div className="container" style={{ paddingTop: 60, maxWidth: 400 }}>
-      <h1 style={{ textAlign: "center", fontSize: "2rem", marginBottom: 8 }}>
-        🎤 Criar Sala
-      </h1>
+      <Logo width={200} />
       <p style={{ textAlign: "center", color: "#888", marginBottom: 32 }}>
-        Defina uma senha para o modo TV
+        {t("createRoom.desc1", "Defina uma senha para o modo TV")}
       </p>
 
       <div className="card">
@@ -110,19 +111,19 @@ export default function CreateRoom() {
             }}
           >
             <p style={{ margin: 0 }}>
-              💡 Esta senha será usada para acessar o <strong>modo TV</strong>{" "}
+              💡 Esta senha será usada para acessar o <strong>{t("createRoom.tvMode", "modo TV")}</strong>{" "}
               da sala. Compartilhe apenas com quem deve controlar a TV.
             </p>
           </div>
 
           <label style={{ display: "block", marginBottom: 4, fontWeight: 500 }}>
-            Senha do TV (6 caracteres)
+            {t("createRoom.tvPassword", "Senha do TV (6 caracteres)")}
           </label>
           <input
             type="text"
             value={tvPassword}
             onChange={e => setTvPassword(e.target.value.slice(0, 6))}
-            placeholder="Ex: abc123"
+            placeholder={t("createRoom.placeholderTV", "Ex: abc123")}
             required
             maxLength={6}
             style={{
@@ -134,13 +135,13 @@ export default function CreateRoom() {
           />
 
           <label style={{ display: "block", marginBottom: 4, fontWeight: 500 }}>
-            Confirmar Senha
+            {t("createRoom.confirmPassword", "Confirmar Senha")}
           </label>
           <input
             type="text"
             value={confirmPassword}
             onChange={e => setConfirmPassword(e.target.value.slice(0, 6))}
-            placeholder="Digite novamente"
+            placeholder={t("createRoom.placeholderConfirm", "Digite novamente")}
             required
             maxLength={6}
             style={{
@@ -156,7 +157,7 @@ export default function CreateRoom() {
             disabled={loading || tvPassword.length !== 6}
             style={{ width: "100%" }}
           >
-            {loading ? "Criando..." : "Criar Sala"}
+            {loading ? t("home.creating", "Criando...") : t("createRoom.btn", "Criar Sala")}
           </button>
         </form>
       </div>

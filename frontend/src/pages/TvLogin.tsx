@@ -1,8 +1,10 @@
+import { useTranslation } from 'react-i18next';
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { API_BASE } from "../api";
 
 export default function TvLogin() {
+  const { t } = useTranslation();
   const { code } = useParams<{ code: string }>();
   const navigate = useNavigate();
   const [tvPassword, setTvPassword] = useState("");
@@ -29,10 +31,10 @@ export default function TvLogin() {
         // Navigate to TV view
         navigate(`/room/${code}/tv`);
       } else {
-        setError(data.message || "Senha incorreta");
+        setError(data.message || t("tvLogin.wrongPassword", "Senha incorreta"));
       }
     } catch {
-      setError("Erro de conexão");
+      setError(t("tvLogin.connError", "Erro de conexão"));
     } finally {
       setLoading(false);
     }
@@ -91,7 +93,7 @@ export default function TvLogin() {
             disabled={loading || tvPassword.length === 0}
             style={{ width: "100%" }}
           >
-            {loading ? "Verificando..." : "Entrar"}
+            {loading ? t("tv.verifying", "Verificando...") : t("common.enter", "Entrar")}
           </button>
         </form>
       </div>

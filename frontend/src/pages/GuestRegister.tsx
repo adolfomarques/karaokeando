@@ -1,8 +1,11 @@
+import { useTranslation } from 'react-i18next';
+import Logo from "../components/Logo";
 import { useState } from "react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 export default function GuestRegister() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
@@ -34,7 +37,7 @@ export default function GuestRegister() {
 
     const phoneDigits = phone.replace(/\D/g, "");
     if (phoneDigits.length < 10) {
-      setError("Telefone inválido (mínimo 10 dígitos)");
+      setError(t("guestReg.invalidPhone", "Telefone inválido (mínimo 10 dígitos)"));
       return;
     }
 
@@ -62,13 +65,11 @@ export default function GuestRegister() {
 
   return (
     <div className="container" style={{ paddingTop: 60, maxWidth: 400 }}>
-      <h1 style={{ textAlign: "center", fontSize: "2rem", marginBottom: 8 }}>
-        🎤 Karaokêando
-      </h1>
+      <Logo width={300} />
       <p style={{ textAlign: "center", color: "#888", marginBottom: 32 }}>
         {roomCode
-          ? `Informe seus dados para entrar na sala ${roomCode}`
-          : "Informe seus dados para continuar"}
+          ? t("guestReg.enterRoomWithCode", `Informe seus dados para entrar na sala ${roomCode}`, { code: roomCode })
+          : t("guestReg.enterData", "Informe seus dados para continuar")}
       </p>
 
       <div className="card">
@@ -89,19 +90,19 @@ export default function GuestRegister() {
           )}
 
           <label style={{ display: "block", marginBottom: 4, fontWeight: 500 }}>
-            Seu Nome
+            {t("guestReg.yourName", "Seu Nome")}
           </label>
           <input
             type="text"
             value={name}
             onChange={e => setName(e.target.value)}
-            placeholder="Como quer ser chamado"
+            placeholder={t("guestReg.namePlaceholder", "Como quer ser chamado")}
             required
             style={{ marginBottom: 16 }}
           />
 
           <label style={{ display: "block", marginBottom: 4, fontWeight: 500 }}>
-            Email
+            {t("guestReg.email", "Email")}
           </label>
           <input
             type="email"
@@ -113,7 +114,7 @@ export default function GuestRegister() {
           />
 
           <label style={{ display: "block", marginBottom: 4, fontWeight: 500 }}>
-            Telefone
+            {t("guestReg.phone", "Telefone")}
           </label>
           <input
             type="tel"
@@ -130,15 +131,15 @@ export default function GuestRegister() {
             style={{ width: "100%", marginBottom: 16 }}
           >
             {loading
-              ? "Entrando..."
+              ? t("guestReg.entering", "Entrando...")
               : roomCode
-              ? "Entrar na Sala"
-              : "Continuar"}
+              ? t("guestReg.enterRoomBtn", "Entrar na Sala")
+              : t("common.continue", "Continuar")}
           </button>
         </form>
 
         <p style={{ textAlign: "center", color: "#888", fontSize: "0.9rem" }}>
-          Já tem conta completa?{" "}
+          {t("guest.alreadyHaveAccount", "Já tem conta completa?")}{" "}
           <a
             href="/login"
             onClick={e => {
@@ -147,7 +148,7 @@ export default function GuestRegister() {
             }}
             style={{ color: "#007bff" }}
           >
-            Fazer login
+            {t("auth.login", "Fazer login")}
           </a>
         </p>
       </div>

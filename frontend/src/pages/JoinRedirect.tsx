@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
@@ -6,6 +7,7 @@ import { useParams, useNavigate } from "react-router-dom";
  * This allows QR codes to use /join/CODE format
  */
 export default function JoinRedirect() {
+  const { t } = useTranslation();
   const { code } = useParams<{ code: string }>();
   const navigate = useNavigate();
 
@@ -27,7 +29,7 @@ export default function JoinRedirect() {
         color: "#888",
       }}
     >
-      Redirecionando...
+      {t("joinRedirect.redirecting", "Redirecionando...")}
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   connectWS,
   finalizeSong,
@@ -310,6 +311,7 @@ const IconSkipForward = ({ size = 16 }: { size?: number }) => (
 );
 
 export default function RoomTV() {
+  const { t } = useTranslation();
   const { code } = useParams<{ code: string }>();
   const navigate = useNavigate();
   const [state, setState] = useState<RoomState | null>(null);
@@ -576,14 +578,17 @@ export default function RoomTV() {
     } else if (autoPlayCountdown === 0 && code && !isTransitioningRef.current) {
       // Countdown finished, play next song
       console.log("[TV] Countdown finished, advancing queue...");
+
+      // Defensivamente: setar flags e limpar contador ANTES da chamada assíncrona
       isTransitioningRef.current = true;
       setIsTransitioning(true);
+      setAutoPlayCountdown(null);
+
       nextSong(code, undefined, tvToken).catch(err => {
         console.error("[TV] nextSong error", err);
         isTransitioningRef.current = false;
         setIsTransitioning(false);
       });
-      setAutoPlayCountdown(null);
     }
   }, [state, showScore, autoPlayCountdown, code, tvToken, isTransitioning]);
 
@@ -651,19 +656,21 @@ export default function RoomTV() {
           participants?: { id: string; name: string }[];
         };
         if (m.type === "STATE" && m.state) {
-          // Reset transitioning flag if something is now playing OR queue is empty (processed)
-          if (m.state.nowPlaying || m.state.queue.length === 0) {
+          const newState = m.state;
+
+          // Update state if not showing score (to prevent jumpy UI during scoring)
+          // or if we're in the middle of a transition (to get the nowPlaying data)
+          if (!finalized || isTransitioningRef.current) {
+            setState(newState);
+          }
+
+          // Reset transitioning flag ONLY IF we have a new song playing
+          // OR if the queue is empty (meaning the transition is technically over/failed)
+          if (newState.nowPlaying || newState.queue.length === 0) {
+            console.log("[TV] Transition complete or queue empty, resetting flag");
             isTransitioningRef.current = false;
             setIsTransitioning(false);
           }
-
-          // Don't update state while showing score to avoid re-triggering
-          setFinalized(prev => {
-            if (!prev) {
-              setState(m.state!);
-            }
-            return prev;
-          });
         } else if (m.type === "ERROR" && m.error === "room_not_found") {
           setError("Sala não encontrada. Verifique o código.");
         } else if (m.type === "PARTICIPANTS" && m.participants) {
@@ -785,7 +792,7 @@ export default function RoomTV() {
           color: "#fff",
         }}
       >
-        <p>Verificando acesso...</p>
+        <p>{t("tv.verifyingAccess", "Verificando acesso...")}</p>
       </div>
     );
   }
@@ -883,7 +890,7 @@ export default function RoomTV() {
         >
           <div style={{ padding: 40, textAlign: "center", background: "#222", borderRadius: 16 }}>
             <IconPlay size={64} />
-            <h2 style={{ fontSize: "2rem", margin: "20px 0 10px" }}>Clique para Ativar a TV</h2>
+            <h2 style={{ fontSize: "2rem", margin: "20px 0 10px" }}>{t("tv.clickToActivate", "Clique para Ativar a TV")}</h2>
             <p style={{ color: "#aaa", fontSize: "1.1rem", maxWidth: 400 }}>
               Navegadores bloqueiam vídeos automáticos. Clique em qualquer lugar desta tela uma vez para o karaokê funcionar sozinho.
             </p>
@@ -906,7 +913,7 @@ export default function RoomTV() {
         </div>
       )}
 
-      {state.nowPlaying && !showScore && (
+      {(state.nowPlaying || isTransitioning) && !showScore && (
         <div
           style={{
             position: "absolute",
@@ -933,23 +940,31 @@ export default function RoomTV() {
             }}
           >
             <div>
-              <div style={{ fontSize: "1.1rem", fontWeight: 700 }}>
-                <TruncatedText text={state.nowPlaying.title} maxLength={60} />
-              </div>
-              <div
-                style={{
-                  opacity: 0.7,
-                  fontSize: "0.9rem",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                }}
-              >
-                <IconMic size={14} />
-                {state.nowPlaying.singers
-                  ?.map(s => (typeof s === "string" ? s : s.name))
-                  .join(" e ") || state.nowPlaying.requestedBy}
-              </div>
+              {state.nowPlaying ? (
+                <>
+                  <div style={{ fontSize: "1.1rem", fontWeight: 700 }}>
+                    <TruncatedText text={state.nowPlaying.title} maxLength={60} />
+                  </div>
+                  <div
+                    style={{
+                      opacity: 0.7,
+                      fontSize: "0.9rem",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6,
+                    }}
+                  >
+                    <IconMic size={14} />
+                    {state.nowPlaying.singers
+                      ?.map(s => (typeof s === "string" ? s : s.name))
+                      .join(" e ") || state.nowPlaying.requestedBy}
+                  </div>
+                </>
+              ) : (
+                <div style={{ fontSize: "1.1rem", fontWeight: 700, opacity: 0.8 }}>
+                  Preparando próxima música...
+                </div>
+              )}
             </div>
             <div
               style={{ textAlign: "right", opacity: 0.9, fontSize: "0.85rem" }}
@@ -1095,7 +1110,7 @@ export default function RoomTV() {
       {/* ─────────────────────────────────────────────────────────────
           MODO 2: LOBBY - Entre músicas (fila, ranking, QR code)
           ───────────────────────────────────────────────────────────── */}
-      {!state.nowPlaying && !showScore && (
+      {!state.nowPlaying && !showScore && !isTransitioning && (
         <div
           style={{
             minHeight: "100vh",
@@ -1401,7 +1416,7 @@ export default function RoomTV() {
                   >
                     <IconMusic size={64} />
                   </div>
-                  <h2 style={{ margin: "0 0 12px" }}>Fila vazia</h2>
+                  <h2 style={{ margin: "0 0 12px" }}>{t("tv.emptyQueue", "Fila vazia")}</h2>
                   <p style={{ color: "#888", fontSize: "1.1rem" }}>
                     Escaneie o QR code e adicione músicas!
                   </p>

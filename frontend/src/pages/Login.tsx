@@ -1,8 +1,11 @@
+import { useTranslation } from 'react-i18next';
+import Logo from "../components/Logo";
 import { useState } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 export default function Login() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const { login } = useAuth();
@@ -31,11 +34,9 @@ export default function Login() {
 
   return (
     <div className="container" style={{ paddingTop: 60, maxWidth: 400 }}>
-      <h1 style={{ textAlign: "center", fontSize: "2rem", marginBottom: 8 }}>
-        🎤 Karaokêando
-      </h1>
+      <Logo width={300} />
       <p style={{ textAlign: "center", color: "#888", marginBottom: 32 }}>
-        Entrar na sua conta
+        {t("login.desc", "Entrar na sua conta")}
       </p>
 
       <div className="card">
@@ -56,7 +57,7 @@ export default function Login() {
           )}
 
           <label style={{ display: "block", marginBottom: 4, fontWeight: 500 }}>
-            Email
+            {t("login.email", "Email")}
           </label>
           <input
             type="email"
@@ -68,7 +69,7 @@ export default function Login() {
           />
 
           <label style={{ display: "block", marginBottom: 4, fontWeight: 500 }}>
-            Senha
+            {t("login.password", "Senha")}
           </label>
           <input
             type="password"
@@ -84,20 +85,20 @@ export default function Login() {
             disabled={loading}
             style={{ width: "100%", marginBottom: 16 }}
           >
-            {loading ? "Entrando..." : "Entrar"}
+            {loading ? t("login.entering", "Entrando...") : t("common.enter", "Entrar")}
           </button>
         </form>
 
         <p style={{ textAlign: "center", color: "#888", fontSize: "0.9rem" }}>
-          Não tem conta?{" "}
+          {t("home.noAccount", "Não tem conta?")}{" "}
           <Link to="/register" style={{ color: "#4CAF50" }}>
-            Criar conta de Host
+            {t("login.createHost", "Criar conta de Host")}
           </Link>
         </p>
 
         <p style={{ textAlign: "center", marginTop: 16 }}>
           <Link to="/" style={{ color: "#888" }}>
-            ← Voltar ao início
+            {t("common.backToHome", "← Voltar ao início")}
           </Link>
         </p>
       </div>

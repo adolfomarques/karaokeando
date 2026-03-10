@@ -1,8 +1,11 @@
+import { useTranslation } from 'react-i18next';
+import Logo from "../components/Logo";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 export default function CompleteProfile() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { user, completeRegistration } = useAuth();
   const [phone, setPhone] = useState("");
@@ -19,12 +22,12 @@ export default function CompleteProfile() {
     setError("");
 
     if (password !== confirmPassword) {
-      setError("As senhas não coincidem");
+      setError(t("createRoom.passwordsDontMatch", "As senhas não coincidem"));
       return;
     }
 
     if (password.length < 6) {
-      setError("A senha deve ter pelo menos 6 caracteres");
+      setError(t("complete.passwordTooShort", "A senha deve ter pelo menos 6 caracteres"));
       return;
     }
 
@@ -43,7 +46,7 @@ export default function CompleteProfile() {
     if (result.success) {
       navigate("/");
     } else {
-      setError(result.error || "Erro ao completar cadastro");
+      setError(result.error || t("complete.error", "Erro ao completar cadastro"));
     }
   };
 
@@ -54,11 +57,9 @@ export default function CompleteProfile() {
 
   return (
     <div className="container" style={{ paddingTop: 40, maxWidth: 450 }}>
-      <h1 style={{ textAlign: "center", fontSize: "1.8rem", marginBottom: 8 }}>
-        🎤 Completar Cadastro
-      </h1>
+      <Logo width={300} />
       <p style={{ textAlign: "center", color: "#888", marginBottom: 24 }}>
-        Complete seu cadastro para poder criar salas
+        {t("complete.desc", "Complete seu cadastro para poder criar salas")}
       </p>
 
       <div className="card">
@@ -145,11 +146,11 @@ export default function CompleteProfile() {
               border: "1px solid #444",
             }}
           >
-            <option value="">Selecione...</option>
-            <option value="masculino">Masculino</option>
-            <option value="feminino">Feminino</option>
-            <option value="outro">Outro</option>
-            <option value="prefiro_nao_informar">Prefiro não informar</option>
+            <option value="">{t("complete.select", "Selecione...")}</option>
+            <option value="masculino">{t("register.male", "Masculino")}</option>
+            <option value="feminino">{t("register.female", "Feminino")}</option>
+            <option value="outro">{t("register.other", "Outro")}</option>
+            <option value="prefiro_nao_informar">{t("register.preferNotToSay", "Prefiro não informar")}</option>
           </select>
 
           <label style={{ display: "block", marginBottom: 4, fontWeight: 500 }}>
@@ -159,7 +160,7 @@ export default function CompleteProfile() {
             type="password"
             value={password}
             onChange={e => setPassword(e.target.value)}
-            placeholder="Mínimo 6 caracteres"
+            placeholder={t("complete.passwordPlaceholder", "Mínimo 6 caracteres")}
             required
             style={{ marginBottom: 16 }}
           />
@@ -171,13 +172,13 @@ export default function CompleteProfile() {
             type="password"
             value={confirmPassword}
             onChange={e => setConfirmPassword(e.target.value)}
-            placeholder="Digite a senha novamente"
+            placeholder={t("complete.confirmPlaceholder", "Digite a senha novamente")}
             required
             style={{ marginBottom: 24 }}
           />
 
           <button type="submit" disabled={loading} style={{ width: "100%" }}>
-            {loading ? "Salvando..." : "Completar Cadastro"}
+            {loading ? t("complete.saving", "Salvando...") : t("complete.btn", "Completar Cadastro")}
           </button>
         </form>
       </div>

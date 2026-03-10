@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useCallback } from "react";
 import { getActiveRooms, type ActiveRoom, API_BASE } from "../api";
 import "./Dashboard.css";
@@ -102,6 +103,7 @@ const IconRadio = ({ size = 16 }: { size?: number }) => (
 );
 
 export default function Dashboard() {
+  const { t } = useTranslation();
   const [adminKey, setAdminKey] = useState(() => {
     return localStorage.getItem("pk_admin_key") || "";
   });
@@ -183,11 +185,11 @@ export default function Dashboard() {
           >
             <IconMic size={32} /> Pikaroke
           </h1>
-          <h2>Dashboard Admin</h2>
+          <h2>{t("admin.title", "Dashboard Admin")}</h2>
           {error && <p className="error">{error}</p>}
           <input
             type="password"
-            placeholder="Chave de acesso"
+            placeholder={t("admin.key", "Chave de acesso")}
             value={keyInput}
             onChange={e => setKeyInput(e.target.value)}
             onKeyDown={e => e.key === "Enter" && handleLogin()}
@@ -257,7 +259,7 @@ export default function Dashboard() {
             ))}
           </div>
         ) : (
-          <p className="empty-state">Nenhuma sala ativa no momento</p>
+          <p className="empty-state">{t("admin.noActive", "Nenhuma sala ativa no momento")}</p>
         )}
       </section>
 
@@ -292,7 +294,7 @@ export default function Dashboard() {
             </div>
           ))}
           {topSongs.length === 0 && (
-            <p className="empty-state">Nenhuma música tocada ainda</p>
+            <p className="empty-state">{t("admin.noSongs", "Nenhuma música tocada ainda")}</p>
           )}
         </div>
       </section>

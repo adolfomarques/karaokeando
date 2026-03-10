@@ -14,6 +14,7 @@ import CreateRoom from "./pages/CreateRoom";
 import TvLogin from "./pages/TvLogin";
 import JoinRedirect from "./pages/JoinRedirect";
 import "./index.css";
+import "./i18n";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
