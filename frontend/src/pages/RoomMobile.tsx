@@ -1463,7 +1463,7 @@ export default function RoomMobile() {
               }}
             >
               <input
-                placeholder={t("mobile.linkOrNamePlaceholder", "Link ou nome da música...")}
+                placeholder={t("mobile.linkOrNamePlaceholder", "Link or song name...")}
                 value={searchQuery}
                 onChange={e => {
                   setSearchQuery(e.target.value);
@@ -1492,7 +1492,7 @@ export default function RoomMobile() {
                 ) : isLinkMode ? (
                   "OK"
                 ) : (
-                  "Buscar"
+                  t("mobile.search", "Search")
                 )}
               </button>
             </div>
@@ -1517,7 +1517,7 @@ export default function RoomMobile() {
                     marginBottom: 8,
                   }}
                 >
-                  <IconLibrary size={14} /> Na biblioteca:
+                  <IconLibrary size={14} /> {t("mobile.inLibrary", "In library:")}
                 </div>
                 <div
                   style={{
@@ -1568,7 +1568,7 @@ export default function RoomMobile() {
                         {adding === song.videoId ? (
                           "..."
                         ) : cooldownRemaining > 0 ? (
-                          t("common.wait", "Espere")
+                          t("common.wait", "Wait")
                         ) : (
                           <IconPlus size={16} />
                         )}
@@ -1993,7 +1993,7 @@ export default function RoomMobile() {
           ) : (
             <>
               <input
-                placeholder={t("mobile.filterSongs", "Filtrar músicas...")}
+                placeholder={t("mobile.filterSongs", "Filter songs...")}
                 value={savedFilter}
                 onChange={e => setSavedFilter(e.target.value)}
                 style={{ marginBottom: 12 }}
@@ -2030,7 +2030,7 @@ export default function RoomMobile() {
                           <TruncatedText text={song.title} maxLength={40} />
                         </div>
                         <div style={{ fontSize: "0.75rem", color: "#888" }}>
-                          por {song.addedBy}
+                        {t("mobile.addedBy", "by")} {song.addedBy}
                         </div>
                       </div>
                       <button
@@ -2049,7 +2049,7 @@ export default function RoomMobile() {
                         {adding === song.videoId ? (
                           "..."
                         ) : cooldownRemaining > 0 ? (
-                          t("common.waitAction", "Aguarde")
+                          t("common.waitAction", "Wait")
                         ) : (
                           <IconPlus size={16} />
                         )}

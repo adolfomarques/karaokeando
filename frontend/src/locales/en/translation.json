@@ -112,7 +112,7 @@
     "youtubeResults": "YouTube results:",
     "addToQueue": "Add to queue",
     "mostPlayed": "Most Played",
-    "mostPopular": "As músicas mais populares de todas as festas.",
+    "mostPopular": "The most popular songs across all parties.",
     "songLibrary": "Song Library",
     "libraryDesc": "Added songs are saved here for everyone.",
     "noSongFound": "No song found",
@@ -139,7 +139,8 @@
     "search": "Search",
     "song": "song",
     "playTime": "play",
-    "playTimes": "plays"
+    "playTimes": "plays",
+    "addedBy": "by"
   },
   "tvLogin": {
     "title": "📺 TV Mode",

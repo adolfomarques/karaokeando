@@ -139,7 +139,8 @@
     "search": "Buscar",
     "song": "música",
     "playTime": "vez",
-    "playTimes": "vezes"
+    "playTimes": "vezes",
+    "addedBy": "por"
   },
   "tvLogin": {
     "title": "📺 Modo TV",
