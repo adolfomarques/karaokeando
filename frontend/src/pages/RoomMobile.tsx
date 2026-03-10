@@ -1682,11 +1682,25 @@ export default function RoomMobile() {
                           style={{
                             fontSize: "0.8rem",
                             color: "#888",
-                            marginBottom: 8,
+                            marginBottom: result.isEmbeddable === false ? 4 : 8,
                           }}
                         >
                           {result.channelTitle}
                         </div>
+                        {result.isEmbeddable === false && (
+                          <div
+                            style={{
+                              fontSize: "0.72rem",
+                              color: "#e67e22",
+                              marginBottom: 8,
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 4,
+                            }}
+                          >
+                            ⚠️ {t("mobile.embedDisabledWarning", "This video may not play in the app")}
+                          </div>
+                        )}
                         <button
                           onClick={() => handleAddFromSearch(result)}
                           disabled={adding === result.videoId || cooldownRemaining > 0}

@@ -1004,27 +1004,41 @@ interface YouTubeSearchResult {
   title: string;
   thumbnail: string;
   channelTitle: string;
+  isEmbeddable?: boolean;
 }
 
-// Search YouTube using yt-dlp (same method as PiKaraoke)
+// Check if a YouTube video can be embedded using the free oEmbed API.
+// Returns true if embeddable, false otherwise. Never throws.
+async function checkEmbeddable(videoId: string): Promise<boolean> {
+  const url = `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`;
+  try {
+    const res = await fetch(url, { method: "HEAD", signal: AbortSignal.timeout(4000) });
+    return res.ok; // 200 = embeddable, 401/403 = disabled
+  } catch {
+    return true; // assume embeddable on network error to avoid hiding results
+  }
+}
+
+// Search YouTube using yt-dlp (same method as PiKaraoke).
+// Fetches extra results so we can filter/sort by embeddability via oEmbed.
 async function searchWithYtDlp(
   query: string,
   cacheKey: string
 ): Promise<YouTubeSearchResult[]> {
-  const numResults = 10;
+  const numResults = 20; // Fetch more to have room to filter
   const safeQuery = query.replace(/[`$\\]/g, "\\$&").replace(/"/g, '\\"');
   const cmd = `yt-dlp -j --no-playlist --flat-playlist "ytsearch${numResults}:${safeQuery}"`;
 
   try {
     const { stdout } = await execAsync(cmd, { timeout: 30000 });
 
-    const results: YouTubeSearchResult[] = [];
+    const raw: YouTubeSearchResult[] = [];
     for (const line of stdout.split("\n")) {
       if (line.trim().length < 2) continue;
       try {
         const j = JSON.parse(line);
         if (!j.id) continue;
-        results.push({
+        raw.push({
           videoId: j.id,
           title: j.title || "(sem título)",
           thumbnail: `https://i.ytimg.com/vi/${j.id}/mqdefault.jpg`,
@@ -1035,10 +1049,28 @@ async function searchWithYtDlp(
       }
     }
 
+    // Check embeddability for all results in parallel
+    const embeddableFlags = await Promise.all(raw.map(r => checkEmbeddable(r.videoId)));
+
+    const results: YouTubeSearchResult[] = raw.map((r, i) => ({
+      ...r,
+      isEmbeddable: embeddableFlags[i],
+    }));
+
+    // Sort: embeddable first, non-embeddable last. Keep original relative order within each group.
+    results.sort((a, b) => {
+      if (a.isEmbeddable === b.isEmbeddable) return 0;
+      return a.isEmbeddable ? -1 : 1;
+    });
+
+    // Return top 12 results
+    const final = results.slice(0, 12);
+
     // Store in cache before returning
-    searchCache.set(cacheKey, { results, expiresAt: Date.now() + CACHE_TTL_MS });
-    return results;
-  } catch {
+    searchCache.set(cacheKey, { results: final, expiresAt: Date.now() + CACHE_TTL_MS });
+    return final;
+  } catch (err) {
+    console.error("[yt-dlp search error]", err);
     return [];
   } finally {
     // Remove in-flight entry regardless of success/failure

@@ -23,6 +23,7 @@ export interface YouTubeSearchResult {
   title: string;
   thumbnail: string;
   channelTitle: string;
+  isEmbeddable?: boolean;
 }
 
 export async function searchYouTube(
