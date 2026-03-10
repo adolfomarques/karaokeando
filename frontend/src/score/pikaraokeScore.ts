@@ -10,70 +10,53 @@ export type ScoreBucket =
 
 export interface ScoreData {
   applause: "applause-l.mp3" | "applause-m.mp3" | "applause-h.mp3";
-  review: string;
   bucket: ScoreBucket;
+  reviewIndex: number;
 }
 
 // Exact port of `pikaraoke/static/score.js` with personalized name support
 // Extended with almostPerfect (99) and perfect (100) buckets
 export function getScoreData(
-  scoreValue: number,
-  singerName?: string
+  scoreValue: number
 ): ScoreData {
-  const name = singerName || "Você";
-
   let bucket: ScoreBucket;
   let applause: ScoreData["applause"];
-  let reviewTemplate: string;
+  let reviewIndex: number;
 
   if (scoreValue === 100) {
     bucket = "perfect";
     applause = "applause-h.mp3";
-    reviewTemplate =
-      pikaraokeScoreReviews.perfect[
-        Math.floor(Math.random() * pikaraokeScoreReviews.perfect.length)
-      ];
+    reviewIndex = Math.floor(
+      Math.random() * pikaraokeScoreReviews.perfect.length
+    );
   } else if (scoreValue === 99) {
     bucket = "almostPerfect";
     applause = "applause-h.mp3";
-    reviewTemplate =
-      pikaraokeScoreReviews.almostPerfect[
-        Math.floor(Math.random() * pikaraokeScoreReviews.almostPerfect.length)
-      ];
+    reviewIndex = Math.floor(
+      Math.random() * pikaraokeScoreReviews.almostPerfect.length
+    );
   } else if (scoreValue < 30) {
     bucket = "low";
     applause = "applause-l.mp3";
-    reviewTemplate =
-      pikaraokeScoreReviews.low[
-        Math.floor(Math.random() * pikaraokeScoreReviews.low.length)
-      ];
+    reviewIndex = Math.floor(Math.random() * pikaraokeScoreReviews.low.length);
   } else if (scoreValue < 60) {
     bucket = "mid";
     applause = "applause-m.mp3";
-    reviewTemplate =
-      pikaraokeScoreReviews.mid[
-        Math.floor(Math.random() * pikaraokeScoreReviews.mid.length)
-      ];
+    reviewIndex = Math.floor(Math.random() * pikaraokeScoreReviews.mid.length);
   } else if (scoreValue < 80) {
     bucket = "good";
     applause = "applause-m.mp3";
-    reviewTemplate =
-      pikaraokeScoreReviews.good[
-        Math.floor(Math.random() * pikaraokeScoreReviews.good.length)
-      ];
+    reviewIndex = Math.floor(Math.random() * pikaraokeScoreReviews.good.length);
   } else {
     bucket = "high";
     applause = "applause-h.mp3";
-    reviewTemplate =
-      pikaraokeScoreReviews.high[
-        Math.floor(Math.random() * pikaraokeScoreReviews.high.length)
-      ];
+    reviewIndex = Math.floor(Math.random() * pikaraokeScoreReviews.high.length);
   }
 
   return {
     bucket,
     applause,
-    review: reviewTemplate.replace(/\{name\}/g, name),
+    reviewIndex,
   };
 }
 

@@ -61,7 +61,7 @@ export default function ScoreOverlay({
     const run = async () => {
       const scoreValue =
         typeof scoreOverride === "number" ? scoreOverride : getScoreValue();
-      const scoreData = getScoreData(scoreValue, singer);
+      const scoreData = getScoreData(scoreValue);
 
       setReviewText("");
       setScoreText("");
@@ -82,7 +82,11 @@ export default function ScoreOverlay({
       if (cancelled) return;
 
       setScoreText(String(scoreValue).padStart(2, "0"));
-      setReviewText(scoreData.review);
+      
+      const localizedReview = t(`reviews.${scoreData.bucket}.${scoreData.reviewIndex}`, { 
+        name: singer || t("mobile.alone", "Sozinho(a)") 
+      });
+      setReviewText(localizedReview);
 
       const canvas = canvasRef.current;
       if (canvas) launchFireworkShow(canvas, scoreValue);

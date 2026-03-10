@@ -242,5 +242,74 @@
     "online": "online",
     "inQueue": "in queue",
     "playedX": "{{count}}x played"
+  },
+  "reviews": {
+    "low": [
+      "{{name}}, that was… a unique sonic experience.",
+      "{{name}}, the important thing is that you went with courage!",
+      "{{name}}, today the microphone left traumatized.",
+      "{{name}}, I've heard better… but I've also heard worse.",
+      "{{name}}, that was bold. Let's call it art!",
+      "{{name}}, breathe, drink some water and try again!",
+      "{{name}}, the audience is still alive — that's a victory.",
+      "{{name}}, send it lower… or higher… or different… 😂",
+      "{{name}}, you tried. And that counts for something!"
+    ],
+    "mid": [
+      "{{name}}, it was good! Not perfect, but good!",
+      "Nice one, {{name}}! Ready to face the stage.",
+      "{{name}}, I liked it! Just lacked a bit of confidence.",
+      "{{name}}, you're on the right track: one more and you'll take off.",
+      "OK {{name}}! Now just repeat that with more power!",
+      "{{name}}, the crowd approved! (with love)",
+      "{{name}}, that was decent! And decent here is a compliment.",
+      "You're improving, {{name}}! Keep it up.",
+      "{{name}}, you finished standing — success!"
+    ],
+    "good": [
+      "{{name}}, you did great! 👏",
+      "Nice, {{name}}! The crowd loved it!",
+      "{{name}}, that was very good — worthy of a replay!",
+      "{{name}}, you're singing beautifully!",
+      "Great, {{name}}! You let it out!",
+      "{{name}}, you're becoming dangerous at karaoke! 😄",
+      "Nice, {{name}}! Now just keep this level.",
+      "{{name}}, tuning ON. Charisma ON. Success!",
+      "{{name}}, you were born for karaoke night!",
+      "{{name}}, congratulations! It was really good!",
+      "{{name}}, you're flying! 🚀",
+      "{{name}}, the audience asked for an encore!"
+    ],
+    "high": [
+      "Congratulations {{name}}! That was INCREDIBLE!",
+      "Wow {{name}}… you've been practicing in secret, haven't you?",
+      "{{name}}, please, sing one more! (seriously)",
+      "{{name}}, you rock! That was show level!",
+      "Whoa! Such talent, {{name}}!",
+      "{{name}}, now THAT is a performance!",
+      "{{name}}, you were born for this!",
+      "The crowd went wild with {{name}}!",
+      "{{name}} killed it! 🔥",
+      "Simply {{name}}. Iconic!"
+    ],
+    "almostPerfect": [
+      "{{name}}, that was ALMOST perfect! Impressive! 🌟",
+      "99 points?! {{name}}, you are a legend!",
+      "{{name}}, just ONE point away from 100! What a show!",
+      "Perfection was so close, {{name}}! Incredible!",
+      "{{name}}, 99! You're in the hall of fame! 🏅",
+      "That was epic, {{name}}! 99 points deserves respect!",
+      "{{name}}, almost there! Next time is 100! 💪"
+    ],
+    "perfect": [
+      "🏆 {{name}} GOT 100!!! LEGENDARY!!! 🏆",
+      "100 POINTS! {{name}}, you are PERFECT! 👑",
+      "{{name}}, THIS IS HISTORIC! 100 POINTS! 🎉",
+      "UNBELIEVABLE! {{name}} reached PERFECTION! ⭐",
+      "🔥 {{name}} SMASHED IT! 100 POINTS! GOAT! 🔥",
+      "THE MICROPHONE BOWS DOWN TO {{name}}! 100! 🎤👑",
+      "{{name}}, YOU ARE THE GREATEST! 100 POINTS! HISTORIC!",
+      "CALL THE PRESS! {{name}} GOT 100 POINTS! 📺🏆"
+    ]
   }
 }
