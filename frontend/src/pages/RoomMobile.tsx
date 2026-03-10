@@ -1669,23 +1669,6 @@ export default function RoomMobile() {
                         </div>
                       </div>
                       <div style={{ padding: 12 }}>
-                        {result.isEmbeddable === false && (
-                          <div
-                            style={{
-                              background: "rgba(231, 76, 60, 0.1)",
-                              color: "#e74c3c",
-                              padding: "4px 8px",
-                              borderRadius: 4,
-                              fontSize: "0.75rem",
-                              fontWeight: 700,
-                              marginBottom: 8,
-                              display: "inline-block",
-                              border: "1px solid rgba(231, 76, 60, 0.2)",
-                            }}
-                          >
-                            ⚠️ {t("mobile.embedDisabled", "Embed disabled")}
-                          </div>
-                        )}
                         <div
                           style={{
                             fontSize: "0.9rem",

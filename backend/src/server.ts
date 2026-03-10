@@ -1011,60 +1011,34 @@ async function searchWithYtDlp(
   query: string,
   cacheKey: string
 ): Promise<YouTubeSearchResult[]> {
-  const numResults = 24; // Fetch more to allow filtering non-embeddable videos
+  const numResults = 10;
   const safeQuery = query.replace(/[`$\\]/g, "\\$&").replace(/"/g, '\\"');
-  // Removed --flat-playlist to obtain 'allow_embed' field
-  const cmd = `yt-dlp -j --no-playlist "ytsearch${numResults}:${safeQuery}"`;
+  const cmd = `yt-dlp -j --no-playlist --flat-playlist "ytsearch${numResults}:${safeQuery}"`;
 
   try {
-    // Increased timeout and maxBuffer because full JSON for 24 videos is large
-    const { stdout } = await execAsync(cmd, {
-      timeout: 45000,
-      maxBuffer: 10 * 1024 * 1024,
-    });
+    const { stdout } = await execAsync(cmd, { timeout: 30000 });
 
-    const results: (YouTubeSearchResult & { isEmbeddable: boolean })[] = [];
+    const results: YouTubeSearchResult[] = [];
     for (const line of stdout.split("\n")) {
       if (line.trim().length < 2) continue;
       try {
         const j = JSON.parse(line);
         if (!j.id) continue;
-
-        // Prioritize videos that explicitly allow embedding
-        const isEmbeddable =
-          j.allow_embed !== false && j.availability !== "private" && !j.is_live;
-
         results.push({
           videoId: j.id,
           title: j.title || "(sem título)",
           thumbnail: `https://i.ytimg.com/vi/${j.id}/mqdefault.jpg`,
           channelTitle: j.channel || j.uploader || "",
-          isEmbeddable,
         });
       } catch {
         // skip invalid JSON lines
       }
     }
 
-    // Sort: embeddable videos first, maintaining original relevance within groups
-    results.sort((a, b) => {
-      if (a.isEmbeddable === b.isEmbeddable) return 0;
-      return a.isEmbeddable ? -1 : 1;
-    });
-
-    // Return the top 12 results (preferring embeddable ones)
-    const finalResults = results
-      .slice(0, 12)
-      .map(({ isEmbeddable, ...rest }) => rest);
-
     // Store in cache before returning
-    searchCache.set(cacheKey, {
-      results: finalResults,
-      expiresAt: Date.now() + CACHE_TTL_MS,
-    });
-    return finalResults;
-  } catch (error) {
-    console.error("[search] yt-dlp search error:", error);
+    searchCache.set(cacheKey, { results, expiresAt: Date.now() + CACHE_TTL_MS });
+    return results;
+  } catch {
     return [];
   } finally {
     // Remove in-flight entry regardless of success/failure
@@ -1121,13 +1095,10 @@ app.get<{ Querystring: { videoId: string } }>(
     if (!videoId) return reply.code(400).send({ error: "missing_videoId" });
 
     try {
-      // Use yt-dlp to get video info
+      // Use yt-dlp to get video title
       const cmd = `yt-dlp -j --no-playlist "https://www.youtube.com/watch?v=${videoId}"`;
 
-      const { stdout } = await execAsync(cmd, {
-        timeout: 15000,
-        maxBuffer: 5 * 1024 * 1024,
-      });
+      const { stdout } = await execAsync(cmd, { timeout: 15000 });
       const info = JSON.parse(stdout);
 
       return {
@@ -1135,20 +1106,14 @@ app.get<{ Querystring: { videoId: string } }>(
         title: info.title || "",
         thumbnail: `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`,
         channelTitle: info.channel || info.uploader || "",
-        isEmbeddable:
-          info.allow_embed !== false &&
-          info.availability !== "private" &&
-          !info.is_live,
       };
-    } catch (error) {
-      console.error("[info] yt-dlp info error:", error);
+    } catch {
       // Return basic info even if yt-dlp fails
       return {
         videoId,
         title: "",
         thumbnail: `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`,
         channelTitle: "",
-        isEmbeddable: true, // Optimistically assume yes if check fails
       };
     }
   }

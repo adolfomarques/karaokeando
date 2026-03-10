@@ -140,9 +140,7 @@
     "song": "song",
     "playTime": "play",
     "playTimes": "plays",
-    "addedBy": "by",
-    "embedDisabled": "Embed disabled",
-    "embedDisabledWarning": "This video may not play in the app."
+    "addedBy": "by"
   },
   "tvLogin": {
     "title": "📺 TV Mode",
