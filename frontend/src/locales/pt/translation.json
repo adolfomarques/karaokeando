@@ -140,7 +140,9 @@
     "song": "música",
     "playTime": "vez",
     "playTimes": "vezes",
-    "addedBy": "por"
+    "addedBy": "por",
+    "embedDisabled": "Embed desativado",
+    "embedDisabledWarning": "Este vídeo pode não funcionar no app."
   },
   "tvLogin": {
     "title": "📺 Modo TV",
