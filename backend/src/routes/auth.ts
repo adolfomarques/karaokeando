@@ -439,6 +439,7 @@ export default async function authRoutes(app: FastifyInstance) {
       return reply.code(404).send({ error: "user_not_found" });
     }
 
+    reply.header("Cache-Control", "private, max-age=60");
     return {
       user: {
         id: user.id,

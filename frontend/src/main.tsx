@@ -1,11 +1,8 @@
-import React from "react";
+import React, { lazy, Suspense } from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import Home from "./pages/Home";
-import RoomTV from "./pages/RoomTV";
-import RoomMobile from "./pages/RoomMobile";
-import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import RegisterHost from "./pages/RegisterHost";
 import CompleteProfile from "./pages/CompleteProfile";
@@ -16,23 +13,41 @@ import JoinRedirect from "./pages/JoinRedirect";
 import "./index.css";
 import "./i18n";
 
+// Lazy-load heavy components to reduce initial bundle size
+const RoomTV = lazy(() => import("./pages/RoomTV"));
+const RoomMobile = lazy(() => import("./pages/RoomMobile"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+
+function PageLoader() {
+  return (
+    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
+      <div style={{ textAlign: "center" }}>
+        <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>🎤</div>
+        <div style={{ color: "#888", fontSize: "0.9rem" }}>Carregando...</div>
+      </div>
+    </div>
+  );
+}
+
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <AuthProvider>
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<RegisterHost />} />
-          <Route path="/complete-profile" element={<CompleteProfile />} />
-          <Route path="/guest-register" element={<GuestRegister />} />
-          <Route path="/create-room" element={<CreateRoom />} />
-          <Route path="/join/:code" element={<JoinRedirect />} />
-          <Route path="/room/:code/tv" element={<RoomTV />} />
-          <Route path="/room/:code/tv/login" element={<TvLogin />} />
-          <Route path="/room/:code" element={<RoomMobile />} />
-          <Route path="/admin" element={<Dashboard />} />
-        </Routes>
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<RegisterHost />} />
+            <Route path="/complete-profile" element={<CompleteProfile />} />
+            <Route path="/guest-register" element={<GuestRegister />} />
+            <Route path="/create-room" element={<CreateRoom />} />
+            <Route path="/join/:code" element={<JoinRedirect />} />
+            <Route path="/room/:code/tv" element={<RoomTV />} />
+            <Route path="/room/:code/tv/login" element={<TvLogin />} />
+            <Route path="/room/:code" element={<RoomMobile />} />
+            <Route path="/admin" element={<Dashboard />} />
+          </Routes>
+        </Suspense>
       </BrowserRouter>
     </AuthProvider>
   </React.StrictMode>

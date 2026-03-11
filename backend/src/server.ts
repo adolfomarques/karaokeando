@@ -5,6 +5,7 @@ import websocket from "@fastify/websocket";
 import type { WebSocket } from "ws";
 import { exec } from "child_process";
 import { promisify } from "util";
+import { promises as fs } from "fs";
 import authRoutes from "./routes/auth.js";
 import roomRoutes, {
   setRoomCallbacks,
@@ -27,7 +28,9 @@ const execAsync = promisify(exec);
 // Prevents spawning duplicate yt-dlp processes for the same query.
 // ─────────────────────────────────────────────────────────────
 
-const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes
+
+const CACHE_FILE = "search_cache.json";
 
 interface CacheEntry {
   results: YouTubeSearchResult[];
@@ -35,17 +38,44 @@ interface CacheEntry {
 }
 
 // Results cache: key = normalized query string
-const searchCache = new Map<string, CacheEntry>();
+let searchCache = new Map<string, CacheEntry>();
+
+async function loadSearchCache() {
+  try {
+    const data = await fs.readFile(CACHE_FILE, "utf-8");
+    const parsed = JSON.parse(data);
+    searchCache = new Map(Object.entries(parsed));
+    console.log(`[cache] Loaded ${searchCache.size} search cache entries from disk`);
+  } catch {
+    // no existing cache or invalid format
+  }
+}
+
+async function saveSearchCache() {
+  try {
+    const obj = Object.fromEntries(searchCache);
+    await fs.writeFile(CACHE_FILE, JSON.stringify(obj), "utf-8");
+  } catch (err) {
+    console.error("[cache] Failed to save search cache to disk", err);
+  }
+}
+
+loadSearchCache();
 
 // In-flight deduplication: same query that's still in progress shares one Promise
 const inFlightSearches = new Map<string, Promise<YouTubeSearchResult[]>>();
 
-// Housekeeping: clear expired entries every 10 minutes
+// Housekeeping: clear expired entries every 10 minutes and flush to disk
 setInterval(() => {
   const now = Date.now();
+  let changed = false;
   for (const [key, entry] of searchCache.entries()) {
-    if (now > entry.expiresAt) searchCache.delete(key);
+    if (now > entry.expiresAt) {
+      searchCache.delete(key);
+      changed = true;
+    }
   }
+  if (changed) saveSearchCache().catch(() => {});
 }, 10 * 60 * 1000).unref();
 
 // ─────────────────────────────────────────────────────────────
@@ -1012,7 +1042,7 @@ interface YouTubeSearchResult {
 async function checkEmbeddable(videoId: string): Promise<boolean> {
   const url = `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`;
   try {
-    const res = await fetch(url, { method: "HEAD", signal: AbortSignal.timeout(4000) });
+    const res = await fetch(url, { method: "HEAD", signal: AbortSignal.timeout(2000) });
     return res.ok; // 200 = embeddable, 401/403 = disabled
   } catch {
     return true; // assume embeddable on network error to avoid hiding results
@@ -1025,7 +1055,7 @@ async function searchWithYtDlp(
   query: string,
   cacheKey: string
 ): Promise<YouTubeSearchResult[]> {
-  const numResults = 20; // Fetch more to have room to filter
+  const numResults = 15; // Fetch more to have room to filter
   const safeQuery = query.replace(/[`$\\]/g, "\\$&").replace(/"/g, '\\"');
   const cmd = `yt-dlp -j --no-playlist --flat-playlist "ytsearch${numResults}:${safeQuery}"`;
 
@@ -1068,6 +1098,7 @@ async function searchWithYtDlp(
 
     // Store in cache before returning
     searchCache.set(cacheKey, { results: final, expiresAt: Date.now() + CACHE_TTL_MS });
+    saveSearchCache().catch(() => {});
     return final;
   } catch (err) {
     console.error("[yt-dlp search error]", err);
@@ -1088,10 +1119,12 @@ app.get<{ Querystring: { q: string } }>(
     const searchTerm = query + " karaoke";
     const cacheKey = searchTerm.toLowerCase();
 
-    // 1) Cache hit → return immediately
+    // 1) Cache hit → return immediately with cache headers
     const cached = searchCache.get(cacheKey);
     if (cached && Date.now() < cached.expiresAt) {
       console.log(`[search] CACHE HIT: "${query}"`);
+      const remainingTtl = Math.floor((cached.expiresAt - Date.now()) / 1000);
+      reply.header("Cache-Control", `public, max-age=${remainingTtl}, stale-while-revalidate=60`);
       return cached.results;
     }
 
@@ -1100,7 +1133,9 @@ app.get<{ Querystring: { q: string } }>(
     if (existing) {
       console.log(`[search] IN-FLIGHT HIT: "${query}"`);
       try {
-        return await existing;
+        const results = await existing;
+        reply.header("Cache-Control", `public, max-age=${Math.floor(CACHE_TTL_MS / 1000)}, stale-while-revalidate=60`);
+        return results;
       } catch {
         return reply.code(500).send({ error: "search_failed" });
       }
@@ -1112,12 +1147,17 @@ app.get<{ Querystring: { q: string } }>(
     inFlightSearches.set(cacheKey, promise);
 
     try {
-      return await promise;
+      const results = await promise;
+      reply.header("Cache-Control", `public, max-age=${Math.floor(CACHE_TTL_MS / 1000)}, stale-while-revalidate=60`);
+      return results;
     } catch {
       return reply.code(500).send({ error: "search_failed" });
     }
   }
 );
+
+// In-memory cache for video info (videoId → info), TTL 1h
+const videoInfoCache = new Map<string, { data: YouTubeSearchResult; expiresAt: number }>();
 
 // Get video info from YouTube (for when user pastes a link)
 app.get<{ Querystring: { videoId: string } }>(
@@ -1126,21 +1166,33 @@ app.get<{ Querystring: { videoId: string } }>(
     const videoId = (req.query.videoId || "").trim();
     if (!videoId) return reply.code(400).send({ error: "missing_videoId" });
 
+    // Check cache first
+    const cachedInfo = videoInfoCache.get(videoId);
+    if (cachedInfo && Date.now() < cachedInfo.expiresAt) {
+      reply.header("Cache-Control", "public, max-age=3600");
+      return cachedInfo.data;
+    }
+
     try {
       // Use yt-dlp to get video title
       const cmd = `yt-dlp -j --no-playlist "https://www.youtube.com/watch?v=${videoId}"`;
 
-      const { stdout } = await execAsync(cmd, { timeout: 15000 });
+      const { stdout } = await execAsync(cmd, { timeout: 12000 });
       const info = JSON.parse(stdout);
 
-      return {
+      const result = {
         videoId,
         title: info.title || "",
         thumbnail: `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`,
         channelTitle: info.channel || info.uploader || "",
       };
+
+      // Cache for 1 hour
+      videoInfoCache.set(videoId, { data: result, expiresAt: Date.now() + 60 * 60 * 1000 });
+      reply.header("Cache-Control", "public, max-age=3600");
+      return result;
     } catch {
-      // Return basic info even if yt-dlp fails
+      // Return basic info even if yt-dlp fails (not cached)
       return {
         videoId,
         title: "",

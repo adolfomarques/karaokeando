@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth, getToken } from "../context/AuthContext";
@@ -413,6 +413,8 @@ export default function RoomMobile() {
   const [modalPartner, setModalPartner] = useState<string>(""); // Partner ID selected in modal
   const [cooldownRemaining, setCooldownRemaining] = useState<number>(0);
   const wsRef = useRef<WebSocket | null>(null);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const searchAbortRef = useRef<AbortController | null>(null);
 
   // Check auth on mount
   useEffect(() => {
@@ -607,8 +609,8 @@ export default function RoomMobile() {
     )
     : [];
 
-  const handleSearch = async () => {
-    const query = searchQuery.trim();
+  const handleSearch = useCallback(async (query: string, abortSignal: AbortSignal) => {
+    query = query.trim();
     if (!query) return;
 
     setSearchError(null);
@@ -620,6 +622,7 @@ export default function RoomMobile() {
       // It's a link - fetch video info from YouTube
       try {
         const info = await getVideoInfo(videoId);
+        if (abortSignal.aborted) return;
         setSearchResults([
           {
             videoId,
@@ -633,6 +636,7 @@ export default function RoomMobile() {
           setCustomTitle(info.title);
         }
       } catch {
+        if (abortSignal.aborted) return;
         // Fallback if API fails
         setSearchResults([
           {
@@ -649,7 +653,10 @@ export default function RoomMobile() {
 
     // If there are matching library songs, don't search YouTube yet
     // User can click "Buscar no YouTube" if they want more results
-    if (matchingLibrarySongs.length > 0) {
+    const libMatches = songLibrary.filter(song =>
+      song.title.toLowerCase().includes(query.toLowerCase())
+    );
+    if (libMatches.length > 0) {
       setSearchResults([]);
       setSearching(false);
       return;
@@ -659,6 +666,7 @@ export default function RoomMobile() {
     setSearchResults([]);
     try {
       const results = await searchYouTube(query);
+      if (abortSignal.aborted) return;
       if (results.length === 0) {
         setSearchError(
           t("mobile.noSongFound", "No song found. Try another term or paste YouTube link.")
@@ -666,15 +674,37 @@ export default function RoomMobile() {
       }
       setSearchResults(results);
     } catch (err) {
+      if (abortSignal.aborted) return;
       console.error("Search error:", err);
       setSearchError(
         t("mobile.searchError", "Search error. Try again or paste YouTube link.")
       );
     }
     setSearching(false);
-  };
+  }, [customTitle, songLibrary, t]);
+
+  const triggerDebouncedSearch = useCallback((query: string) => {
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    if (searchAbortRef.current) searchAbortRef.current.abort();
+
+    debounceTimerRef.current = setTimeout(() => {
+      searchAbortRef.current = new AbortController();
+      handleSearch(query, searchAbortRef.current.signal);
+    }, 400); // 400ms debounce
+  }, [handleSearch]);
+
+  const handleManualSearch = useCallback(() => {
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    if (searchAbortRef.current) searchAbortRef.current.abort();
+    
+    searchAbortRef.current = new AbortController();
+    handleSearch(searchQuery, searchAbortRef.current.signal);
+  }, [searchQuery, handleSearch]);
 
   const handleSearchYouTube = async () => {
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    if (searchAbortRef.current) searchAbortRef.current.abort();
+
     const query = searchQuery.trim();
     if (!query) return;
 
@@ -1466,15 +1496,22 @@ export default function RoomMobile() {
                 placeholder={t("mobile.linkOrNamePlaceholder", "Link or song name...")}
                 value={searchQuery}
                 onChange={e => {
-                  setSearchQuery(e.target.value);
-                  setSearchResults([]);
-                  setSearchError(null);
+                  const val = e.target.value;
+                  setSearchQuery(val);
+                  if (val.trim() === "") {
+                    setSearchResults([]);
+                    setSearchError(null);
+                    if (searchAbortRef.current) searchAbortRef.current.abort();
+                    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+                  } else {
+                    triggerDebouncedSearch(val);
+                  }
                 }}
-                onKeyDown={e => e.key === "Enter" && handleSearch()}
+                onKeyDown={e => e.key === "Enter" && handleManualSearch()}
                 style={{ flex: 1, margin: 0 }}
               />
               <button
-                onClick={handleSearch}
+                onClick={handleManualSearch}
                 disabled={searching || !searchQuery.trim() || cooldownRemaining > 0}
                 style={{
                   flex: 0,

@@ -9,6 +9,26 @@ import { API_BASE } from "../api";
 
 const TOKEN_KEY = "karaokeando_token";
 
+// Decode JWT payload without verifying signature (client-side only)
+// Returns null if the token is malformed or expired
+function decodeJwtPayload(token: string): { exp?: number } | null {
+  try {
+    const [, payloadB64] = token.split(".");
+    if (!payloadB64) return null;
+    const json = atob(payloadB64.replace(/-/g, "+").replace(/_/g, "/"));
+    return JSON.parse(json);
+  } catch {
+    return null;
+  }
+}
+
+function isTokenExpired(token: string): boolean {
+  const payload = decodeJwtPayload(token);
+  if (!payload || !payload.exp) return false; // malformed, let server decide
+  // Add 10s buffer to handle clock skew
+  return Date.now() / 1000 > payload.exp - 10;
+}
+
 // Types
 export interface User {
   id: string;
@@ -81,6 +101,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
+    // Check expiry locally before making a network call
+    if (isTokenExpired(storedToken)) {
+      localStorage.removeItem(TOKEN_KEY);
+      setToken(null);
+      setUser(null);
+      setLoading(false);
+      return;
+    }
+
     try {
       const res = await fetch(`${API_BASE}/api/auth/me`, {
         headers: { Authorization: `Bearer ${storedToken}` },
@@ -91,7 +120,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(data.user);
         setToken(storedToken);
       } else {
-        // Token invalid
+        // Token invalid on server side
         localStorage.removeItem(TOKEN_KEY);
         setToken(null);
         setUser(null);
