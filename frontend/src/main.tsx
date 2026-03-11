@@ -10,6 +10,7 @@ import GuestRegister from "./pages/GuestRegister";
 import CreateRoom from "./pages/CreateRoom";
 import TvLogin from "./pages/TvLogin";
 import JoinRedirect from "./pages/JoinRedirect";
+import ForgotPassword from "./pages/ForgotPassword";
 import "./index.css";
 import "./i18n";
 
@@ -43,6 +44,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<RegisterHost />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/complete-profile" element={<CompleteProfile />} />
               <Route path="/guest-register" element={<GuestRegister />} />
               <Route path="/create-room" element={<CreateRoom />} />

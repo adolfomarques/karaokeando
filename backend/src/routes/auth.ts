@@ -489,4 +489,23 @@ export default async function authRoutes(app: FastifyInstance) {
       },
     };
   });
+
+  // Forgot Password (STUB)
+  app.post<{ Body: { email: string } }>(
+    "/api/auth/forgot-password",
+    async (request, reply) => {
+      const { email } = request.body;
+      if (!email) {
+        return reply.code(400).send({ error: "validation_error", message: "Email obrigatório" });
+      }
+
+      const user = await prisma.user.findUnique({
+        where: { email: email.toLowerCase().trim() },
+      });
+
+      // We return 200 even if user doesn't exist for security (avoid enumeration)
+      // In a real app, you'd send an email here.
+      return { success: true, message: "Se o email estiver cadastrado, um link foi enviado." };
+    }
+  );
 }

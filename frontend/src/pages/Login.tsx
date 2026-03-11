@@ -144,10 +144,16 @@ export default function Login() {
           </button>
         </form>
 
-        <p style={{ textAlign: "center", color: "#888", fontSize: "0.9rem" }}>
+        <p style={{ textAlign: "center", color: "#888", fontSize: "0.9rem", marginBottom: 8 }}>
           {t("home.noAccount", "Não tem conta?")}{" "}
-          <Link to="/register" style={{ color: "#4CAF50" }}>
+          <Link to="/register" style={{ color: "#4CAF50", fontWeight: 600 }}>
             {t("login.createHost", "Criar conta de Host")}
+          </Link>
+        </p>
+
+        <p style={{ textAlign: "center", fontSize: "0.9rem" }}>
+          <Link to="/forgot-password" style={{ color: "#888", textDecoration: "underline" }}>
+            {t("login.forgotPassword", "Esqueceu a senha?")}
           </Link>
         </p>
 
