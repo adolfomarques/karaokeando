@@ -314,6 +314,75 @@ export default async function authRoutes(app: FastifyInstance) {
     };
   });
 
+  // Login via Google
+  app.post<{ Body: { accessToken: string } }>(
+    "/api/auth/google",
+    async (request, reply) => {
+      const { accessToken } = request.body;
+      if (!accessToken) {
+        return reply.code(400).send({ error: "validation_error", message: "Token ausente" });
+      }
+
+      try {
+        const userInfoRes = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+
+        if (!userInfoRes.ok) {
+          throw new Error("Google token invalido");
+        }
+
+        const data = await userInfoRes.json();
+        const email = data.email.toLowerCase().trim();
+        const name = data.name || "Usuario Google";
+
+        let user = await prisma.user.findUnique({
+          where: { email },
+        });
+
+        if (!user) {
+          user = await prisma.user.create({
+            data: {
+              name,
+              email,
+              canHost: true,
+            },
+          });
+        } else if (!user.canHost) {
+          user = await prisma.user.update({
+            where: { id: user.id },
+            data: { canHost: true },
+          });
+        }
+
+        const token = generateUserToken({
+          userId: user.id,
+          email: user.email,
+          name: user.name,
+          canHost: true,
+        });
+
+        return {
+          token,
+          user: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            phone: user.phone,
+            city: user.city,
+            canHost: true,
+            isComplete: true,
+          },
+        };
+      } catch (err) {
+        return reply.code(401).send({
+          error: "invalid_credentials",
+          message: "Acesso via Google falhou",
+        });
+      }
+    }
+  );
+
   // Login (email + password)
   app.post<{ Body: { email: string; password: string } }>(
     "/api/auth/login",

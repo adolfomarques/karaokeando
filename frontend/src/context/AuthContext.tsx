@@ -61,6 +61,9 @@ interface AuthContextType {
   completeRegistration: (
     data: CompleteRegistrationData
   ) => Promise<{ success: boolean; error?: string }>;
+  loginWithGoogle: (
+    accessToken: string
+  ) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   refreshUser: () => Promise<void>;
 }
@@ -152,6 +155,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { success: true };
       } else {
         return { success: false, error: data.message || "Erro ao fazer login" };
+      }
+    } catch {
+      return { success: false, error: "Erro de conexão" };
+    }
+  };
+
+  // Login with Google
+  const loginWithGoogle = async (accessToken: string) => {
+    try {
+      const res = await fetch(`${API_BASE}/api/auth/google`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ accessToken }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        localStorage.setItem(TOKEN_KEY, data.token);
+        setToken(data.token);
+        setUser(data.user);
+        return { success: true };
+      } else {
+        return { success: false, error: data.message || "Erro no Google Login" };
       }
     } catch {
       return { success: false, error: "Erro de conexão" };
@@ -262,6 +289,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         token,
         loading,
         login,
+        loginWithGoogle,
         registerGuest,
         registerHost,
         completeRegistration,

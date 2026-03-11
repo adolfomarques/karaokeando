@@ -1,14 +1,14 @@
 import { useTranslation } from 'react-i18next';
 import Logo from "../components/Logo";
+import { useAuth } from "../context/AuthContext";
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import toast from "react-hot-toast";
+import { useGoogleLogin } from '@react-oauth/google';
 
 export default function RegisterHost() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { registerHost } = useAuth();
+  const { registerHost, loginWithGoogle } = useAuth();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -48,15 +48,26 @@ export default function RegisterHost() {
     }
   };
 
-  const handleGoogleLogin = () => {
-    // Para implementar futuramente seria necessário:
-    // 1. Integrar Google OAuth no Frontend (@react-oauth/google)
-    // 2. Client ID ativado no Google Cloud Console
-    // 3. O Backend recebendo e validando o token JWT do Google
-    toast.error("Integração com o Google em breve!", {
-      icon: "🔜"
-    });
-  };
+  const handleGoogleLogin = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      try {
+        setLoading(true);
+        const result = await loginWithGoogle(tokenResponse.access_token);
+        if (result.success) {
+          navigate("/create-room");
+        } else {
+          setError(result.error || "Erro no login com Google");
+        }
+      } catch {
+        setError("Erro ao autenticar via Google.");
+      } finally {
+        setLoading(false);
+      }
+    },
+    onError: () => {
+      setError("Falha ao abrir popup do Google.");
+    }
+  });
 
   return (
     <div className="container" style={{ paddingTop: 40, maxWidth: 400 }}>
@@ -68,7 +79,7 @@ export default function RegisterHost() {
       <div className="card">
         <button
           type="button"
-          onClick={handleGoogleLogin}
+          onClick={() => handleGoogleLogin()}
           style={{
             width: "100%",
             marginBottom: 24,

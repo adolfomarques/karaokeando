@@ -29,26 +29,32 @@ function PageLoader() {
   );
 }
 
+import { GoogleOAuthProvider } from '@react-oauth/google';
+
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "YOUR_GOOGLE_CLIENT_ID";
+
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <AuthProvider>
-      <BrowserRouter>
-        <Suspense fallback={<PageLoader />}>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<RegisterHost />} />
-            <Route path="/complete-profile" element={<CompleteProfile />} />
-            <Route path="/guest-register" element={<GuestRegister />} />
-            <Route path="/create-room" element={<CreateRoom />} />
-            <Route path="/join/:code" element={<JoinRedirect />} />
-            <Route path="/room/:code/tv" element={<RoomTV />} />
-            <Route path="/room/:code/tv/login" element={<TvLogin />} />
-            <Route path="/room/:code" element={<RoomMobile />} />
-            <Route path="/admin" element={<Dashboard />} />
-          </Routes>
-        </Suspense>
-      </BrowserRouter>
-    </AuthProvider>
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+      <AuthProvider>
+        <BrowserRouter>
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<RegisterHost />} />
+              <Route path="/complete-profile" element={<CompleteProfile />} />
+              <Route path="/guest-register" element={<GuestRegister />} />
+              <Route path="/create-room" element={<CreateRoom />} />
+              <Route path="/join/:code" element={<JoinRedirect />} />
+              <Route path="/room/:code/tv" element={<RoomTV />} />
+              <Route path="/room/:code/tv/login" element={<TvLogin />} />
+              <Route path="/room/:code" element={<RoomMobile />} />
+              <Route path="/admin" element={<Dashboard />} />
+            </Routes>
+          </Suspense>
+        </BrowserRouter>
+      </AuthProvider>
+    </GoogleOAuthProvider>
   </React.StrictMode>
 );
