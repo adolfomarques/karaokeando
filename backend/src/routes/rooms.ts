@@ -195,6 +195,44 @@ export default async function roomRoutes(app: FastifyInstance) {
     }
   );
 
+  // Delete room
+  app.delete<{ Params: { roomCode: string } }>(
+    "/api/rooms/:roomCode",
+    async (request, reply) => {
+      const user = await getUserFromRequest(request);
+      if (!user) {
+        return reply.code(401).send({ error: "unauthorized" });
+      }
+
+      const { roomCode } = request.params;
+
+      const room = await prisma.room.findUnique({
+        where: { code: roomCode.toUpperCase() },
+      });
+
+      if (!room) {
+        return reply.code(404).send({ error: "room_not_found" });
+      }
+
+      if (room.ownerId !== user.userId) {
+        return reply.code(403).send({
+          error: "forbidden",
+          message: "Você não é o dono desta sala",
+        });
+      }
+
+      // Delete the room
+      await prisma.room.delete({
+        where: { id: room.id },
+      });
+
+      // Clear in-memory stats
+      clearRoomVisits(room.code);
+
+      return { success: true };
+    }
+  );
+
   // Get rooms owned by current user
   app.get("/api/rooms/my-rooms", async (request, reply) => {
     const user = await getUserFromRequest(request);

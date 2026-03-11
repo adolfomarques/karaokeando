@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import Logo from "../components/Logo";
 import { useNavigate } from "react-router-dom";
 import { useAuth, getToken } from "../context/AuthContext";
-import { getState, API_BASE } from "../api";
+import { getState, API_BASE, deleteRoom } from "../api";
 import { useTranslation } from "react-i18next";
 import LanguageSwitcher from "../components/LanguageSwitcher";
 
@@ -60,6 +60,24 @@ export default function Home() {
         .finally(() => setLoadingMyRooms(false));
     }
   }, [user]);
+
+  const handleDeleteRoom = async (code: string) => {
+    if (!window.confirm(t("home.confirmDelete", "Tem certeza que deseja excluir esta sala?"))) {
+      return;
+    }
+
+    try {
+      const res = await deleteRoom(code);
+      if (res.success) {
+        setMyRooms(prev => prev.filter(r => r.code !== code));
+      } else {
+        alert(t("home.deleteError", "Erro ao excluir a sala."));
+      }
+    } catch (e) {
+      console.error(e);
+      alert(t("home.deleteError", "Erro ao excluir a sala."));
+    }
+  };
 
   // Verifica sala e decide próximo passo
   const joinRoom = async () => {
@@ -299,12 +317,44 @@ export default function Home() {
                       marginBottom: 8,
                     }}
                   >
-                    <span style={{ fontWeight: 600, fontSize: "1.1rem" }}>
-                      {room.code}
-                    </span>
-                    <small style={{ color: "#888" }}>
-                      {new Date(room.createdAt).toLocaleDateString(i18n.language === "pt" ? "pt-BR" : "en-US")}
-                    </small>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <span style={{ fontWeight: 600, fontSize: "1.1rem" }}>
+                        {room.code}
+                      </span>
+                      <small style={{ color: "#888" }}>
+                        {new Date(room.createdAt).toLocaleDateString(i18n.language === "pt" ? "pt-BR" : "en-US")}
+                      </small>
+                    </div>
+                    <button
+                      onClick={() => handleDeleteRoom(room.code)}
+                      style={{
+                        background: "transparent",
+                        border: "none",
+                        color: "#ff4444",
+                        padding: "4px",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                      title={t("home.deleteRoom", "Excluir sala")}
+                    >
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <polyline points="3 6 5 6 21 6" />
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                        <line x1="10" y1="11" x2="10" y2="17" />
+                        <line x1="14" y1="11" x2="14" y2="17" />
+                      </svg>
+                    </button>
                   </div>
                   <div style={{ display: "flex", gap: 8 }}>
                     <button

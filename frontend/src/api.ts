@@ -237,6 +237,15 @@ export async function deleteSong(songId: string) {
   return res.json();
 }
 
+export async function deleteRoom(code: string) {
+  const token = localStorage.getItem("karaokeando_token");
+  const res = await fetch(`${API_BASE}/api/rooms/${code}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.json();
+}
+
 export function connectWS(
   roomCode: string,
   role: "tv" | "mobile",
