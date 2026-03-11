@@ -1,11 +1,11 @@
-# Karaokêando Backend 🎤
+# KaraokeFactory Backend 🎤
 
 Backend **Node.js + TypeScript** (Fastify + WebSocket) para o sistema de karaokê social.
 
 ## 🚀 Rodar (desenvolvimento)
 
 ```bash
-cd karaokeando/backend
+cd backend
 npm install
 npm run dev
 ```
@@ -182,7 +182,7 @@ model Song {
 PORT=8787
 
 # Banco de dados
-DATABASE_URL=postgresql://karaokeando:karaokeando@localhost:5433/karaokeando
+DATABASE_URL=postgresql://karaokefactory:karaokefactory_dev_123@localhost:5433/karaokefactory
 
 # Autenticação
 JWT_SECRET=sua-chave-secreta-jwt
@@ -217,4 +217,4 @@ curl http://localhost:8787/health
 
 ---
 
-Parte do projeto [Karaokêando](../README.md)
+Parte do projeto [KaraokeFactory](../README.md)

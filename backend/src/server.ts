@@ -1468,5 +1468,5 @@ app.listen({ port: PORT, host: "0.0.0.0" }, err => {
     app.log.error(err);
     process.exit(1);
   }
-  console.log(`🎤 Karaokêando backend running on http://localhost:${PORT}`);
+  console.log(`🎤 KaraokeFactory backend running on http://localhost:${PORT}`);
 });

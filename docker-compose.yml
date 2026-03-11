@@ -3,12 +3,12 @@ version: '3.8'
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: karaokeando-db
+    container_name: karaokefactory-db
     restart: unless-stopped
     environment:
-      POSTGRES_USER: karaokeando
-      POSTGRES_PASSWORD: karaokeando_dev_123
-      POSTGRES_DB: karaokeando
+      POSTGRES_USER: karaokefactory
+      POSTGRES_PASSWORD: karaokefactory_dev_123
+      POSTGRES_DB: karaokefactory
     ports:
       - "5433:5432"
     volumes:

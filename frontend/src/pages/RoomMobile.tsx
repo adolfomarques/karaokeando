@@ -494,7 +494,7 @@ export default function RoomMobile() {
   // Salvar última sala visitada
   useEffect(() => {
     if (code) {
-      localStorage.setItem("karaokeando_last_room", code);
+      localStorage.setItem("karaokefactory_last_room", code);
     }
   }, [code]);
 

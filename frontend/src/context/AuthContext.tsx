@@ -7,7 +7,7 @@ import React, {
 } from "react";
 import { API_BASE } from "../api";
 
-const TOKEN_KEY = "karaokeando_token";
+const TOKEN_KEY = "karaokefactory_token";
 
 // Decode JWT payload without verifying signature (client-side only)
 // Returns null if the token is malformed or expired

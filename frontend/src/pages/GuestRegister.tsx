@@ -19,7 +19,7 @@ export default function GuestRegister() {
   const redirectTo = roomCode ? `/room/${roomCode}` : (location.state as any)?.redirectTo || "/";
 
   const [name, setName] = useState(() => {
-    return localStorage.getItem("karaokeando_name") || "";
+    return localStorage.getItem("karaokefactory_name") || "";
   });
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -48,12 +48,12 @@ export default function GuestRegister() {
 
     if (result.success) {
       // Save name for convenience
-      localStorage.setItem("karaokeando_name", name);
+      localStorage.setItem("karaokefactory_name", name);
 
       // Redirect to intended destination
       if (roomCode) {
         // Salvar última sala para acesso rápido
-        localStorage.setItem("karaokeando_last_room", roomCode);
+        localStorage.setItem("karaokefactory_last_room", roomCode);
         navigate(`/room/${roomCode}`);
       } else {
         navigate(redirectTo);

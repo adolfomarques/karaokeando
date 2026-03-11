@@ -501,10 +501,10 @@ export default async function authRoutes(app: FastifyInstance) {
   });
 
   // Forgot Password (REAL)
-  app.post<{ Body: { email: string } }>(
+  app.post<{ Body: { email: string; lng?: string } }>(
     "/api/auth/forgot-password",
     async (request, reply) => {
-      const { email } = request.body;
+      const { email, lng = "pt" } = request.body;
       if (!email) {
         return reply.code(400).send({ error: "validation_error", message: "Email obrigatório" });
       }
@@ -512,6 +512,8 @@ export default async function authRoutes(app: FastifyInstance) {
       const user = await prisma.user.findUnique({
         where: { email: email.toLowerCase().trim() },
       });
+
+      let isEn = lng.startsWith("en");
 
       if (user) {
         const resetToken = generateResetToken(user.id);
@@ -526,19 +528,34 @@ export default async function authRoutes(app: FastifyInstance) {
           });
         }
 
+        // Localized content
+        isEn = lng.startsWith("en");
+        const subject = isEn 
+          ? 'Password Recovery - KaraokeFactory' 
+          : 'Recuperação de Senha - KaraokeFactory';
+        
+        const html = isEn ? `
+          <h1>Password Recovery</h1>
+          <p>Hello ${user.name},</p>
+          <p>You requested a password reset at KaraokeFactory.</p>
+          <p>Click the link below to create a new password (link expires in 15 minutes):</p>
+          <a href="${resetLink}" style="padding: 10px 20px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 5px;">Reset Password</a>
+          <p>If you didn't request this, please ignore this email.</p>
+        ` : `
+          <h1>Recuperação de Senha</h1>
+          <p>Olá ${user.name},</p>
+          <p>Você solicitou a redefinição de sua senha no KaraokeFactory.</p>
+          <p>Clique no link abaixo para criar uma nova senha (o link expira em 15 minutos):</p>
+          <a href="${resetLink}" style="padding: 10px 20px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 5px;">Redefinir Senha</a>
+          <p>Se você não solicitou isso, ignore este email.</p>
+        `;
+
         try {
           const { data, error } = await resendInstance.emails.send({
-            from: 'Karaokeando <autenticacao@karaokefactory.org>',
+            from: 'KaraokeFactory <autenticacao@karaokefactory.org>',
             to: user.email,
-            subject: 'Recuperação de Senha - Karaokeando',
-            html: `
-              <h1>Recuperação de Senha</h1>
-              <p>Olá ${user.name},</p>
-              <p>Você solicitou a redefinição de sua senha no Karaokeando.</p>
-              <p>Clique no link abaixo para criar uma nova senha (o link expira em 15 minutos):</p>
-              <a href="${resetLink}" style="padding: 10px 20px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 5px;">Redefinir Senha</a>
-              <p>Se você não solicitou isso, ignore este email.</p>
-            `
+            subject,
+            html
           });
 
           if (error) {
@@ -551,7 +568,7 @@ export default async function authRoutes(app: FastifyInstance) {
         }
       }
 
-      return { success: true, message: "Se o email estiver cadastrado, um link foi enviado." };
+      return { success: true, message: isEn ? "If the email is registered, a link has been sent." : "Se o email estiver cadastrado, um link foi enviado." };
     }
   );
 

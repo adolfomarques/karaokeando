@@ -1,23 +1,13 @@
-# Karaokêando 🎤
+# KaraokeFactory 🎤
 
 Sistema de karaokê social em tempo real. Crie salas, adicione músicas do YouTube, cante sozinho ou em dupla, e dispute o ranking com seus amigos!
 
-## 📋 Visão Geral
-
-O Karaokêando é uma aplicação web que transforma qualquer TV em um karaokê de festa. O host projeta a tela da TV, e os convidados usam seus celulares para adicionar músicas, escolher parceiros de dueto e acompanhar o ranking.
-
-### Como funciona
-
-1. **Host** cria uma sala e projeta a TV (`/room/XXXXX/tv`)
-2. **Convidados** entram pelo celular escaneando QR code ou digitando o código
-3. Pelo celular: buscam músicas, adicionam à fila, escolhem cantar solo ou em dupla
-4. A TV exibe o vídeo com som, fila e ranking em tempo real
-5. Ao finalizar, o sistema gera uma pontuação e atualiza o ranking
+O KaraokeFactory é uma aplicação web que transforma qualquer TV em um karaokê de festa. O host projeta a tela da TV, e os convidados usam seus celulares para adicionar músicas, escolher parceiros de dueto e acompanhar o ranking.
 
 ## 🏗️ Arquitetura
 
 ```
-karaokeando/
+karaokefactory/
 ├── backend/          # API Node.js + TypeScript
 │   ├── src/
 │   │   ├── server.ts    # Servidor Fastify + WebSocket
@@ -46,7 +36,7 @@ karaokeando/
 ### 1. Backend
 
 ```bash
-cd karaokeando/backend
+cd backend
 npm install
 npm run dev
 ```
@@ -56,7 +46,7 @@ Servidor rodando em `http://localhost:8787`
 ### 2. Frontend
 
 ```bash
-cd karaokeando/frontend
+cd frontend
 npm install
 npm run dev
 ```
@@ -144,18 +134,13 @@ Criar arquivo `.env` na raiz do backend:
 PORT=8787
 
 # Banco de dados
-DATABASE_URL=postgresql://karaokeando:karaokeando@localhost:5433/karaokeando
+DATABASE_URL=postgresql://karaokefactory:karaokefactory_dev_123@localhost:5433/karaokefactory
 
 # Autenticação
 JWT_SECRET=sua-chave-secreta-aqui
 
 # Admin
 ADMIN_KEY=chave-do-dashboard
-# (Em breve) Banco de dados
-DATABASE_URL=postgresql://user:password@localhost:5432/karaokeando
-
-# (Em breve) Autenticação
-JWT_SECRET=sua-chave-secreta
 ```
 
 ## 📱 Rotas da Aplicação

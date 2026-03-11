@@ -1,7 +1,7 @@
 # i18n Implementation Plan
 
 ## Overview
-Implement Internationalization (i18n) for the Karaokeando platform, establishing English as the primary language and Brazilian Portuguese as the secondary language. Include a persistent language switcher, dynamic SEO metadata, and completely translate all static texts.
+Implement Internationalization (i18n) for the KaraokeFactory platform, establishing English as the primary language and Brazilian Portuguese as the secondary language. Include a persistent language switcher, dynamic SEO metadata, and completely translate all static texts.
 
 ## Project Type
 WEB

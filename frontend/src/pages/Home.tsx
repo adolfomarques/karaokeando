@@ -20,9 +20,9 @@ export default function Home() {
   const [myRooms, setMyRooms] = useState<MyRoom[]>([]);
   const [loadingMyRooms, setLoadingMyRooms] = useState(false);
 
-  // Estado para entrar em sala - pré-preenche com última sala visitada
+  // Estado para entrar em sala - pré-preenche com última sala visitada (se houver)
   const [joinCode, setJoinCode] = useState(() => {
-    return localStorage.getItem("karaokeando_last_room") || "";
+    return localStorage.getItem("karaokefactory_last_room") || "";
   });
   const [joining, setJoining] = useState(false);
   const [joinError, setJoinError] = useState<string | null>(null);
@@ -333,15 +333,14 @@ export default function Home() {
               );
             }
             .vip-ticket-code {
-              font-size: 2.2rem;
+              font-size: 1.8rem;
               font-weight: 900;
               color: transparent;
               -webkit-text-stroke: 1px #ff6600;
-              letter-spacing: 2px;
+              letter-spacing: 1px;
               text-shadow: 0 0 10px rgba(255, 102, 0, 0.8);
               margin: 0;
               font-family: monospace;
-              transform: rotate(-90deg);
             }
             .vip-ticket-main {
               flex: 1;

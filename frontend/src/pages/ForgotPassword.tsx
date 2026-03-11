@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import { API_BASE } from "../api";
+import i18n from '../i18n';
 
 export default function ForgotPassword() {
   const { t } = useTranslation();
@@ -19,7 +20,10 @@ export default function ForgotPassword() {
       const res = await fetch(`${API_BASE}/api/auth/forgot-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ 
+          email,
+          lng: i18n.language // Envia o idioma atual (pt ou en)
+        }),
       });
 
       if (res.ok) {
@@ -46,31 +50,33 @@ export default function ForgotPassword() {
         {submitted ? (
           <div style={{ textAlign: "center", padding: "20px 0" }}>
             <div style={{ fontSize: "3rem", marginBottom: 16 }}>📩</div>
-            <h3 style={{ margin: "0 0 16px", color: "#4CAF50" }}>Verifique seu email!</h3>
+            <h3 style={{ margin: "0 0 16px", color: "#4CAF50" }}>
+              {t("forgotPassword.successTitle", "Verifique seu email!")}
+            </h3>
             <p style={{ color: "#aaa", fontSize: "0.95rem", lineHeight: 1.5, marginBottom: 24 }}>
-              Enviamos um link de recuperação para <strong>{email}</strong>. Por favor, verifique sua caixa de entrada e também a pasta de spam.
+              {t("forgotPassword.successDesc", "Enviamos um link de recuperação para {{email}}. Por favor, verifique sua caixa de entrada e também a pasta de spam.", { email })}
             </p>
             <button 
               onClick={() => setSubmitted(false)} 
               style={{ background: "transparent", border: "1px solid #444", color: "#fff", marginBottom: 16 }}
             >
-              Tentarnovamente
+              {t("forgotPassword.tryAgain", "Tentar novamente")}
             </button>
           </div>
         ) : (
           <form onSubmit={handleSubmit}>
             <p style={{ color: "#aaa", fontSize: "0.9rem", marginBottom: 24, lineHeight: 1.5 }}>
-              Digite o e-mail associado à sua conta. Enviaremos um link para redefinir sua senha.
+              {t("forgotPassword.instruction", "Digite o e-mail associado à sua conta. Enviaremos um link para redefinir sua senha.")}
             </p>
 
             <label style={{ display: "block", marginBottom: 4, fontWeight: 500 }}>
-              {t("login.email", "Email")}
+              {t("forgotPassword.emailLabel", "Email")}
             </label>
             <input
               type="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
-              placeholder="seu@email.com"
+              placeholder={t("forgotPassword.emailPlaceholder", "seu@email.com")}
               required
               style={{ marginBottom: 24 }}
             />
@@ -80,7 +86,7 @@ export default function ForgotPassword() {
               disabled={loading}
               style={{ width: "100%", marginBottom: 16 }}
             >
-              {loading ? "Enviando link..." : "Enviar link de recuperação"}
+              {loading ? t("forgotPassword.submitting", "Enviando link...") : t("forgotPassword.submitBtn", "Enviar link de recuperação")}
             </button>
           </form>
         )}

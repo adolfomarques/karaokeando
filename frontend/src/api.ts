@@ -8,6 +8,7 @@ function isPrivateIP(hostname: string): boolean {
 }
 
 // Em dev na rede local, conecta direto no backend. Caso contrário, URL relativa ou variável de ambiente.
+export const DEVICE_KEY = "karaokefactory_deviceId";
 export const API_BASE =
   import.meta.env.VITE_API_URL ||
   (isPrivateIP(window.location.hostname)
@@ -238,7 +239,8 @@ export async function deleteSong(songId: string) {
 }
 
 export async function deleteRoom(code: string) {
-  const token = localStorage.getItem("karaokeando_token");
+  const TOKEN_KEY = "karaokefactory_token";
+  const token = localStorage.getItem(TOKEN_KEY);
   const res = await fetch(`${API_BASE}/api/rooms/${code}`, {
     method: "DELETE",
     headers: { Authorization: `Bearer ${token}` },

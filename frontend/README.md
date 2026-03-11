@@ -1,11 +1,11 @@
-# Karaokêando Frontend 🎤
+# KaraokeFactory Frontend 🎤
 
 Frontend **React + Vite + TypeScript** para o sistema de karaokê social.
 
 ## 🚀 Rodar (desenvolvimento)
 
 ```bash
-cd karaokeando/frontend
+cd frontend
 npm install
 npm run dev
 ```
@@ -82,7 +82,7 @@ O arquivo `api.ts` gerencia:
 
 - **REST API** - Chamadas HTTP para ações (criar sala, adicionar música, etc)
 - **WebSocket** - Conexão real-time para sincronização de estado
-- **localStorage** - Persistência de userId e nome do usuário
+- **localStorage** - Persistência de userId e nome do usuário (prefixo `karaokefactory_`)
 
 ## 📦 Dependências Principais
 
@@ -92,4 +92,4 @@ O arquivo `api.ts` gerencia:
 
 ---
 
-Parte do projeto [Karaokêando](../README.md)
+Parte do projeto [KaraokeFactory](../README.md)

@@ -9,7 +9,7 @@
  * users who switch between browsers on the same device.
  */
 
-const DEVICE_KEY = "karaokeando_deviceId";
+const DEVICE_KEY = "karaokefactory_deviceId";
 const COOKIE_MAX_AGE = 365 * 24 * 60 * 60; // 1 year in seconds
 
 // ─── Utilities ────────────────────────────────────────────────────────────────
@@ -40,7 +40,7 @@ function setCookie(name: string, value: string): void {
 function idbGet(): Promise<string | null> {
     return new Promise(resolve => {
         try {
-            const req = indexedDB.open("karaoke_device", 1);
+            const req = indexedDB.open("karaokefactory_device", 1);
             req.onupgradeneeded = e => {
                 (e.target as IDBOpenDBRequest).result.createObjectStore("kv");
             };
@@ -60,7 +60,7 @@ function idbGet(): Promise<string | null> {
 
 function idbSet(value: string): void {
     try {
-        const req = indexedDB.open("karaoke_device", 1);
+        const req = indexedDB.open("karaokefactory_device", 1);
         req.onupgradeneeded = e => {
             (e.target as IDBOpenDBRequest).result.createObjectStore("kv");
         };

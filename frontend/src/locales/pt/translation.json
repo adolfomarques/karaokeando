@@ -227,7 +227,20 @@
     "password": "Senha",
     "createHost": "Criar conta de Host",
     "entering": "Entrando...",
-    "invalidCredentials": "Email ou senha incorretos"
+    "invalidCredentials": "Email ou senha incorretos",
+    "forgotPassword": "Esqueceu a senha?"
+  },
+  "forgotPassword": {
+    "title": "Recuperação de Senha",
+    "desc": "Recuperar senha de acesso",
+    "emailLabel": "Email",
+    "emailPlaceholder": "seu@email.com",
+    "instruction": "Digite o e-mail associado à sua conta. Enviaremos um link para redefinir sua senha.",
+    "submitBtn": "Enviar link de recuperação",
+    "submitting": "Enviando link...",
+    "successTitle": "Verifique seu email!",
+    "successDesc": "Enviamos um link de recuperação para {{email}}. Por favor, verifique sua caixa de entrada e também a pasta de spam.",
+    "tryAgain": "Tentar novamente"
   },
   "admin": {
     "activeRooms": "Salas Ativas Agora",
@@ -399,7 +412,7 @@
       "🏆 {{name}} TIROU 100!!! LENDÁRIO!!! 🏆",
       "100 PONTOS! {{name}}, você é PERFEITO(A)! 👑",
       "{{name}}, ISSO É HISTÓRICO! 100 PONTOS! 🎉",
-      "INACREDITÁVEL! {{name}} alcançou a PERFEIÇÃO! ⭐",
+      "UNBELIEVABLE! {{name}} alcançou a PERFEIÇÃO! ⭐",
       "🔥 {{name}} DESTRUIU! 100 PONTOS! GOAT! 🔥",
       "O MICROFONE SE CURVA DIANTE DE {{name}}! 100! 🎤👑",
       "{{name}}, VOCÊ É O(A) MAIOR! 100 PONTOS! HISTORIC!",

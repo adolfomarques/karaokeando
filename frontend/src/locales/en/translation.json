@@ -227,7 +227,20 @@
     "password": "Password",
     "createHost": "Create Host account",
     "entering": "Logging in...",
-    "invalidCredentials": "Username or password invalid"
+    "invalidCredentials": "Username or password invalid",
+    "forgotPassword": "Forgot password?"
+  },
+  "forgotPassword": {
+    "title": "Password Recovery",
+    "desc": "Recover your account password",
+    "emailLabel": "Email",
+    "emailPlaceholder": "your@email.com",
+    "instruction": "Enter the email associated with your account. We will send a link to reset your password.",
+    "submitBtn": "Send recovery link",
+    "submitting": "Sending link...",
+    "successTitle": "Check your email!",
+    "successDesc": "We've sent a recovery link to {{email}}. Please check your inbox and also your spam folder.",
+    "tryAgain": "Try again"
   },
   "admin": {
     "activeRooms": "Active Rooms Now",
