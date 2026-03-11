@@ -527,8 +527,8 @@ export default async function authRoutes(app: FastifyInstance) {
         }
 
         try {
-          await resendInstance.emails.send({
-            from: 'Karaokeando <onboarding@resend.dev>', // Ou o seu dominio verificado
+          const { data, error } = await resendInstance.emails.send({
+            from: 'Karaokeando <onboarding@resend.dev>',
             to: user.email,
             subject: 'Recuperação de Senha - Karaokeando',
             html: `
@@ -540,9 +540,14 @@ export default async function authRoutes(app: FastifyInstance) {
               <p>Se você não solicitou isso, ignore este email.</p>
             `
           });
+
+          if (error) {
+            console.error("ERRO DO RESEND:", error);
+          } else {
+            console.log("Email enviado com sucesso via Resend:", data);
+          }
         } catch (err) {
-          console.error("Erro ao enviar email:", err);
-          // Still return true to not leak info, or handle error if needed
+          console.error("Erro inesperado ao enviar email:", err);
         }
       }
 
