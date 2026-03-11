@@ -169,8 +169,8 @@
     "passwordPlaceholder": "Crie uma senha (mín. 6 caracteres)",
     "confirmPasswordPlaceholder": "Confirme sua senha",
     "cityPlaceholder": "Sua cidade",
-    "creating": "Criando conta...",
-    "createBtn": "Criar conta e continuar"
+    "success": "Cadastro completo!",
+    "error": "Erro ao completar cadastro"
   },
   "guestReg": {
     "yourName": "Seu Nome",
@@ -182,7 +182,14 @@
     "invalidPhone": "Telefone inválido (mínimo 10 dígitos)",
     "enterRoomWithCode": "Informe seus dados para entrar na sala {{code}}",
     "enterData": "Informe seus dados para continuar",
-    "entering": "Entrando..."
+    "entering": "Entrando...",
+    "phoneRequired": "Informe seu telefone",
+    "enterRoomBtn": "Entrar na Sala",
+    "registerError": "Erro ao registrar",
+    "or": "OU",
+    "googleBtn": "Entrar com o Google",
+    "createHostBtn": "Criar conta de Host (Para ter sua própria sala)",
+    "loginBtn": "Fazer login com email"
   },
   "complete": {
     "title": "🎤 Completar Cadastro",

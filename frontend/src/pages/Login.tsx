@@ -16,7 +16,10 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
 
   // Get return URL from navigation state
-  const returnTo = (location.state as { returnTo?: string })?.returnTo || "/";
+  const state = location.state as { returnTo?: string; redirectTo?: string; roomCode?: string } | null;
+  const returnTo = state?.roomCode 
+    ? `/room/${state.roomCode}` 
+    : (state?.redirectTo || state?.returnTo || "/");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

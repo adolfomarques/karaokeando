@@ -2,13 +2,20 @@ import { useTranslation } from 'react-i18next';
 import Logo from "../components/Logo";
 import { useAuth } from "../context/AuthContext";
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { useGoogleLogin } from '@react-oauth/google';
 
 export default function RegisterHost() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   const { registerHost, loginWithGoogle } = useAuth();
+
+  // Redirection context
+  const state = location.state as { redirectTo?: string; roomCode?: string } | null;
+  const returnTo = state?.roomCode 
+    ? `/room/${state.roomCode}` 
+    : (state?.redirectTo || "/create-room");
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -37,7 +44,7 @@ export default function RegisterHost() {
       });
 
       if (result.success) {
-        navigate("/create-room");
+        navigate(returnTo);
       } else {
         setError(result.error || t("register.error", "Erro ao criar conta"));
       }
@@ -54,7 +61,7 @@ export default function RegisterHost() {
         setLoading(true);
         const result = await loginWithGoogle(tokenResponse.access_token);
         if (result.success) {
-          navigate("/create-room");
+          navigate(returnTo);
         } else {
           setError(result.error || "Erro no login com Google");
         }

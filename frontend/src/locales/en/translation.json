@@ -182,7 +182,14 @@
     "invalidPhone": "Invalid phone (min 10 digits)",
     "enterRoomWithCode": "Enter your details to join room {{code}}",
     "enterData": "Enter your details to continue",
-    "entering": "Entering..."
+    "entering": "Entering...",
+    "phoneRequired": "Phone number is required",
+    "enterRoomBtn": "Enter Room",
+    "registerError": "Error registering",
+    "or": "OR",
+    "googleBtn": "Enter with Google",
+    "createHostBtn": "Create Host account (To have your own room)",
+    "loginBtn": "Login with email"
   },
   "complete": {
     "title": "🎤 Complete Profile",
