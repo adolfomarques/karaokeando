@@ -1116,11 +1116,71 @@ export default function RoomTV() {
           style={{
             minHeight: "100vh",
             padding: 40,
-            background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)",
+            background: "#0d0d0d", // Dark background
             display: "flex",
             flexDirection: "column",
           }}
         >
+          <style>{`
+            .tv-vip-ticket {
+              position: relative;
+              background: #111;
+              border-radius: 12px;
+              border: 2px solid #ff6600;
+              box-shadow: 0 0 15px rgba(255, 102, 0, 0.4), inset 0 0 20px rgba(255, 102, 0, 0.1);
+              overflow: hidden;
+            }
+            .tv-vip-header {
+              padding: 24px;
+              border-bottom: 2px dashed rgba(255, 102, 0, 0.5);
+              background: repeating-linear-gradient(
+                45deg,
+                rgba(255, 102, 0, 0.05),
+                rgba(255, 102, 0, 0.05) 15px,
+                transparent 15px,
+                transparent 30px
+              );
+            }
+            .tv-vip-title {
+              font-family: monospace;
+              color: transparent;
+              -webkit-text-stroke: 1px #ff6600;
+              text-shadow: 0 0 10px rgba(255, 102, 0, 0.8);
+              font-size: 2.2rem;
+              letter-spacing: 4px;
+              text-transform: uppercase;
+              margin: 0;
+            }
+            .tv-vip-body {
+              padding: 30px;
+              background: linear-gradient(to bottom, rgba(0,0,0,0), rgba(0, 229, 255, 0.05));
+            }
+            .tv-vip-btn-cyan {
+              background: transparent;
+              border: 1px solid #00e5ff;
+              color: #00e5ff;
+              padding: 8px 16px;
+              border-radius: 6px;
+              font-size: 1rem;
+              font-weight: 600;
+              cursor: pointer;
+              text-transform: uppercase;
+              transition: all 0.2s;
+              box-shadow: inset 0 0 8px rgba(0, 229, 255, 0.1);
+            }
+            .tv-vip-btn-cyan:hover, .tv-vip-btn-cyan.active {
+              background: rgba(0, 229, 255, 0.2);
+              box-shadow: inset 0 0 12px rgba(0, 229, 255, 0.4), 0 0 10px rgba(0, 229, 255, 0.5);
+              color: #fff;
+            }
+            .tv-vip-box {
+              background: rgba(0,0,0,0.5);
+              border: 1px solid #333;
+              border-radius: 8px;
+              padding: 20px;
+            }
+          `}</style>
+          
           {/* Header */}
           <div
             style={{
@@ -1130,25 +1190,27 @@ export default function RoomTV() {
               marginBottom: 40,
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
               <button
                 onClick={() => navigate("/")}
                 style={{
-                  background: "rgba(255,255,255,0.1)",
-                  border: "1px solid rgba(255,255,255,0.2)",
+                  background: "transparent",
+                  border: "1px solid #ff6600",
                   borderRadius: 8,
-                  padding: "8px 16px",
-                  color: "#fff",
-                  fontSize: "0.9rem",
+                  padding: "12px 24px",
+                  color: "#ff6600",
+                  fontSize: "1.1rem",
+                  fontWeight: 600,
                   cursor: "pointer",
                   display: "flex",
                   alignItems: "center",
-                  gap: 6,
+                  gap: 10,
+                  boxShadow: "inset 0 0 8px rgba(255,102,0,0.2), 0 0 8px rgba(255,102,0,0.2)"
                 }}
               >
                 <svg
-                  width="16"
-                  height="16"
+                  width="20"
+                  height="20"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -1158,45 +1220,63 @@ export default function RoomTV() {
                 >
                   <path d="M15 18l-6-6 6-6" />
                 </svg>
-                {t("auth.logout", "Logout")}
+                {t("auth.logout", "Sair")}
               </button>
               <h1
                 style={{
                   margin: 0,
-                  fontSize: "2rem",
+                  fontSize: "3rem",
                   display: "flex",
                   alignItems: "center",
-                  gap: 16,
+                  gap: 20,
+                  color: "#fff",
+                  textShadow: "0 0 15px rgba(255,255,255,0.3)"
                 }}
               >
-                <Logo width={160} /> - {t("tv.room", "Room")}: {code}
+                <Logo width={220} /> <span style={{ opacity: 0.5 }}>-</span> <span style={{ color: "#00e5ff", textShadow: "0 0 15px rgba(0,229,255,0.6)" }}>{t("tv.room", "Room")}: {code}</span>
               </h1>
             </div>
+            
+            {/* QR Code Ticket */}
             <div
+              className="tv-vip-ticket"
               style={{
-                background: "white",
-                padding: 16,
-                borderRadius: 12,
-                textAlign: "center",
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                background: "#0d0d0d"
               }}
             >
-              <img
-                src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(
-                  window.location.origin + "/join/" + code
-                )}`}
-                alt="QR Code"
-                loading="lazy"
-                style={{
-                  display: "block",
-                  marginBottom: 8,
-                  width: 120,
-                  height: 120,
-                }}
-              />
-              <div
-                style={{ color: "#000", fontSize: "0.8rem", fontWeight: 600 }}
-              >
-                {t("tv.scanToJoin", "Scan to join")}
+              <div style={{ 
+                padding: "20px 30px", 
+                borderRight: "2px dashed rgba(255, 102, 0, 0.5)",
+                background: "repeating-linear-gradient(45deg, rgba(255, 102, 0, 0.05), rgba(255, 102, 0, 0.05) 10px, transparent 10px, transparent 20px)",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center"
+               }}>
+                <span className="tv-vip-title" style={{ fontSize: "1.4rem", transform: "rotate(-90deg)", whiteSpace: "nowrap", margin: "30px 0" }}>
+                  ACCESS
+                </span>
+              </div>
+              <div style={{ padding: "20px 30px", textAlign: "center", background: "#fff", borderLeft: "4px solid #00e5ff" }}>
+                <img
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(
+                    window.location.origin + "/join/" + code
+                  )}&color=000000&bgcolor=ffffff`}
+                  alt="QR Code"
+                  loading="lazy"
+                  style={{
+                    display: "block",
+                    marginBottom: 12,
+                    width: 160,
+                    height: 160,
+                  }}
+                />
+                <div style={{ color: "#000", fontSize: "1.1rem", fontWeight: 900, textTransform: "uppercase", letterSpacing: "1px" }}>
+                  {t("tv.scanToJoin", "Escaneie para entrar")}
+                </div>
               </div>
             </div>
           </div>
@@ -1212,85 +1292,54 @@ export default function RoomTV() {
             }}
           >
             {/* Próxima música / Fila */}
-            <div>
+            <div className="tv-vip-ticket">
               {state.queue.length > 0 ? (
                 <>
-                  <div
-                    style={{
-                      background:
-                        "linear-gradient(135deg, #7c4dff 0%, #ff4081 100%)",
-                      borderRadius: 16,
-                      padding: 32,
-                      marginBottom: 24,
-                      textAlign: "center",
-                    }}
-                  >
-                    <div
-                      style={{
-                        fontSize: "1rem",
-                        opacity: 0.9,
-                        marginBottom: 8,
-                      }}
-                    >
-                      <span
-                        style={{
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: 8,
-                        }}
-                      >
-                        <IconMusic size={16} /> {t("tv.nextSong", "Next song")}
+                  <div className="tv-vip-header" style={{ padding: "40px", textAlign: "center" }}>
+                    <div style={{ fontSize: "1.4rem", color: "#00e5ff", textTransform: "uppercase", letterSpacing: "2px", fontWeight: 700, marginBottom: "20px", textShadow: "0 0 10px rgba(0,229,255,0.6)" }}>
+                      <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px" }}>
+                        <IconMusic size={24} /> {t("tv.nextSong", "Next song")}
                       </span>
                     </div>
-                    <div
-                      style={{
-                        fontSize: "1.8rem",
-                        fontWeight: 700,
-                        marginBottom: 12,
-                      }}
-                    >
+                    <div style={{ fontSize: "3rem", fontWeight: 900, color: "#fff", textShadow: "0 0 20px rgba(255,255,255,0.5)", marginBottom: "20px", lineHeight: 1.2 }}>
                       {state.queue[0].title}
                     </div>
-                    <div
-                      style={{
-                        fontSize: "1.2rem",
-                        opacity: 0.9,
-                        marginBottom: 24,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        gap: 8,
-                      }}
-                    >
-                      <IconMic size={20} />
-                      {state.queue[0].singers
-                        ?.map(s => (typeof s === "string" ? s : s.name))
-                        .join(" e ") || state.queue[0].requestedBy}
+                    <div style={{ fontSize: "1.6rem", color: "#ff6600", display: "flex", alignItems: "center", justifyContent: "center", gap: 12, fontWeight: 600, textShadow: "0 0 10px rgba(255,102,0,0.6)", marginBottom: "40px" }}>
+                      <IconMic size={28} />
+                      {state.queue[0].singers?.map(s => (typeof s === "string" ? s : s.name)).join(" e ") || state.queue[0].requestedBy}
                     </div>
-                    <div
-                      style={{
-                        display: "flex",
-                        gap: 12,
-                        justifyContent: "center",
-                      }}
-                    >
+                    <div style={{ display: "flex", gap: 20, justifyContent: "center" }}>
                       <button
                         onClick={() => {
                           setAutoPlayCountdown(null);
                           if (code) nextSong(code, undefined, tvToken);
                         }}
                         style={{
-                          background: "white",
-                          color: "#7c4dff",
-                          fontSize: "1.3rem",
-                          padding: "16px 48px",
-                          fontWeight: 700,
+                          background: "transparent",
+                          color: "#00e5ff",
+                          border: "2px solid #00e5ff",
+                          fontSize: "1.6rem",
+                          padding: "18px 56px",
+                          fontWeight: 800,
+                          textTransform: "uppercase",
+                          letterSpacing: "1px",
                           display: "flex",
                           alignItems: "center",
-                          gap: 10,
+                          gap: 12,
+                          boxShadow: "inset 0 0 15px rgba(0,229,255,0.2), 0 0 15px rgba(0,229,255,0.2)",
+                          cursor: "pointer",
+                          transition: "all 0.2s"
+                        }}
+                        onMouseEnter={e => {
+                          e.currentTarget.style.background = "rgba(0,229,255,0.15)";
+                          e.currentTarget.style.boxShadow = "inset 0 0 25px rgba(0,229,255,0.4), 0 0 25px rgba(0,229,255,0.4)";
+                        }}
+                        onMouseLeave={e => {
+                          e.currentTarget.style.background = "transparent";
+                          e.currentTarget.style.boxShadow = "inset 0 0 15px rgba(0,229,255,0.2), 0 0 15px rgba(0,229,255,0.2)";
                         }}
                       >
-                        <IconPlay size={20} />
+                        <IconPlay size={28} />
                         {autoPlayCountdown !== null
                           ? `${t("mobile.start", "Start!")} (${autoPlayCountdown}s)`
                           : t("mobile.start", "Start!")}
@@ -1298,91 +1347,66 @@ export default function RoomTV() {
                       <button
                         onClick={() => handleQueueRemove(state.queue[0].id)}
                         style={{
-                          background: "rgba(255,255,255,0.15)",
-                          padding: "16px 22px",
+                          background: "rgba(255, 102, 0, 0.1)",
+                          color: "#ff6600",
+                          border: "2px solid #ff6600",
+                          padding: "16px 28px",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
+                          cursor: "pointer",
+                          transition: "all 0.2s"
+                        }}
+                        onMouseEnter={e => {
+                          e.currentTarget.style.background = "rgba(255,102,0,0.2)";
+                          e.currentTarget.style.boxShadow = "inset 0 0 15px rgba(255,102,0,0.4), 0 0 15px rgba(255,102,0,0.4)";
+                        }}
+                        onMouseLeave={e => {
+                          e.currentTarget.style.background = "rgba(255,102,0,0.1)";
+                          e.currentTarget.style.boxShadow = "none";
                         }}
                         title="Remover da fila"
                       >
-                        <IconTrash size={24} />
+                        <IconTrash size={32} />
                       </button>
                     </div>
                   </div>
 
                   {state.queue.length > 1 && (
-                    <div className="card" style={{ padding: 20 }}>
-                      <h3 style={{ margin: "0 0 16px", fontSize: "1.1rem" }}>
+                    <div className="tv-vip-body">
+                      <h3 style={{ margin: "0 0 24px", fontSize: "1.4rem", color: "#888", textTransform: "uppercase", letterSpacing: "1px" }}>
                         Na fila ({state.queue.length - 1} mais)
                       </h3>
-                      {state.queue.slice(1, 6).map((item, i) => (
+                      {state.queue.slice(1, 6).map((item) => (
                         <div
                           key={item.id}
+                          className="tv-vip-box"
                           style={{
-                            padding: "10px 0",
-                            borderBottom:
-                              i < Math.min(state.queue.length - 2, 4)
-                                ? "1px solid #333"
-                                : "none",
+                            marginBottom: "16px",
                             display: "flex",
                             justifyContent: "space-between",
-                            gap: 12,
+                            alignItems: "center",
+                            gap: 16,
+                            padding: "20px",
                           }}
                         >
-                          <span style={{ flex: 1 }}>
-                            <TruncatedText text={item.title} maxLength={40} />
-                          </span>
-                          <span style={{ color: "#888", whiteSpace: "nowrap" }}>
-                            {item.singers
-                              ?.map(s => (typeof s === "string" ? s : s.name))
-                              .join(" e ") || item.requestedBy}
-                          </span>
-                          <div style={{ display: "flex", gap: 4 }}>
-                            <button
-                              onClick={() => handleQueueMove(item.id, "up")}
-                              style={{
-                                padding: "6px 8px",
-                                background: "#333",
-                                display: "flex",
-                                alignItems: "center",
-                              }}
-                              title="Subir"
-                            >
-                              <IconChevronUp />
-                            </button>
-                            <button
-                              onClick={() => handleQueueMove(item.id, "down")}
-                              style={{
-                                padding: "6px 8px",
-                                background: "#333",
-                                display: "flex",
-                                alignItems: "center",
-                              }}
-                              title="Descer"
-                            >
-                              <IconChevronDown />
-                            </button>
-                            <button
-                              onClick={() => handleQueueToTop(item.id)}
-                              style={{
-                                padding: "6px 8px",
-                                background: "#333",
-                                display: "flex",
-                                alignItems: "center",
-                              }}
-                              title="Mover para o topo"
-                            >
-                              <IconChevronsUp />
-                            </button>
-                            <button
-                              onClick={() => handleQueueRemove(item.id)}
-                              style={{
-                                padding: "6px 8px",
-                                background: "rgba(180,60,60,0.9)",
-                                display: "flex",
-                                alignItems: "center",
-                              }}
+                          <div style={{ flex: 1, overflow: "hidden" }}>
+                            <div style={{ fontSize: "1.3rem", fontWeight: 700, color: "#fff", marginBottom: "8px" }}>
+                              <TruncatedText text={item.title} maxLength={35} />
+                            </div>
+                            <div style={{ color: "#00e5ff", fontSize: "1.1rem", display: "flex", alignItems: "center", gap: "8px" }}>
+                              <IconUser size={14} />
+                              {item.singers?.map(s => (typeof s === "string" ? s : s.name)).join(" e ") || item.requestedBy}
+                            </div>
+                          </div>
+                          <div style={{ display: "flex", gap: 12 }}>
+                            <button className="tv-vip-btn-cyan" style={{ padding: "12px" }} onClick={() => handleQueueMove(item.id, "up")} title="Subir"><IconChevronUp /></button>
+                            <button className="tv-vip-btn-cyan" style={{ padding: "12px" }} onClick={() => handleQueueMove(item.id, "down")} title="Descer"><IconChevronDown /></button>
+                            <button className="tv-vip-btn-cyan" style={{ padding: "12px" }} onClick={() => handleQueueToTop(item.id)} title="Mover para o topo"><IconChevronsUp /></button>
+                            <button 
+                              className="tv-vip-btn-cyan" 
+                              style={{ padding: "12px", borderColor: "#ff3333", color: "#ff3333", boxShadow: "inset 0 0 8px rgba(255,51,51,0.1)" }} 
+                              onClick={() => handleQueueRemove(item.id)} 
                               title="Remover"
                             >
                               <IconTrash />
@@ -1391,7 +1415,7 @@ export default function RoomTV() {
                         </div>
                       ))}
                       {state.queue.length > 6 && (
-                        <div style={{ color: "#888", marginTop: 8 }}>
+                        <div style={{ color: "#ff6600", marginTop: 20, textAlign: "center", fontWeight: 700, fontSize: "1.2rem", letterSpacing: "1px" }}>
                           ... e mais {state.queue.length - 6}
                         </div>
                       )}
@@ -1399,171 +1423,71 @@ export default function RoomTV() {
                   )}
                 </>
               ) : (
-                <div
-                  className="card"
-                  style={{
-                    padding: 48,
-                    textAlign: "center",
-                    background: "rgba(255,255,255,0.05)",
-                  }}
-                >
-                  <div
-                    style={{
-                      fontSize: "4rem",
-                      marginBottom: 16,
-                      display: "flex",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <IconMusic size={64} />
+                <div style={{ padding: "100px 40px", textAlign: "center" }}>
+                  <div style={{ fontSize: "6rem", marginBottom: 30, color: "#ff6600", opacity: 0.8, textShadow: "0 0 30px rgba(255,102,0,0.4)", display: "flex", justifyContent: "center" }}>
+                    <IconMusic size={100} />
                   </div>
-                  <h2 style={{ margin: "0 0 12px" }}>{t("tv.emptyQueue", "Empty queue")}</h2>
-                  <p style={{ color: "#888", fontSize: "1.1rem" }}>
-                    {t("tv.scanToAdd", "Scan QR code to add songs!")}
+                  <h2 className="tv-vip-title" style={{ fontSize: "3rem", marginBottom: "20px", whiteSpace: "normal" }}>{t("tv.emptyQueue", "Fila vazia")}</h2>
+                  <p style={{ color: "#00e5ff", fontSize: "1.5rem", fontWeight: 600, letterSpacing: "1px" }}>
+                    {t("tv.scanToAdd", "Escaneie o QR code e adicione músicas!")}
                   </p>
                 </div>
               )}
             </div>
 
             {/* Ranking */}
-            <div className="card" style={{ padding: 24 }}>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginBottom: 20,
-                }}
-              >
-                <h2
-                  style={{
-                    margin: 0,
-                    fontSize: "1.5rem",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 10,
-                  }}
-                >
-                  <IconTrophy size={28} /> {t("tv.ranking", "Ranking")}
+            <div className="tv-vip-ticket">
+              <div className="tv-vip-header" style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}>
+                <h2 className="tv-vip-title" style={{ fontSize: "2rem", display: "flex", alignItems: "center", gap: 16 }}>
+                  <IconTrophy size={40} /> {t("tv.ranking", "Ranking")}
                 </h2>
                 {/* Toggle Solo/Duplas */}
-                <div
-                  style={{
-                    display: "flex",
-                    gap: 4,
-                    background: "#222",
-                    borderRadius: 8,
-                    padding: 4,
-                  }}
-                >
-                  <button
-                    onClick={() => {
-                      setRankingView("solo");
-                      setAutoRotate(false);
-                    }}
-                    style={{
-                      padding: "6px 12px",
-                      background:
-                        rankingView === "solo" ? "#ff4081" : "transparent",
-                      border: "none",
-                      borderRadius: 6,
-                      color: "#fff",
-                      fontWeight: 600,
-                      fontSize: "0.85rem",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 4,
-                      cursor: "pointer",
-                    }}
-                  >
-                    <IconUser size={14} /> {t("tv.solo", "Solo")}
+                <div style={{ display: "flex", gap: 12 }}>
+                  <button className={`tv-vip-btn-cyan ${rankingView === "solo" ? "active" : ""}`} onClick={() => { setRankingView("solo"); setAutoRotate(false); }}>
+                    <span style={{ display: "flex", alignItems: "center", gap: 6 }}><IconUser size={18} /> {t("tv.solo", "Solo")}</span>
                   </button>
-                  <button
-                    onClick={() => {
-                      setRankingView("duet");
-                      setAutoRotate(false);
-                    }}
-                    style={{
-                      padding: "6px 12px",
-                      background:
-                        rankingView === "duet" ? "#ff4081" : "transparent",
-                      border: "none",
-                      borderRadius: 6,
-                      color: "#fff",
-                      fontWeight: 600,
-                      fontSize: "0.85rem",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 4,
-                      cursor: "pointer",
-                    }}
-                  >
-                    <IconUsers size={14} /> {t("tv.duets", "Duets")}
+                  <button className={`tv-vip-btn-cyan ${rankingView === "duet" ? "active" : ""}`} onClick={() => { setRankingView("duet"); setAutoRotate(false); }}>
+                    <span style={{ display: "flex", alignItems: "center", gap: 6 }}><IconUsers size={18} /> {t("tv.duets", "Duplas")}</span>
                   </button>
                 </div>
               </div>
 
+              <div className="tv-vip-body">
               {rankingView === "solo" ? (
                 // Solo ranking
                 Object.keys(state.ranking).length === 0 ? (
-                  <p style={{ color: "#888", fontSize: "1.1rem" }}>
-                    {t("tv.nobodyScored", "Nobody scored yet.")}
+                  <div style={{ padding: "60px", textAlign: "center", color: "#888", fontSize: "1.4rem", lineHeight: 1.6 }}>
+                    {t("tv.nobodyScored", "Ninguém pontuou ainda.")}
                     <br />
-                    {t("tv.singToAppear", "Sing a song to appear here!")}
-                  </p>
+                    <span style={{ color: "#00e5ff" }}>{t("tv.singToAppear", "Cante uma música para aparecer aqui!")}</span>
+                  </div>
                 ) : (
-                  <div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
                     {Object.entries(state.ranking)
                       .sort(([, a], [, b]) => b.score - a.score)
                       .map(([odUserId, entry], i) => (
-                        <div
-                          key={odUserId}
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            padding: "12px 0",
-                            borderBottom: "1px solid #333",
-                            fontSize: i < 3 ? "1.2rem" : "1rem",
-                          }}
-                        >
-                          <span
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 10,
-                            }}
-                          >
-                            <span
-                              style={{
-                                width: 28,
-                                height: 28,
-                                borderRadius: "50%",
-                                background:
-                                  i === 0
-                                    ? "#f1c40f"
-                                    : i === 1
-                                      ? "#bdc3c7"
-                                      : i === 2
-                                        ? "#cd6133"
-                                        : "#555",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                fontSize: "0.85rem",
-                                fontWeight: 700,
-                              }}
-                            >
+                        <div key={odUserId} className="tv-vip-box" style={{ 
+                          display: "flex", justifyContent: "space-between", alignItems: "center", padding: "24px",
+                          border: i === 0 ? "1px solid #ffcc00" : i === 1 ? "1px solid #cdcdcd" : i === 2 ? "1px solid #cd7f32" : "1px solid #333",
+                          boxShadow: i === 0 ? "0 0 20px rgba(255,204,0,0.2)" : "none"
+                        }}>
+                          <span style={{ display: "flex", alignItems: "center", gap: 20 }}>
+                            <span style={{
+                              width: 44, height: 44, borderRadius: "50%",
+                              background: i === 0 ? "linear-gradient(45deg, #ffcc00, #ffaa00)" : i === 1 ? "linear-gradient(45deg, #eee, #aaa)" : i === 2 ? "linear-gradient(45deg, #e6a181, #cd7f32)" : "#222",
+                              color: i < 3 ? "#000" : "#fff",
+                              display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.4rem", fontWeight: 800,
+                              boxShadow: i < 3 ? "0 0 15px rgba(0,0,0,0.5)" : "none"
+                            }}>
                               {i + 1}
                             </span>
-                            {entry.name}
+                            <span style={{ fontSize: "1.6rem", fontWeight: i < 3 ? 800 : 600, color: "#fff" }}>{entry.name}</span>
                           </span>
-                          <span
-                            style={{
-                              fontWeight: 700,
-                              color: i === 0 ? "#ffd700" : "inherit",
-                            }}
-                          >
+                          <span style={{ fontSize: "1.8rem", fontWeight: 900, color: i === 0 ? "#ffcc00" : i === 1 ? "#ddd" : i === 2 ? "#cd7f32" : "#00e5ff", textShadow: i === 0 ? "0 0 15px rgba(255,204,0,0.5)" : "none" }}>
                             {entry.score} pts
                           </span>
                         </div>
@@ -1572,81 +1496,46 @@ export default function RoomTV() {
                 )
               ) : // Duet ranking
                 !state.duetRanking || state.duetRanking.length === 0 ? (
-                  <p style={{ color: "#888", fontSize: "1.1rem" }}>
-                    {t("tv.noDuetScored", "No duet scored yet.")}
+                  <div style={{ padding: "60px", textAlign: "center", color: "#888", fontSize: "1.4rem", lineHeight: 1.6 }}>
+                    {t("tv.noDuetScored", "Nenhuma dupla pontuou ainda.")}
                     <br />
-                    {t("tv.singDuetToAppear", "Sing a duet to appear here!")}
-                  </p>
+                    <span style={{ color: "#00e5ff" }}>{t("tv.singDuetToAppear", "Cante em dupla para aparecer aqui!")}</span>
+                  </div>
                 ) : (
-                  <div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
                     {[...state.duetRanking]
                       .sort((a, b) => b.score - a.score)
                       .map((duet, i) => (
-                        <div
-                          key={duet.names.join("-")}
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            padding: "12px 0",
-                            borderBottom: "1px solid #333",
-                            fontSize: i < 3 ? "1.2rem" : "1rem",
-                          }}
-                        >
-                          <span
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 10,
-                            }}
-                          >
-                            <span
-                              style={{
-                                width: 28,
-                                height: 28,
-                                borderRadius: "50%",
-                                background:
-                                  i === 0
-                                    ? "#f1c40f"
-                                    : i === 1
-                                      ? "#bdc3c7"
-                                      : i === 2
-                                        ? "#cd6133"
-                                        : "#555",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                fontSize: "0.85rem",
-                                fontWeight: 700,
-                              }}
-                            >
+                        <div key={duet.names.join("-")} className="tv-vip-box" style={{ 
+                          display: "flex", justifyContent: "space-between", alignItems: "center", padding: "24px",
+                          border: i === 0 ? "1px solid #ffcc00" : i === 1 ? "1px solid #cdcdcd" : i === 2 ? "1px solid #cd7f32" : "1px solid #333",
+                          boxShadow: i === 0 ? "0 0 20px rgba(255,204,0,0.2)" : "none"
+                        }}>
+                          <span style={{ display: "flex", alignItems: "center", gap: 20 }}>
+                            <span style={{
+                              width: 44, height: 44, borderRadius: "50%",
+                              background: i === 0 ? "linear-gradient(45deg, #ffcc00, #ffaa00)" : i === 1 ? "linear-gradient(45deg, #eee, #aaa)" : i === 2 ? "linear-gradient(45deg, #e6a181, #cd7f32)" : "#222",
+                              color: i < 3 ? "#000" : "#fff",
+                              display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.4rem", fontWeight: 800,
+                              boxShadow: i < 3 ? "0 0 15px rgba(0,0,0,0.5)" : "none"
+                            }}>
                               {i + 1}
                             </span>
-                            {duet.names[0]} & {duet.names[1]}
+                            <span style={{ fontSize: "1.5rem", fontWeight: i < 3 ? 800 : 600, color: "#fff" }}>{duet.names[0]} & {duet.names[1]}</span>
                           </span>
-                          <span
-                            style={{
-                              display: "flex",
-                              flexDirection: "column",
-                              alignItems: "flex-end",
-                            }}
-                          >
-                            <span
-                              style={{
-                                fontWeight: 700,
-                                color: i === 0 ? "#ffd700" : "inherit",
-                              }}
-                            >
+                          <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
+                            <span style={{ fontSize: "1.8rem", fontWeight: 900, color: i === 0 ? "#ffcc00" : i === 1 ? "#ddd" : i === 2 ? "#cd7f32" : "#00e5ff", textShadow: i === 0 ? "0 0 15px rgba(255,204,0,0.5)" : "none" }}>
                               {duet.score} pts
                             </span>
-                            <span style={{ fontSize: "0.8rem", color: "#888" }}>
-                              {duet.count} música{duet.count > 1 ? "s" : ""}
+                            <span style={{ fontSize: "1rem", color: "#888", marginTop: 4, textTransform: "uppercase", letterSpacing: "1px", fontWeight: 600 }}>
+                              {duet.count} {duet.count > 1 ? "músicas" : "música"}
                             </span>
                           </span>
                         </div>
                       ))}
                   </div>
                 )}
+              </div>
             </div>
           </div>
         </div>

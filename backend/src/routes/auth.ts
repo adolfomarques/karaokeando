@@ -154,15 +154,10 @@ export default async function authRoutes(app: FastifyInstance) {
     Body: {
       name: string;
       email: string;
-      phone: string;
       password: string;
-      city: string;
-      birthDate: string;
-      gender: string;
     };
   }>("/api/auth/register-host", async (request, reply) => {
-    const { name, email, phone, password, city, birthDate, gender } =
-      request.body;
+    const { name, email, password } = request.body;
 
     // Validate basic fields
     if (!name || name.length < 2) {
@@ -176,33 +171,11 @@ export default async function authRoutes(app: FastifyInstance) {
         .code(400)
         .send({ error: "validation_error", message: "Email inválido" });
     }
-    if (!phone || phone.length < 10) {
-      return reply.code(400).send({
-        error: "validation_error",
-        message: "Telefone deve ter pelo menos 10 dígitos",
-      });
-    }
     if (!password || password.length < 6) {
       return reply.code(400).send({
         error: "validation_error",
         message: "Senha deve ter pelo menos 6 caracteres",
       });
-    }
-    if (!city || city.length < 2) {
-      return reply
-        .code(400)
-        .send({ error: "validation_error", message: "Cidade inválida" });
-    }
-    if (!birthDate) {
-      return reply.code(400).send({
-        error: "validation_error",
-        message: "Data de nascimento é obrigatória",
-      });
-    }
-    if (!gender) {
-      return reply
-        .code(400)
-        .send({ error: "validation_error", message: "Gênero é obrigatório" });
     }
 
     const normalizedEmail = email.toLowerCase().trim();
@@ -227,11 +200,7 @@ export default async function authRoutes(app: FastifyInstance) {
         where: { id: user.id },
         data: {
           name,
-          phone,
           passwordHash,
-          city,
-          birthDate: new Date(birthDate),
-          gender,
           canHost: true,
         },
       });
@@ -241,11 +210,7 @@ export default async function authRoutes(app: FastifyInstance) {
         data: {
           name,
           email: normalizedEmail,
-          phone,
           passwordHash,
-          city,
-          birthDate: new Date(birthDate),
-          gender,
           canHost: true,
         },
       });

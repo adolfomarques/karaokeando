@@ -68,11 +68,7 @@ interface AuthContextType {
 interface RegisterHostData {
   name: string;
   email: string;
-  phone: string;
   password: string;
-  city: string;
-  birthDate: string;
-  gender: string;
 }
 
 interface CompleteRegistrationData {
