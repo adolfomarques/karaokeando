@@ -528,7 +528,7 @@ export default async function authRoutes(app: FastifyInstance) {
 
         try {
           const { data, error } = await resendInstance.emails.send({
-            from: 'Karaokeando <onboarding@resend.dev>',
+            from: 'Karaokeando <autenticacao@karaokefactory.org>',
             to: user.email,
             subject: 'Recuperação de Senha - Karaokeando',
             html: `
