@@ -5,9 +5,14 @@ import {
   hashPassword,
   verifyPassword,
   generateUserToken,
+  generateResetToken,
   verifyToken,
   UserTokenPayload,
+  ResetTokenPayload,
 } from "../lib/auth.js";
+import { Resend } from 'resend';
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Validation schemas
 const registerGuestSchema = z.object({
@@ -490,7 +495,7 @@ export default async function authRoutes(app: FastifyInstance) {
     };
   });
 
-  // Forgot Password (STUB)
+  // Forgot Password (REAL)
   app.post<{ Body: { email: string } }>(
     "/api/auth/forgot-password",
     async (request, reply) => {
@@ -503,9 +508,57 @@ export default async function authRoutes(app: FastifyInstance) {
         where: { email: email.toLowerCase().trim() },
       });
 
-      // We return 200 even if user doesn't exist for security (avoid enumeration)
-      // In a real app, you'd send an email here.
+      if (user) {
+        const resetToken = generateResetToken(user.id);
+        const resetLink = `https://karaokefactory.org/reset-password?token=${resetToken}`;
+
+        try {
+          await resend.emails.send({
+            from: 'Karaokeando <onboarding@resend.dev>', // Ou o seu dominio verificado
+            to: user.email,
+            subject: 'Recuperação de Senha - Karaokeando',
+            html: `
+              <h1>Recuperação de Senha</h1>
+              <p>Olá ${user.name},</p>
+              <p>Você solicitou a redefinição de sua senha no Karaokeando.</p>
+              <p>Clique no link abaixo para criar uma nova senha (o link expira em 15 minutos):</p>
+              <a href="${resetLink}" style="padding: 10px 20px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 5px;">Redefinir Senha</a>
+              <p>Se você não solicitou isso, ignore este email.</p>
+            `
+          });
+        } catch (err) {
+          console.error("Erro ao enviar email:", err);
+          // Still return true to not leak info, or handle error if needed
+        }
+      }
+
       return { success: true, message: "Se o email estiver cadastrado, um link foi enviado." };
+    }
+  );
+
+  // Reset Password
+  app.post<{ Body: { token: string; password: string } }>(
+    "/api/auth/reset-password",
+    async (request, reply) => {
+      const bodySchema = z.object({
+        token: z.string(),
+        password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres"),
+      });
+
+      const { token, password } = bodySchema.parse(request.body);
+      
+      const payload = verifyToken(token) as ResetTokenPayload | null;
+      if (!payload || payload.type !== "reset") {
+        return reply.code(401).send({ error: "invalid_token", message: "Link expirado ou inválido" });
+      }
+
+      const hashedPassword = await hashPassword(password);
+      await prisma.user.update({
+        where: { id: payload.userId },
+        data: { passwordHash: hashedPassword },
+      });
+
+      return { success: true, message: "Senha atualizada com sucesso!" };
     }
   );
 }

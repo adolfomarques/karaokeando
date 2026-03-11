@@ -24,7 +24,12 @@ export interface TvTokenPayload {
   type: "tv";
 }
 
-export type TokenPayload = UserTokenPayload | TvTokenPayload;
+export interface ResetTokenPayload {
+  userId: string;
+  type: "reset";
+}
+
+export type TokenPayload = UserTokenPayload | TvTokenPayload | ResetTokenPayload;
 
 // Hash password
 export async function hashPassword(password: string): Promise<string> {
@@ -52,6 +57,12 @@ export function generateUserToken(
 export function generateTvToken(roomCode: string): string {
   const payload: TvTokenPayload = { roomCode, type: "tv" };
   return jwt.sign(payload, SECRET, { expiresIn: "12h" });
+}
+
+// Generate Reset token (15min expiry)
+export function generateResetToken(userId: string): string {
+  const payload: ResetTokenPayload = { userId, type: "reset" };
+  return jwt.sign(payload, SECRET, { expiresIn: "15m" });
 }
 
 // Verify and decode token

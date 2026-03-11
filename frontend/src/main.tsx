@@ -11,6 +11,7 @@ import CreateRoom from "./pages/CreateRoom";
 import TvLogin from "./pages/TvLogin";
 import JoinRedirect from "./pages/JoinRedirect";
 import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import "./index.css";
 import "./i18n";
 
@@ -45,6 +46,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<RegisterHost />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/complete-profile" element={<CompleteProfile />} />
               <Route path="/guest-register" element={<GuestRegister />} />
               <Route path="/create-room" element={<CreateRoom />} />
