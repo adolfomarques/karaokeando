@@ -289,8 +289,156 @@ export default function Home() {
 
       {/* Minhas Salas (só para hosts) */}
       {user?.canHost && (
-        <div className="card" style={{ marginBottom: 20 }}>
-          <h2>📺 {t("home.myRooms", "Minhas Salas")}</h2>
+        <div 
+          className="card" 
+          style={{ 
+            marginBottom: 20, 
+            background: "#111", 
+            border: "1px solid #333", 
+            boxShadow: "0 8px 32px rgba(0,0,0,0.5)" 
+          }}
+        >
+          <style>{`
+            .vip-ticket-list {
+              display: flex;
+              flex-direction: column;
+              gap: 16px;
+            }
+            .vip-ticket {
+              position: relative;
+              background: #0d0d0d;
+              border-radius: 8px;
+              display: flex;
+              border: 1px solid #ff6600;
+              box-shadow: 0 0 8px rgba(255, 102, 0, 0.3), inset 0 0 12px rgba(255, 102, 0, 0.1);
+              transition: transform 0.2s ease, box-shadow 0.2s ease;
+              overflow: hidden;
+            }
+            .vip-ticket:hover {
+              transform: translateY(-2px);
+              box-shadow: 0 6px 16px rgba(255, 102, 0, 0.5), inset 0 0 20px rgba(255, 102, 0, 0.2);
+            }
+            .vip-ticket-stub {
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              padding: 16px;
+              border-right: 2px dashed rgba(255, 102, 0, 0.5);
+              background: repeating-linear-gradient(
+                45deg,
+                rgba(255, 102, 0, 0.05),
+                rgba(255, 102, 0, 0.05) 10px,
+                transparent 10px,
+                transparent 20px
+              );
+            }
+            .vip-ticket-code {
+              font-size: 2.2rem;
+              font-weight: 900;
+              color: transparent;
+              -webkit-text-stroke: 1px #ff6600;
+              letter-spacing: 2px;
+              text-shadow: 0 0 10px rgba(255, 102, 0, 0.8);
+              margin: 0;
+              font-family: monospace;
+              transform: rotate(-90deg);
+            }
+            .vip-ticket-main {
+              flex: 1;
+              padding: 16px;
+              display: flex;
+              flex-direction: column;
+              justify-content: space-between;
+              background: linear-gradient(to right, rgba(0,0,0,0), rgba(0, 255, 255, 0.05));
+            }
+            .vip-ticket-header {
+              display: flex;
+              justify-content: space-between;
+              align-items: flex-start;
+              margin-bottom: 12px;
+            }
+            .vip-ticket-label {
+              font-size: 0.75rem;
+              color: #00e5ff;
+              text-transform: uppercase;
+              letter-spacing: 1px;
+              font-weight: 700;
+              text-shadow: 0 0 4px rgba(0,229,255,0.6);
+            }
+            .vip-ticket-date {
+              color: #888;
+              font-size: 0.8rem;
+              margin-top: 2px;
+            }
+            .vip-btn-row {
+              display: flex;
+              gap: 12px;
+            }
+            .vip-btn {
+              flex: 1;
+              background: transparent;
+              border: 1px solid #00e5ff;
+              color: #00e5ff;
+              padding: 8px 0;
+              border-radius: 4px;
+              font-size: 0.85rem;
+              font-weight: 600;
+              cursor: pointer;
+              text-transform: uppercase;
+              transition: all 0.2s;
+              box-shadow: inset 0 0 8px rgba(0, 229, 255, 0.1);
+            }
+            .vip-btn:hover {
+              background: rgba(0, 229, 255, 0.15);
+              box-shadow: inset 0 0 12px rgba(0, 229, 255, 0.3), 0 0 10px rgba(0, 229, 255, 0.4);
+              color: #fff;
+            }
+            .vip-btn.orange {
+              border-color: #ff6600;
+              color: #ff6600;
+              box-shadow: inset 0 0 8px rgba(255, 102, 0, 0.1);
+            }
+            .vip-btn.orange:hover {
+              background: rgba(255, 102, 0, 0.15);
+              box-shadow: inset 0 0 12px rgba(255, 102, 0, 0.3), 0 0 10px rgba(255, 102, 0, 0.4);
+              color: #fff;
+            }
+            .vip-delete-btn {
+              background: transparent;
+              border: none;
+              color: #666;
+              cursor: pointer;
+              padding: 4px;
+              transition: color 0.2s, filter 0.2s;
+            }
+            .vip-delete-btn:hover {
+              color: #ff3333;
+              filter: drop-shadow(0 0 5px rgba(255, 51, 51, 0.8));
+              transform: scale(1.1);
+            }
+            .vip-create-btn {
+              width: 100%;
+              margin-top: 16px;
+              background: transparent;
+              color: #ff6600;
+              border: 2px solid #ff6600;
+              font-weight: bold;
+              text-transform: uppercase;
+              letter-spacing: 1px;
+              text-shadow: 0 0 8px rgba(255, 102, 0, 0.6);
+              box-shadow: inset 0 0 10px rgba(255, 102, 0, 0.2), 0 0 10px rgba(255, 102, 0, 0.2);
+              transition: all 0.2s;
+            }
+            .vip-create-btn:hover {
+              background: rgba(255, 102, 0, 0.1);
+              box-shadow: inset 0 0 15px rgba(255, 102, 0, 0.4), 0 0 15px rgba(255, 102, 0, 0.4);
+              color: #fff;
+            }
+          `}</style>
+
+          <h2 style={{ color: "#fff", textShadow: "0 0 10px rgba(255,255,255,0.4)" }}>
+            🎟️ {t("home.myRooms", "Minhas Salas")}
+          </h2>
 
           {loadingMyRooms ? (
             <p style={{ color: "#888" }}>{t("home.loading", "Carregando...")}</p>
@@ -299,96 +447,56 @@ export default function Home() {
               {t("home.noRoomsYet", "Você ainda não tem salas criadas.")}
             </p>
           ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <div className="vip-ticket-list">
               {myRooms.map(room => (
-                <div
-                  key={room.code}
-                  style={{
-                    background: "#2a2a2a",
-                    borderRadius: 8,
-                    padding: 12,
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      marginBottom: 8,
-                    }}
-                  >
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <span style={{ fontWeight: 600, fontSize: "1.1rem" }}>
-                        {room.code}
-                      </span>
-                      <small style={{ color: "#888" }}>
-                        {new Date(room.createdAt).toLocaleDateString(i18n.language === "pt" ? "pt-BR" : "en-US")}
-                      </small>
-                    </div>
-                    <button
-                      onClick={() => handleDeleteRoom(room.code)}
-                      style={{
-                        background: "transparent",
-                        border: "none",
-                        color: "#ff4444",
-                        padding: "4px",
-                        cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                      title={t("home.deleteRoom", "Excluir sala")}
-                    >
-                      <svg
-                        width="18"
-                        height="18"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <polyline points="3 6 5 6 21 6" />
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                        <line x1="10" y1="11" x2="10" y2="17" />
-                        <line x1="14" y1="11" x2="14" y2="17" />
-                      </svg>
-                    </button>
+                <div key={room.code} className="vip-ticket">
+                  <div className="vip-ticket-stub">
+                    <span className="vip-ticket-code">{room.code}</span>
                   </div>
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <button
-                      onClick={() => openMyRoomAsTV(room.code)}
-                      style={{
-                        flex: 1,
-                        padding: "8px 12px",
-                        fontSize: "0.85rem",
-                        background: "#7c4dff",
-                      }}
-                    >
-                      🖥️ {t("home.showOnTV", "Exibir")}
-                    </button>
-                    <button
-                      onClick={() => navigate(`/room/${room.code}`)}
-                      style={{
-                        flex: 1,
-                        padding: "8px 12px",
-                        fontSize: "0.85rem",
-                        background: "#444",
-                      }}
-                    >
-                      🎤 {t("home.singBtn", "Cantar")}
-                    </button>
+                  
+                  <div className="vip-ticket-main">
+                    <div className="vip-ticket-header">
+                      <div>
+                        <div className="vip-ticket-label">VIP ACCESS</div>
+                        <div className="vip-ticket-date">
+                          {new Date(room.createdAt).toLocaleDateString(i18n.language === "pt" ? "pt-BR" : "en-US")}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleDeleteRoom(room.code)}
+                        className="vip-delete-btn"
+                        title={t("home.deleteRoom", "Excluir sala")}
+                      >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="3 6 5 6 21 6" />
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                          <line x1="10" y1="11" x2="10" y2="17" />
+                          <line x1="14" y1="11" x2="14" y2="17" />
+                        </svg>
+                      </button>
+                    </div>
+                    
+                    <div className="vip-btn-row">
+                      <button 
+                        className="vip-btn orange" 
+                        onClick={() => navigate(`/room/${room.code}`)}
+                      >
+                        🎤 {t("home.singBtn", "Cantar")}
+                      </button>
+                      <button 
+                        className="vip-btn" 
+                        onClick={() => openMyRoomAsTV(room.code)}
+                      >
+                        🖥️ {t("home.showOnTV", "Exibir")}
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
           )}
 
-          <button
-            onClick={handleCreateRoom}
-            style={{ width: "100%", marginTop: 16 }}
-          >
+          <button onClick={handleCreateRoom} className="vip-create-btn">
             + {t("home.createRoom", "Criar nova sala")}
           </button>
         </div>
