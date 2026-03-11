@@ -416,6 +416,18 @@ export default function RoomMobile() {
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchAbortRef = useRef<AbortController | null>(null);
 
+  const sendReaction = (emoji: string) => {
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(
+        JSON.stringify({
+          type: "REACTION",
+          reaction: emoji,
+          name: nickname || user?.name || "Anônimo",
+        })
+      );
+    }
+  };
+
   // Check auth on mount
   useEffect(() => {
     if (!authLoading && !user && code) {
@@ -2373,6 +2385,49 @@ export default function RoomMobile() {
           </div>
         </div>
       )}
+
+      {/* Reaction Buttons */}
+      <div
+        style={{
+          position: "fixed",
+          bottom: 20,
+          right: 16,
+          display: "flex",
+          flexDirection: "column",
+          gap: 12,
+          zIndex: 100,
+        }}
+      >
+        {["👏", "🎤", "🔥", "😂"].map(emoji => (
+          <button
+            key={emoji}
+            onClick={() => sendReaction(emoji)}
+            style={{
+              width: 48,
+              height: 48,
+              borderRadius: "50%",
+              fontSize: "22px",
+              background: "rgba(255, 255, 255, 0.1)",
+              backdropFilter: "blur(10px)",
+              WebkitBackdropFilter: "blur(10px)",
+              border: "1px solid rgba(255, 255, 255, 0.15)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
+              padding: 0,
+              margin: 0,
+              transition: "transform 0.1s ease",
+            }}
+            onPointerDown={e => (e.currentTarget.style.transform = "scale(0.85)")}
+            onPointerUp={e => (e.currentTarget.style.transform = "scale(1)")}
+            onPointerLeave={e => (e.currentTarget.style.transform = "scale(1)")}
+          >
+            {emoji}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

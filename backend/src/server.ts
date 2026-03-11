@@ -1429,6 +1429,15 @@ app.get<{ Params: { roomCode: string } }>(
               participants: getParticipantsList(roomCode),
             })
           );
+        } else if (msg.type === "REACTION") {
+          // Broadcast reaction to everyone in the room
+          touchRoom(roomCode);
+          broadcast(roomCode, {
+            type: "REACTION",
+            reaction: msg.reaction,
+            name: msg.name || name || "Convidado",
+            userId: odUserId
+          });
         } else {
           socket.send(JSON.stringify({ type: "ACK" }));
         }

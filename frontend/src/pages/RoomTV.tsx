@@ -81,6 +81,13 @@ interface FinalizedEvent {
   title: string;
 }
 
+interface Reaction {
+  id: string;
+  emoji: string;
+  name: string;
+  x: number;
+}
+
 // Icon components
 const IconChevronUp = () => (
   <svg
@@ -249,6 +256,77 @@ const IconUser = ({ size = 16 }: { size?: number }) => (
   </svg>
 );
 
+const ReactionDisplay = ({ reactions }: { reactions: Reaction[] }) => {
+  return (
+    <div
+      style={{
+        position: "fixed",
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: "100vh",
+        pointerEvents: "none",
+        zIndex: 9999,
+        overflow: "hidden",
+      }}
+    >
+      {reactions.map(r => (
+        <div
+          key={r.id}
+          style={{
+            position: "absolute",
+            bottom: -60,
+            left: `${r.x}%`,
+            fontSize: "48px",
+            animation: "rise 4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.6))",
+          }}
+        >
+          <span
+            style={{
+              fontSize: "16px",
+              color: "#fff",
+              fontWeight: 700,
+              textShadow: "0 2px 8px rgba(0,0,0,1)",
+              marginBottom: 4,
+              whiteSpace: "nowrap",
+              padding: "2px 8px",
+              background: "rgba(0,0,0,0.3)",
+              borderRadius: "10px",
+              backdropFilter: "blur(4px)",
+            }}
+          >
+            {r.name}
+          </span>
+          {r.emoji}
+        </div>
+      ))}
+      <style>{`
+        @keyframes rise {
+          0% {
+            transform: translateY(0) scale(0.5);
+            opacity: 0;
+          }
+          15% {
+            opacity: 1;
+            transform: translateY(-120px) scale(1.3);
+          }
+          30% {
+            transform: translateY(-250px) scale(1.1);
+          }
+          100% {
+            transform: translateY(-1100px) scale(1);
+            opacity: 0;
+          }
+        }
+      `}</style>
+    </div>
+  );
+};
+
 const IconPlay = ({ size = 16 }: { size?: number }) => (
   <svg
     width={size}
@@ -327,6 +405,7 @@ export default function RoomTV() {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [participantsCount, setParticipantsCount] = useState<number>(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [reactions, setReactions] = useState<Reaction[]>([]);
   const isTransitioningRef = useRef(false);
   const wsRef = useRef<WebSocket | null>(null);
   const playerRef = useRef<YTPlayer | null>(null);
@@ -686,6 +765,19 @@ export default function RoomTV() {
               playerRef.current.pauseVideo();
             }
           }
+        } else if (m.type === "REACTION") {
+          const mReaction = m as unknown as { reaction: string; name: string };
+          const newReaction = {
+            id: Math.random().toString(36).substring(2, 9),
+            emoji: mReaction.reaction,
+            name: mReaction.name || "Convidado",
+            x: Math.random() * 80 + 10, // 10% a 90%
+          };
+          setReactions(prev => [...prev, newReaction]);
+          // Remove after animation finishes
+          setTimeout(() => {
+            setReactions(prev => prev.filter(r => r.id !== newReaction.id));
+          }, 4500);
         }
       },
       tvToken
@@ -1560,6 +1652,8 @@ export default function RoomTV() {
         }}
       />
       <Toaster position="top-right" />
+      {/* Reações Animadas */}
+      <ReactionDisplay reactions={reactions} />
     </div>
   );
 }
