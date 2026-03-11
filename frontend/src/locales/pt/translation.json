@@ -242,6 +242,21 @@
     "successDesc": "Enviamos um link de recuperação para {{email}}. Por favor, verifique sua caixa de entrada e também a pasta de spam.",
     "tryAgain": "Tentar novamente"
   },
+  "resetPassword": {
+    "title": "Crie sua nova senha",
+    "newPasswordLabel": "Nova Senha",
+    "passwordPlaceholder": "No mínimo 6 caracteres",
+    "confirmPasswordLabel": "Confirmar Nova Senha",
+    "confirmPlaceholder": "Confirme sua senha",
+    "submitBtn": "Redefinir Senha",
+    "submitting": "Atualizando...",
+    "invalidToken": "Link de recuperação inválido ou expirado.",
+    "requestNew": "Solicitar novo link",
+    "passwordsDontMatch": "As senhas não coincidem.",
+    "tokenMissing": "Token de recuperação ausente.",
+    "success": "Senha atualizada com sucesso!",
+    "error": "Erro ao redefinir senha"
+  },
   "admin": {
     "activeRooms": "Salas Ativas Agora",
     "noActive": "Nenhuma sala ativa no momento",

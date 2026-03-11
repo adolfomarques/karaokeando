@@ -242,6 +242,21 @@
     "successDesc": "We've sent a recovery link to {{email}}. Please check your inbox and also your spam folder.",
     "tryAgain": "Try again"
   },
+  "resetPassword": {
+    "title": "Create New Password",
+    "newPasswordLabel": "New Password",
+    "passwordPlaceholder": "Minimum 6 characters",
+    "confirmPasswordLabel": "Confirm New Password",
+    "confirmPlaceholder": "Confirm your password",
+    "submitBtn": "Reset Password",
+    "submitting": "Updating...",
+    "invalidToken": "Invalid or expired recovery link.",
+    "requestNew": "Request new link",
+    "passwordsDontMatch": "Passwords do not match.",
+    "tokenMissing": "Missing recovery token.",
+    "success": "Password updated successfully!",
+    "error": "Error resetting password"
+  },
   "admin": {
     "activeRooms": "Active Rooms Now",
     "noActive": "No active rooms right now",

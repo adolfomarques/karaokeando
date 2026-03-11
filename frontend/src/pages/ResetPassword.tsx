@@ -6,7 +6,7 @@ import toast from "react-hot-toast";
 import { API_BASE } from "../api";
 
 export default function ResetPassword() {
-  const { } = useTranslation();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
@@ -19,12 +19,12 @@ export default function ResetPassword() {
     e.preventDefault();
 
     if (!token) {
-      toast.error("Token de recuperação ausente.");
+      toast.error(t("resetPassword.tokenMissing", "Token de recuperação ausente."));
       return;
     }
 
     if (password !== confirmPassword) {
-      toast.error("As senhas não coincidem.");
+      toast.error(t("resetPassword.passwordsDontMatch", "As senhas não coincidem."));
       return;
     }
 
@@ -40,13 +40,13 @@ export default function ResetPassword() {
       const data = await res.json();
 
       if (res.ok) {
-        toast.success("Senha atualizada com sucesso!");
+        toast.success(t("resetPassword.success", "Senha atualizada com sucesso!"));
         navigate("/login");
       } else {
-        toast.error(data.message || "Erro ao redefinir senha");
+        toast.error(data.message || t("resetPassword.error", "Erro ao redefinir senha"));
       }
     } catch {
-      toast.error("Erro de conexão");
+      toast.error(t("common.connError", "Erro de conexão"));
     } finally {
       setLoading(false);
     }
@@ -57,8 +57,12 @@ export default function ResetPassword() {
       <div className="container" style={{ paddingTop: 60, maxWidth: 400, textAlign: "center" }}>
         <Logo width={300} />
         <div className="card" style={{ marginTop: 32 }}>
-          <p style={{ color: "#ff4444", marginBottom: 24 }}>Link de recuperação inválido ou expirado.</p>
-          <button onClick={() => navigate("/forgot-password")}>Solicitar novo link</button>
+          <p style={{ color: "#ff4444", marginBottom: 24 }}>
+            {t("resetPassword.invalidToken", "Link de recuperação inválido ou expirado.")}
+          </p>
+          <button onClick={() => navigate("/forgot-password")}>
+            {t("resetPassword.requestNew", "Solicitar novo link")}
+          </button>
         </div>
       </div>
     );
@@ -68,32 +72,32 @@ export default function ResetPassword() {
     <div className="container" style={{ paddingTop: 60, maxWidth: 400 }}>
       <Logo width={300} />
       <p style={{ textAlign: "center", color: "#888", marginBottom: 32 }}>
-        Crie sua nova senha
+        {t("resetPassword.title", "Crie sua nova senha")}
       </p>
 
       <div className="card">
         <form onSubmit={handleSubmit}>
           <label style={{ display: "block", marginBottom: 4, fontWeight: 500 }}>
-            Nova Senha
+            {t("resetPassword.newPasswordLabel", "Nova Senha")}
           </label>
           <input
             type="password"
             value={password}
             onChange={e => setPassword(e.target.value)}
-            placeholder="No mínimo 6 caracteres"
+            placeholder={t("resetPassword.passwordPlaceholder", "No mínimo 6 caracteres")}
             required
             minLength={6}
             style={{ marginBottom: 16 }}
           />
 
           <label style={{ display: "block", marginBottom: 4, fontWeight: 500 }}>
-            Confirmar Nova Senha
+            {t("resetPassword.confirmPasswordLabel", "Confirmar Nova Senha")}
           </label>
           <input
             type="password"
             value={confirmPassword}
             onChange={e => setConfirmPassword(e.target.value)}
-            placeholder="Confirme sua senha"
+            placeholder={t("resetPassword.confirmPlaceholder", "Confirme sua senha")}
             required
             style={{ marginBottom: 24 }}
           />
@@ -103,7 +107,7 @@ export default function ResetPassword() {
             disabled={loading}
             style={{ width: "100%" }}
           >
-            {loading ? "Atualizando..." : "Redefinir Senha"}
+            {loading ? t("resetPassword.submitting", "Atualizando...") : t("resetPassword.submitBtn", "Redefinir Senha")}
           </button>
         </form>
       </div>
