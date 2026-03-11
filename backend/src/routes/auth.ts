@@ -12,7 +12,12 @@ import {
 } from "../lib/auth.js";
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Initialize resend only if API key is present to prevent crash
+const getResend = () => {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) return null;
+  return new Resend(apiKey);
+};
 
 // Validation schemas
 const registerGuestSchema = z.object({
@@ -511,9 +516,18 @@ export default async function authRoutes(app: FastifyInstance) {
       if (user) {
         const resetToken = generateResetToken(user.id);
         const resetLink = `https://karaokefactory.org/reset-password?token=${resetToken}`;
+        const resendInstance = getResend();
+
+        if (!resendInstance) {
+          console.error("ERRO: RESEND_API_KEY não encontrada no servidor.");
+          return reply.code(500).send({ 
+            error: "email_error", 
+            message: "Serviço de email indisponível. Verifique as configurações do servidor." 
+          });
+        }
 
         try {
-          await resend.emails.send({
+          await resendInstance.emails.send({
             from: 'Karaokeando <onboarding@resend.dev>', // Ou o seu dominio verificado
             to: user.email,
             subject: 'Recuperação de Senha - Karaokeando',
