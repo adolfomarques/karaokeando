@@ -258,44 +258,34 @@ const IconUser = ({ size = 16 }: { size?: number }) => (
 
 const ReactionDisplay = ({ reactions }: { reactions: Reaction[] }) => {
   return (
-    <div
-      style={{
-        position: "fixed",
-        bottom: 0,
-        left: 0,
-        right: 0,
-        height: "100vh",
-        pointerEvents: "none",
-        zIndex: 9999,
-        overflow: "hidden",
-      }}
-    >
+    <>
       {reactions.map(r => (
         <div
           key={r.id}
           style={{
             position: "absolute",
-            bottom: -60,
+            bottom: -80,
             left: `${r.x}%`,
-            fontSize: "48px",
-            animation: "rise 4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards",
+            fontSize: "56px",
+            animation: "rise 4.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.6))",
+            filter: "drop-shadow(0 6px 16px rgba(0,0,0,0.8))",
+            zIndex: 9999,
           }}
         >
           <span
             style={{
-              fontSize: "16px",
+              fontSize: "18px",
               color: "#fff",
-              fontWeight: 700,
-              textShadow: "0 2px 8px rgba(0,0,0,1)",
-              marginBottom: 4,
+              fontWeight: 800,
+              textShadow: "0 2px 8px rgba(0,0,0,1), 0 0 12px rgba(0,0,0,0.5)",
+              marginBottom: 6,
               whiteSpace: "nowrap",
-              padding: "2px 8px",
-              background: "rgba(0,0,0,0.3)",
-              borderRadius: "10px",
+              padding: "4px 12px",
+              background: "rgba(0,0,0,0.5)",
+              borderRadius: "12px",
               backdropFilter: "blur(4px)",
             }}
           >
@@ -307,23 +297,23 @@ const ReactionDisplay = ({ reactions }: { reactions: Reaction[] }) => {
       <style>{`
         @keyframes rise {
           0% {
-            transform: translateY(0) scale(0.5);
+            transform: translateY(0) scale(0.3) rotate(-10deg);
             opacity: 0;
           }
-          15% {
+          10% {
             opacity: 1;
-            transform: translateY(-120px) scale(1.3);
+            transform: translateY(-100px) scale(1.4) rotate(0deg);
           }
           30% {
-            transform: translateY(-250px) scale(1.1);
+            transform: translateY(-300px) scale(1.1) rotate(5deg);
           }
           100% {
-            transform: translateY(-1100px) scale(1);
+            transform: translateY(-1200px) scale(1) rotate(0deg);
             opacity: 0;
           }
         }
       `}</style>
-    </div>
+    </>
   );
 };
 
@@ -766,6 +756,7 @@ export default function RoomTV() {
             }
           }
         } else if (m.type === "REACTION") {
+          console.log("[TV] Reaction received:", m);
           const mReaction = m as unknown as { reaction: string; name: string };
           const newReaction = {
             id: Math.random().toString(36).substring(2, 9),
@@ -1652,8 +1643,21 @@ export default function RoomTV() {
         }}
       />
       <Toaster position="top-right" />
-      {/* Reações Animadas */}
-      <ReactionDisplay reactions={reactions} />
+      {/* Reações Animadas - absolute to wrapper container */}
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          pointerEvents: "none",
+          zIndex: 9999,
+          overflow: "hidden",
+        }}
+      >
+        <ReactionDisplay reactions={reactions} />
+      </div>
     </div>
   );
 }

@@ -2390,12 +2390,20 @@ export default function RoomMobile() {
       <div
         style={{
           position: "fixed",
-          bottom: 20,
-          right: 16,
+          bottom: 24,
+          left: "50%",
+          transform: "translateX(-50%)",
           display: "flex",
-          flexDirection: "column",
-          gap: 12,
+          flexDirection: "row",
+          gap: 16,
           zIndex: 100,
+          background: "rgba(0, 0, 0, 0.4)",
+          backdropFilter: "blur(12px)",
+          WebkitBackdropFilter: "blur(12px)",
+          padding: "8px 20px",
+          borderRadius: "40px",
+          border: "1px solid rgba(255, 255, 255, 0.1)",
+          boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
         }}
       >
         {["👏", "🎤", "🔥", "😂"].map(emoji => (
@@ -2403,25 +2411,22 @@ export default function RoomMobile() {
             key={emoji}
             onClick={() => sendReaction(emoji)}
             style={{
-              width: 48,
-              height: 48,
+              width: 52,
+              height: 52,
               borderRadius: "50%",
-              fontSize: "22px",
+              fontSize: "26px",
               background: "rgba(255, 255, 255, 0.1)",
-              backdropFilter: "blur(10px)",
-              WebkitBackdropFilter: "blur(10px)",
-              border: "1px solid rgba(255, 255, 255, 0.15)",
+              border: "1px solid rgba(255, 255, 255, 0.1)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               cursor: "pointer",
-              boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
               padding: 0,
               margin: 0,
-              transition: "transform 0.1s ease",
+              transition: "transform 0.1s ease, background 0.2s ease",
             }}
-            onPointerDown={e => (e.currentTarget.style.transform = "scale(0.85)")}
-            onPointerUp={e => (e.currentTarget.style.transform = "scale(1)")}
+            onPointerDown={e => (e.currentTarget.style.transform = "scale(0.8)")}
+            onPointerUp={e => (e.currentTarget.style.transform = "scale(1.1)")}
             onPointerLeave={e => (e.currentTarget.style.transform = "scale(1)")}
           >
             {emoji}
