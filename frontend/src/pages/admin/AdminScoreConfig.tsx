@@ -80,32 +80,38 @@ export default function AdminScoreConfig() {
     } catch {
       toast.error("Erro ao remover frase");
     }
-  };
-
-  return (
+  };  return (
     <AdminLayout>
       <Toaster position="top-right" />
-      <div className="max-w-6xl space-y-12 pb-20">
-        <h1 className="text-3xl font-bold">Configuração de Score</h1>
+      <div className="max-w-7xl space-y-24 pb-20">
+        <header className="mb-12">
+          <h1 className="text-4xl font-black mb-2 tracking-tighter uppercase neon-glow-cyan">
+            Score <span className="text-white/20">/</span> Assets
+          </h1>
+          <p className="text-gray-500 text-sm font-mono tracking-widest uppercase">
+            Configuração de Experiência Visual e Frases
+          </p>
+        </header>
 
         {/* BACKGROUNDS SECTION */}
         <section>
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-bold text-gray-300">Backgrounds de Vitória</h2>
+          <div className="flex items-center gap-4 mb-8">
+            <h2 className="text-xs font-bold uppercase tracking-[0.4em] text-white">Visual_Backgrounds</h2>
+            <div className="flex-1 h-[1px] bg-white/[0.05]"></div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
             {/* Form */}
-            <div className="lg:col-span-1">
-              <form onSubmit={handleAddBackground} className="bg-[#121216] p-6 rounded-2xl border border-white/5 space-y-4">
-                <h3 className="font-semibold text-sm uppercase tracking-wider text-gray-500">Novo Background</h3>
+            <div className="lg:col-span-4">
+              <form onSubmit={handleAddBackground} className="admin-card p-10 space-y-6 border border-white/5 bg-white/[0.01]">
+                <h3 className="text-gray-500 text-[10px] font-bold uppercase tracking-[0.3em] mb-4">Novo_Buffer_Visual</h3>
                 <div>
-                  <label htmlFor="bg-url" className="block text-xs text-gray-400 mb-1">URL da Imagem</label>
+                  <label htmlFor="bg-url" className="block text-[10px] text-gray-500 font-mono uppercase tracking-widest mb-2">URL_REPOSITORIO</label>
                   <input 
                     id="bg-url"
                     type="url" 
-                    placeholder="https://exemplo.com/imagem.jp..."
-                    className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-2 focus:outline-none focus:border-red-500 text-sm"
+                    placeholder="HTTPS://..."
+                    className="w-full bg-black/50 border border-white/5 rounded-none px-6 py-4 focus:outline-none focus:border-[#00f5ff] text-xs font-mono transition-colors placeholder:text-gray-800"
                     value={bgUrl}
                     onChange={(e) => setBgUrl(e.target.value)}
                     required
@@ -113,75 +119,81 @@ export default function AdminScoreConfig() {
                 </div>
                 <button 
                   type="submit"
-                  className="w-full bg-red-600 hover:bg-red-700 py-2 rounded-xl transition-colors font-bold"
+                  className="w-full bg-white text-black font-black uppercase text-xs tracking-[0.2em] py-5 hover:bg-[#00f5ff] transition-colors"
                 >
-                  Adicionar Imagem
+                  Registrar Imagem
                 </button>
               </form>
             </div>
 
             {/* List */}
-            <div className="lg:col-span-2 grid grid-cols-2 sm:grid-cols-3 gap-4">
+            <div className="lg:col-span-8 grid grid-cols-2 md:grid-cols-3 gap-6 stagger-in">
               {backgrounds.map(bg => (
-                <div key={bg.id} className="group relative aspect-video bg-gray-900 rounded-xl overflow-hidden border border-white/5">
-                  <img src={bg.url} alt="" className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <div key={bg.id} className="group relative aspect-video bg-black border border-white/5 overflow-hidden">
+                  <img src={bg.url} alt="" className="w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700" />
+                  <div className="absolute inset-0 bg-[#00f5ff]/20 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+                  <div className="absolute bottom-4 right-4 translate-y-4 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-300">
                     <button 
                       onClick={() => handleDeleteBg(bg.id)}
-                      className="bg-red-600 p-2 rounded-full hover:scale-110 transition-transform"
+                      className="bg-red-600 text-white p-3 border border-red-500 hover:bg-red-700 transition-colors shadow-2xl"
                     >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                       </svg>
                     </button>
                   </div>
                 </div>
               ))}
-              {backgrounds.length === 0 && <div className="col-span-full py-10 text-center text-gray-500 bg-[#121216] rounded-xl">Sem imagens cadastradas.</div>}
+              {backgrounds.length === 0 && (
+                <div className="col-span-full py-16 text-center admin-card border-dashed border-white/10 opacity-30">
+                  <span className="font-mono text-xs uppercase tracking-widest italic">Buffer_Visual_Empty</span>
+                </div>
+              )}
             </div>
           </div>
         </section>
 
         {/* PHRASES SECTION */}
         <section>
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-bold text-gray-300">Frases de Incentivo/Zueira</h2>
+          <div className="flex items-center gap-4 mb-8">
+            <h2 className="text-xs font-bold uppercase tracking-[0.4em] text-white">Logic_Messages</h2>
+            <div className="flex-1 h-[1px] bg-white/[0.05]"></div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
             {/* Form */}
-            <div className="lg:col-span-1">
-              <form onSubmit={handleAddPhrase} className="bg-[#121216] p-6 rounded-2xl border border-white/5 space-y-4">
-                <h3 className="font-semibold text-sm uppercase tracking-wider text-gray-500">Nova Frase</h3>
+            <div className="lg:col-span-4">
+              <form onSubmit={handleAddPhrase} className="admin-card p-10 space-y-8 border border-white/5 bg-white/[0.01]">
+                <h3 className="text-gray-500 text-[10px] font-bold uppercase tracking-[0.3em] mb-4">Nova_String_Ponto</h3>
                 <div>
-                  <label htmlFor="phrase-text" className="block text-xs text-gray-400 mb-1">Frase</label>
+                  <label htmlFor="phrase-text" className="block text-[10px] text-gray-500 font-mono uppercase tracking-widest mb-2">Mensagem_Feedback</label>
                   <textarea 
                     id="phrase-text"
-                    placeholder="Ex: Cantou muito! Ou... melhore."
-                    className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-2 focus:outline-none focus:border-red-500 text-sm h-24 resize-none"
+                    placeholder="TEXT_LOAD..."
+                    className="w-full bg-black/50 border border-white/5 rounded-none px-6 py-4 focus:outline-none focus:border-[#00f5ff] text-xs font-mono h-32 resize-none transition-colors placeholder:text-gray-800"
                     value={phraseText}
                     onChange={(e) => setPhraseText(e.target.value)}
                     required
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-6">
                   <div>
-                    <label htmlFor="min-score" className="block text-xs text-gray-400 mb-1">Score Mín</label>
+                    <label htmlFor="min-score" className="block text-[10px] text-gray-500 font-mono uppercase tracking-widest mb-2">SCORE_MIN</label>
                     <input 
                       id="min-score"
                       type="number" 
-                      className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-2 focus:outline-none focus:border-red-500 text-sm"
+                      className="w-full bg-black/50 border border-white/5 rounded-none px-4 py-3 focus:outline-none focus:border-[#00f5ff] text-xs font-mono"
                       value={minScore}
                       onChange={(e) => setMinScore(parseInt(e.target.value))}
                       min="0" max="100"
                     />
                   </div>
                   <div>
-                    <label htmlFor="max-score" className="block text-xs text-gray-400 mb-1">Score Máx</label>
+                    <label htmlFor="max-score" className="block text-[10px] text-gray-500 font-mono uppercase tracking-widest mb-2">SCORE_MAX</label>
                     <input 
                       id="max-score"
                       type="number" 
-                      className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-2 focus:outline-none focus:border-red-500 text-sm"
+                      className="w-full bg-black/50 border border-white/5 rounded-none px-4 py-3 focus:outline-none focus:border-[#00f5ff] text-xs font-mono"
                       value={maxScore}
                       onChange={(e) => setMaxScore(parseInt(e.target.value))}
                       min="0" max="100"
@@ -190,28 +202,29 @@ export default function AdminScoreConfig() {
                 </div>
                 <button 
                   type="submit"
-                  className="w-full bg-red-600 hover:bg-red-700 py-2 rounded-xl transition-colors font-bold"
+                  className="w-full bg-[#00f5ff] text-black font-black uppercase text-xs tracking-[0.2em] py-5 hover:bg-[#2dd4bf] transition-colors"
                 >
-                  Salvar Frase
+                  Confirmar String
                 </button>
               </form>
             </div>
 
             {/* List */}
-            <div className="lg:col-span-2 space-y-3">
+            <div className="lg:col-span-8 space-y-4 stagger-in">
               {phrases.map(phrase => (
-                <div key={phrase.id} className="flex items-center justify-between bg-[#121216] p-4 rounded-xl border border-white/5 group">
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="px-2 py-0.5 bg-red-600/20 text-red-500 rounded text-xs font-bold font-mono">
-                        {phrase.minScore}-{phrase.maxScore}
+                <div key={phrase.id} className="admin-card p-8 group flex items-center justify-between border border-white/5 bg-white/[0.01]">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-4 mb-3">
+                      <span className="px-3 py-1 bg-[#00f5ff]/10 text-[#00f5ff] text-[10px] font-black font-mono border border-[#00f5ff]/20">
+                        RANGE_{phrase.minScore}-{phrase.maxScore}_PTS
                       </span>
+                      <div className="h-[1px] w-12 bg-white/5"></div>
                     </div>
-                    <p className="text-sm text-gray-200">{phrase.phrase}</p>
+                    <p className="text-lg font-bold tracking-tight text-white group-hover:text-[#00f5ff] transition-colors italic">"{phrase.phrase}"</p>
                   </div>
                   <button 
                     onClick={() => handleDeletePhrase(phrase.id)}
-                    className="p-2 opacity-0 group-hover:opacity-100 hover:bg-red-600/20 text-red-500 rounded-lg transition-all"
+                    className="p-3 bg-red-600/5 text-red-500 opacity-0 group-hover:opacity-100 hover:bg-red-600 hover:text-white transition-all border border-red-500/10 hover:border-red-600"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -219,7 +232,11 @@ export default function AdminScoreConfig() {
                   </button>
                 </div>
               ))}
-              {phrases.length === 0 && <div className="py-10 text-center text-gray-500 bg-[#121216] rounded-xl">Sem frases cadastradas.</div>}
+              {phrases.length === 0 && (
+                <div className="py-16 text-center admin-card border-dashed border-white/10 opacity-30">
+                  <span className="font-mono text-xs uppercase tracking-widest italic">Logic_Registry_Null</span>
+                </div>
+              )}
             </div>
           </div>
         </section>

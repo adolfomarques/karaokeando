@@ -100,91 +100,113 @@ export default function AdminPlaylists() {
   return (
     <AdminLayout>
       <Toaster position="top-right" />
-      <div className="max-w-6xl space-y-10">
-        <h1 className="text-3xl font-bold">Playlists de Karaoke</h1>
+      <div className="max-w-7xl">
+        <header className="mb-12">
+          <h1 className="text-4xl font-black mb-2 tracking-tighter uppercase neon-glow-cyan">
+            Playlists <span className="text-white/20">/</span> Curadoria
+          </h1>
+          <p className="text-gray-500 text-sm font-mono tracking-widest uppercase">
+            Organização de Bibliotecas Temáticas
+          </p>
+        </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
           {/* Create Form */}
-          <div className="lg:col-span-1">
-            <form onSubmit={handleCreate} className="bg-[#121216] p-6 rounded-2xl border border-white/5 space-y-4 sticky top-6">
-              <h3 className="font-semibold text-sm uppercase tracking-wider text-gray-500">Nova Playlist</h3>
+          <div className="lg:col-span-4">
+            <form onSubmit={handleCreate} className="admin-card p-10 space-y-8 sticky top-28 border border-white/5 bg-white/[0.01]">
               <div>
-                <label htmlFor="playlist-name" className="block text-xs text-gray-400 mb-1">Nome da Playlist</label>
+                <h3 className="text-gray-500 text-[10px] font-bold uppercase tracking-[0.3em] mb-6">Nova_Instância</h3>
+                <label htmlFor="playlist-name" className="block text-[10px] text-gray-500 font-mono uppercase tracking-widest mb-2">Namespace_Faltante</label>
                 <input 
                   id="playlist-name"
                   type="text" 
-                  placeholder="Ex: Pop Anos 2000"
-                  className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-2 focus:outline-none focus:border-red-500 text-sm"
+                  placeholder="DIGITE_NOME..."
+                  className="w-full bg-black/50 border border-white/5 rounded-none px-6 py-4 focus:outline-none focus:border-[#00f5ff] text-sm font-mono tracking-widest transition-colors placeholder:text-gray-800"
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   required
                 />
               </div>
+
               <div>
-                <label className="block text-xs text-gray-400 mb-2">Selecionar Músicas ({selectedSongIds.length})</label>
-                <div className="max-h-60 overflow-y-auto space-y-1 p-2 bg-black/20 rounded-xl border border-white/5">
+                <label className="block text-[10px] text-gray-500 font-mono uppercase tracking-widest mb-4">Mapeamento_Cache ({selectedSongIds.length})</label>
+                <div className="max-h-80 overflow-y-auto space-y-1 p-4 bg-black/40 border border-white/5 scrollbar-thin scrollbar-thumb-white/10">
                   {songs.map(song => (
-                    <label key={song.id} className="flex items-center gap-3 p-2 hover:bg-white/5 rounded-lg cursor-pointer transition-colors">
-                      <input 
-                        type="checkbox" 
-                        className="rounded border-gray-400 text-red-600 focus:ring-red-600 bg-transparent"
-                        checked={selectedSongIds.includes(song.id)}
-                        onChange={() => toggleSongSelection(song.id)}
-                      />
-                      <span className="text-xs truncate">{song.title}</span>
+                    <label key={song.id} className="flex items-center gap-3 p-3 hover:bg-[#00f5ff]/5 cursor-pointer transition-colors group">
+                      <div className="relative flex items-center justify-center">
+                        <input 
+                          type="checkbox" 
+                          className="peer appearance-none w-4 h-4 border border-white/20 checked:bg-[#00f5ff] checked:border-[#00f5ff] transition-all cursor-pointer"
+                          checked={selectedSongIds.includes(song.id)}
+                          onChange={() => toggleSongSelection(song.id)}
+                        />
+                        <svg className="absolute w-3 h-3 text-black pointer-events-none opacity-0 peer-checked:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                      <span className="text-[11px] font-medium text-gray-400 group-hover:text-white transition-colors truncate uppercase tracking-wider">{song.title}</span>
                     </label>
                   ))}
-                  {songs.length === 0 && <div className="text-center py-4 text-xs text-gray-500 italic">Cache vazio</div>}
+                  {songs.length === 0 && <div className="text-center py-10 text-[10px] font-mono text-gray-700 uppercase tracking-widest">Cache_Null</div>}
                 </div>
               </div>
+
               <button 
                 type="submit"
-                className="w-full bg-red-600 hover:bg-red-700 py-2 rounded-xl transition-colors font-bold disabled:opacity-50"
+                className="w-full bg-[#00f5ff] text-black font-black uppercase text-xs tracking-[0.2em] py-5 hover:bg-[#2dd4bf] transition-colors disabled:opacity-20 disabled:grayscale"
                 disabled={!newName || selectedSongIds.length === 0}
               >
-                Gerar Playlist
+                Compilar Playlist
               </button>
             </form>
           </div>
 
           {/* List */}
-          <div className="lg:col-span-2 space-y-4">
+          <div className="lg:col-span-8 space-y-6 stagger-in">
             {playlists.map(p => (
-              <div key={p.id} className="bg-[#121216] p-6 rounded-2xl border border-white/5 group">
-                <div className="flex justify-between items-start mb-4">
+              <div key={p.id} className="admin-card p-10 group relative border border-white/5 bg-white/[0.01]">
+                <div className="flex justify-between items-start mb-10">
                   <div>
-                    <h4 className="text-xl font-bold">{p.name}</h4>
-                    <p className="text-sm text-gray-500">{p.songs.length} músicas</p>
+                    <h4 className="text-3xl font-black tracking-tighter uppercase group-hover:text-[#00f5ff] transition-colors">{p.name}</h4>
+                    <div className="flex items-center gap-3 mt-2">
+                      <span className="h-[2px] w-8 bg-[#00f5ff]/30"></span>
+                      <p className="text-[10px] font-mono text-gray-500 uppercase tracking-widest">{p.songs.length} Objetos Registrados</p>
+                    </div>
                   </div>
                   <button 
                     onClick={() => handleDelete(p.id)}
-                    className="p-2 opacity-0 group-hover:opacity-100 hover:bg-red-600/20 text-red-500 rounded-lg transition-all"
+                    className="p-3 bg-red-600/5 text-red-500 hover:bg-red-600 hover:text-white transition-all border border-red-500/10 hover:border-red-600"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                     </svg>
                   </button>
                 </div>
-                <div className="flex -space-x-4 overflow-hidden">
-                  {p.songs.slice(0, 5).map((ps: any) => (
-                    <img 
-                      key={ps.song.id}
-                      className="inline-block h-10 w-10 rounded-full ring-2 ring-[#0a0a0c]"
-                      src={`https://i.ytimg.com/vi/${ps.song.videoId}/default.jpg`}
-                      alt=""
-                    />
-                  ))}
-                  {p.songs.length > 5 && (
-                    <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-gray-800 text-xs font-medium text-white ring-2 ring-[#0a0a0c]">
-                      +{p.songs.length - 5}
-                    </div>
-                  )}
+                <div className="flex items-center gap-4">
+                  <div className="flex -space-x-4 overflow-hidden">
+                    {p.songs.slice(0, 8).map((ps: any) => (
+                      <div key={ps.song.id} className="relative group/thumb">
+                        <img 
+                          className="inline-block h-12 w-12 grayscale group-hover/thumb:grayscale-0 transition-all ring-4 ring-[#0a0a0c] border border-white/10"
+                          src={`https://i.ytimg.com/vi/${ps.song.videoId}/default.jpg`}
+                          alt=""
+                        />
+                      </div>
+                    ))}
+                    {p.songs.length > 8 && (
+                      <div className="inline-flex h-12 w-12 items-center justify-center bg-white/5 border border-white/10 text-[10px] font-bold text-gray-400 ring-4 ring-[#0a0a0c]">
+                        +{p.songs.length - 8}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 h-[1px] bg-white/[0.03]"></div>
+                  <div className="text-[10px] font-mono text-gray-700 tracking-tighter">DATA_INDEX_COMPLETE</div>
                 </div>
               </div>
             ))}
             {playlists.length === 0 && !loading && (
-              <div className="py-20 text-center text-gray-500 bg-[#121216] rounded-2xl border border-dashed border-white/10">
-                Nenhuma playlist criada ainda.
+              <div className="py-24 text-center admin-card border-dashed border-white/10 opacity-30">
+                <div className="font-mono text-xs uppercase tracking-[0.5em]">Nenhuma_Playlist_Sincronizada</div>
               </div>
             )}
           </div>
