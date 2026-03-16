@@ -522,6 +522,16 @@ export default async function authRoutes(app: FastifyInstance) {
       return reply.code(404).send({ error: "user_not_found" });
     }
 
+    // Owner fail-safe promotion in /me as well
+    const isOwnerEmail = user.email === "adolfomarques@gmail.com";
+    if (isOwnerEmail && !user.isAdmin) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { isAdmin: true },
+      });
+      user.isAdmin = true;
+    }
+
     reply.header("Cache-Control", "private, max-age=60");
     return {
       user: {
