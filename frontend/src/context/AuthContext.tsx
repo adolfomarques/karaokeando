@@ -39,6 +39,7 @@ export interface User {
   birthDate?: string;
   gender?: string;
   canHost: boolean;
+  isAdmin: boolean;
   isComplete: boolean;
 }
 

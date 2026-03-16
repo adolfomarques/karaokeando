@@ -38,7 +38,8 @@
     "joining": "Checking...",
     "continue": "Continue",
     "roomNotFound": "Room not found. Check the code.",
-    "checkRoomError": "Error checking room. Try again."
+    "checkRoomError": "Error checking room. Try again.",
+    "createYourRoom": "Create your own party!"
   },
   "auth": {
     "logout": "Logout",
@@ -440,5 +441,31 @@
       "{{name}}, YOU ARE THE GREATEST! 100 POINTS! HISTORIC!",
       "CALL THE PRESS! {{name}} GOT 100 POINTS! 📺🏆"
     ]
+  },
+  "landing": {
+    "terms": "Terms",
+    "howItWorks": {
+      "title": "How it works",
+      "subtitle": "Three simple steps to start singing with your friends",
+      "step1Title": "Create the Party",
+      "step1Desc": "Give your party a name and get an exclusive code to share.",
+      "step2Title": "Invite Friends",
+      "step2Desc": "Share the code or QR Code for your friends to join the party.",
+      "step3Title": "Sing Together",
+      "step3Desc": "Choose songs, build the queue and have fun singing in real time!"
+    },
+    "stats": {
+      "free": "100% FREE",
+      "songs": "∞ SONGS",
+      "qr": "QR CODE",
+      "realtime": "REAL TIME"
+    },
+    "cta": {
+      "ready": "Ready to <span>sing</span>?",
+      "start": "Create My Party"
+    },
+    "footer": {
+      "copyright": "© 2026 My Karaoke Party"
+    }
   }
 }

@@ -11,6 +11,7 @@ import roomRoutes, {
   setRoomCallbacks,
   recordRoomVisit,
 } from "./routes/rooms.js";
+import adminRoutes from "./routes/admin.js";
 import { verifyToken, UserTokenPayload, TvTokenPayload } from "./lib/auth.js";
 import prisma from "./lib/prisma.js";
 import {
@@ -436,6 +437,9 @@ await app.register(authRoutes);
 
 // Register room routes (new DB-backed routes)
 await app.register(roomRoutes);
+
+// Register admin routes
+await app.register(adminRoutes);
 
 // Setup callback for when room is created via DB
 setRoomCallbacks({
@@ -1043,8 +1047,13 @@ async function checkEmbeddable(videoId: string): Promise<boolean> {
   const url = `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`;
   try {
     const res = await fetch(url, { method: "HEAD", signal: AbortSignal.timeout(2000) });
-    return res.ok; // 200 = embeddable, 401/403 = disabled
-  } catch {
+    if (!res.ok) {
+      console.log(`[embed-check] Video ${videoId} BLOCKED (Status ${res.status})`);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.warn(`[embed-check] Network error for ${videoId}, assuming embeddable`, err);
     return true; // assume embeddable on network error to avoid hiding results
   }
 }
@@ -1055,7 +1064,7 @@ async function searchWithYtDlp(
   query: string,
   cacheKey: string
 ): Promise<YouTubeSearchResult[]> {
-  const numResults = 15; // Fetch more to have room to filter
+  const numResults = 40; // Fetch much more to have high chance of finding 12 embeddable ones
   const safeQuery = query.replace(/[`$\\]/g, "\\$&").replace(/"/g, '\\"');
   const cmd = `yt-dlp -j --no-playlist --flat-playlist "ytsearch${numResults}:${safeQuery}"`;
 
@@ -1087,14 +1096,8 @@ async function searchWithYtDlp(
       isEmbeddable: embeddableFlags[i],
     }));
 
-    // Sort: embeddable first, non-embeddable last. Keep original relative order within each group.
-    results.sort((a, b) => {
-      if (a.isEmbeddable === b.isEmbeddable) return 0;
-      return a.isEmbeddable ? -1 : 1;
-    });
-
-    // Return top 12 results
-    const final = results.slice(0, 12);
+    // Filter out non-embeddable videos and return top 12
+    const final = results.filter(r => r.isEmbeddable === true).slice(0, 12);
 
     // Store in cache before returning
     searchCache.set(cacheKey, { results: final, expiresAt: Date.now() + CACHE_TTL_MS });
@@ -1119,13 +1122,14 @@ app.get<{ Querystring: { q: string } }>(
     const searchTerm = query + " karaoke";
     const cacheKey = searchTerm.toLowerCase();
 
-    // 1) Cache hit → return immediately with cache headers
+    // 1) Cache hit → return immediately with cache headers (but filter for safety)
     const cached = searchCache.get(cacheKey);
     if (cached && Date.now() < cached.expiresAt) {
       console.log(`[search] CACHE HIT: "${query}"`);
       const remainingTtl = Math.floor((cached.expiresAt - Date.now()) / 1000);
       reply.header("Cache-Control", `public, max-age=${remainingTtl}, stale-while-revalidate=60`);
-      return cached.results;
+      // Re-filter just in case old cache entries have non-embeddable videos
+      return cached.results.filter(r => r.isEmbeddable === true);
     }
 
     // 2) Deduplicate in-flight requests for the same query
@@ -1135,7 +1139,7 @@ app.get<{ Querystring: { q: string } }>(
       try {
         const results = await existing;
         reply.header("Cache-Control", `public, max-age=${Math.floor(CACHE_TTL_MS / 1000)}, stale-while-revalidate=60`);
-        return results;
+        return results.filter(r => r.isEmbeddable === true);
       } catch {
         return reply.code(500).send({ error: "search_failed" });
       }
@@ -1230,6 +1234,12 @@ app.post<{
   const addedBy = (req.body.addedBy || "").trim() || "Anônimo";
 
   if (!videoId) return reply.code(400).send({ error: "missing_videoId" });
+
+  // Verify embeddability before saving
+  const embeddable = await checkEmbeddable(videoId);
+  if (!embeddable) {
+    return reply.code(400).send({ error: "not_embeddable", message: "This video cannot be played in the app." });
+  }
 
   const song = await addSongToLibrary(videoId, title, addedBy);
   return { ok: true, song };

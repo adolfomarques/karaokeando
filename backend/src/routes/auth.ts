@@ -88,6 +88,22 @@ export async function requireHost(
   }
 }
 
+// Middleware to require admin user
+export async function requireAdmin(
+  request: FastifyRequest,
+  reply: FastifyReply
+): Promise<void> {
+  const user = await getUserFromRequest(request);
+  if (!user || !user.isAdmin) {
+    reply.code(403).send({
+      error: "forbidden",
+      message: "Acesso negado. Apenas administradores.",
+    });
+    return;
+  }
+  (request as any).user = user;
+}
+
 export default async function authRoutes(app: FastifyInstance) {
   // Register as guest (name + email + phone)
   app.post<{ Body: { name: string; email: string; phone: string } }>(
@@ -143,6 +159,7 @@ export default async function authRoutes(app: FastifyInstance) {
         email: user.email,
         name: user.name,
         canHost: user.canHost,
+        isAdmin: user.isAdmin,
       });
 
       return {
@@ -153,6 +170,7 @@ export default async function authRoutes(app: FastifyInstance) {
           email: user.email,
           phone: user.phone,
           canHost: user.canHost,
+          isAdmin: user.isAdmin,
           isComplete: !!user.passwordHash,
         },
       };
@@ -231,6 +249,7 @@ export default async function authRoutes(app: FastifyInstance) {
       email: user.email,
       name: user.name,
       canHost: true,
+      isAdmin: user.isAdmin,
     });
 
     return {
@@ -242,6 +261,7 @@ export default async function authRoutes(app: FastifyInstance) {
         phone: user.phone,
         city: user.city,
         canHost: true,
+        isAdmin: user.isAdmin,
         isComplete: true,
       },
     };
@@ -308,6 +328,7 @@ export default async function authRoutes(app: FastifyInstance) {
       email: updatedUser.email,
       name: updatedUser.name,
       canHost: true,
+      isAdmin: updatedUser.isAdmin,
     });
 
     return {
@@ -319,6 +340,7 @@ export default async function authRoutes(app: FastifyInstance) {
         phone: updatedUser.phone,
         city: updatedUser.city,
         canHost: true,
+        isAdmin: updatedUser.isAdmin,
         isComplete: true,
       },
     };
@@ -370,6 +392,7 @@ export default async function authRoutes(app: FastifyInstance) {
           email: user.email,
           name: user.name,
           canHost: true,
+          isAdmin: user.isAdmin,
         });
 
         return {
@@ -381,6 +404,7 @@ export default async function authRoutes(app: FastifyInstance) {
             phone: user.phone,
             city: user.city,
             canHost: true,
+            isAdmin: user.isAdmin,
             isComplete: true,
           },
         };
@@ -439,6 +463,7 @@ export default async function authRoutes(app: FastifyInstance) {
         email: user.email,
         name: user.name,
         canHost: user.canHost,
+        isAdmin: user.isAdmin,
       });
 
       return {
@@ -450,6 +475,7 @@ export default async function authRoutes(app: FastifyInstance) {
           phone: user.phone,
           city: user.city,
           canHost: user.canHost,
+          isAdmin: user.isAdmin,
           isComplete: !!user.passwordHash,
         },
       };
@@ -463,6 +489,9 @@ export default async function authRoutes(app: FastifyInstance) {
       return reply.code(401).send({ error: "unauthorized" });
     }
 
+    // Cache private info for a short time to avoid DB pressure on every route change
+    reply.header("Cache-Control", "private, max-age=60");
+
     const user = await prisma.user.findUnique({
       where: { id: userPayload.userId },
       select: {
@@ -475,6 +504,7 @@ export default async function authRoutes(app: FastifyInstance) {
         gender: true,
         canHost: true,
         passwordHash: true,
+        isAdmin: true,
         createdAt: true,
       },
     });
@@ -494,6 +524,7 @@ export default async function authRoutes(app: FastifyInstance) {
         birthDate: user.birthDate,
         gender: user.gender,
         canHost: user.canHost,
+        isAdmin: user.isAdmin,
         isComplete: !!user.passwordHash,
         createdAt: user.createdAt,
       },

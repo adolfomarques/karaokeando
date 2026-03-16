@@ -135,6 +135,38 @@ const IconChevronsUp = () => (
   </svg>
 );
 
+const IconSkipForward = ({ size = 16 }: { size?: number }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <polygon points="5 4 15 12 5 20 5 4"></polygon>
+    <line x1="19" y1="5" x2="19" y2="19"></line>
+  </svg>
+);
+
+const IconSkipBack = ({ size = 16 }: { size?: number }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <polygon points="19 20 9 12 19 4 19 20"></polygon>
+    <line x1="5" y1="19" x2="5" y2="5"></line>
+  </svg>
+);
+
 const IconTrash = ({ size = 16 }: { size?: number }) => (
   <svg
     width={size}
@@ -359,26 +391,6 @@ const IconMinimize = ({ size = 16 }: { size?: number }) => (
   </svg>
 );
 
-const IconSkipForward = ({ size = 16 }: { size?: number }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="currentColor"
-    stroke="none"
-  >
-    <polygon points="5 4 15 12 5 20 5 4"></polygon>
-    <line
-      x1="19"
-      y1="5"
-      x2="19"
-      y2="19"
-      stroke="currentColor"
-      strokeWidth="2"
-    ></line>
-  </svg>
-);
-
 export default function RoomTV() {
   const { t } = useTranslation();
   const { code } = useParams<{ code: string }>();
@@ -396,6 +408,7 @@ export default function RoomTV() {
   const [participantsCount, setParticipantsCount] = useState<number>(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [reactions, setReactions] = useState<Reaction[]>([]);
+  const [reconnectKey, setReconnectKey] = useState(0);
   const isTransitioningRef = useRef(false);
   const wsRef = useRef<WebSocket | null>(null);
   const playerRef = useRef<YTPlayer | null>(null);
@@ -444,7 +457,7 @@ export default function RoomTV() {
             width: '40px',
             height: '40px',
             borderRadius: '50%',
-            background: 'linear-gradient(135deg, #a855f7, #ec4899)',
+            background: 'linear-gradient(135deg, #06b6d4, #0d9488)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -796,7 +809,36 @@ export default function RoomTV() {
       ws.close();
       clearInterval(pollInterval);
     };
-  }, [code, authChecked, finalized]);
+  }, [code, authChecked, finalized, reconnectKey]);
+
+  // Handle visibility change to refresh state and reconnect WS if needed
+  useEffect(() => {
+    const handleSync = () => {
+      if (document.visibilityState === "visible" && code) {
+        console.log("[Visibility] TV Page visible/focused, refreshing state...");
+        getState(code).then(s => {
+          if (s && !s.error && !finalized) {
+            setState(s);
+            if (s.nowPlaying || s.queue.length === 0) {
+              isTransitioningRef.current = false;
+              setIsTransitioning(false);
+            }
+          }
+        }).catch(() => { });
+        
+        if (!wsRef.current || wsRef.current.readyState === WebSocket.CLOSED || wsRef.current.readyState === WebSocket.CLOSING) {
+          setReconnectKey(prev => prev + 1);
+        }
+      }
+    };
+
+    window.addEventListener("focus", handleSync);
+    document.addEventListener("visibilitychange", handleSync);
+    return () => {
+      window.removeEventListener("focus", handleSync);
+      document.removeEventListener("visibilitychange", handleSync);
+    };
+  }, [code, finalized]);
 
   // Create / destroy YouTube player
   useEffect(() => {
@@ -1014,72 +1056,86 @@ export default function RoomTV() {
               top: 0,
               left: 0,
               right: 0,
-              padding: "12px 20px",
-              background:
-                "linear-gradient(to bottom, rgba(0,0,0,0.8), transparent)",
+              padding: "20px 40px",
+              background: "linear-gradient(to bottom, rgba(0,0,0,0.9), transparent)",
+              backdropFilter: "blur(4px)",
               zIndex: 10,
               display: "flex",
               justifyContent: "space-between",
-              alignItems: "center",
+              alignItems: "flex-start",
             }}
           >
-            <div>
+            <div style={{ animation: "slideIn 0.5s ease-out" }}>
               {state.nowPlaying ? (
                 <>
-                  <div style={{ fontSize: "1.1rem", fontWeight: 700 }}>
-                    <TruncatedText text={state.nowPlaying.title} maxLength={60} />
+                  <div style={{ 
+                      fontSize: "1.8rem", 
+                      fontWeight: 900, 
+                      color: "#fff", 
+                      textShadow: "0 2px 10px rgba(0,0,0,0.5)",
+                      marginBottom: 4
+                  }}>
+                    <TruncatedText text={state.nowPlaying.title} maxLength={50} />
                   </div>
                   <div
                     style={{
-                      opacity: 0.7,
-                      fontSize: "0.9rem",
+                      color: "#00e5ff",
+                      fontSize: "1.2rem",
                       display: "flex",
                       alignItems: "center",
-                      gap: 6,
+                      gap: 10,
+                      fontWeight: 600,
+                      textShadow: "0 0 10px rgba(0,229,255,0.4)"
                     }}
                   >
-                    <IconMic size={14} />
+                    <IconMic size={20} />
                     {state.nowPlaying.singers
                       ?.map(s => (typeof s === "string" ? s : s.name))
                       .join(" e ") || state.nowPlaying.requestedBy}
                   </div>
                 </>
               ) : (
-                <div style={{ fontSize: "1.1rem", fontWeight: 700, opacity: 0.8 }}>
+                <div style={{ fontSize: "1.4rem", fontWeight: 700, color: "#fff", opacity: 0.8 }}>
                   {t("tv.preparingNext", "Preparing next song...")}
                 </div>
               )}
             </div>
             <div
-              style={{ textAlign: "right", opacity: 0.9, fontSize: "0.85rem" }}
+              style={{ textAlign: "right", animation: "slideIn 0.5s ease-out" }}
             >
               <div style={{
                 display: "inline-flex",
                 alignItems: "center",
-                gap: "8px",
-                background: "rgba(30, 30, 30, 0.7)",
-                backdropFilter: "blur(4px)",
+                gap: "10px",
+                background: "rgba(0, 0, 0, 0.4)",
+                backdropFilter: "blur(12px)",
                 border: "1px solid rgba(255, 255, 255, 0.1)",
-                borderRadius: "20px",
-                padding: "6px 14px",
-                color: "#e0e0e0",
-                fontSize: "0.95rem",
-                fontWeight: 600,
-                boxShadow: "0 4px 6px rgba(0,0,0,0.3)",
-                marginBottom: "8px"
+                borderRadius: "30px",
+                padding: "8px 20px",
+                color: "#fff",
+                fontSize: "1rem",
+                fontWeight: 700,
+                boxShadow: "0 4px 15px rgba(0,0,0,0.5)",
+                marginBottom: "12px"
               }}>
                 <div style={{
-                  width: "12px",
-                  height: "12px",
+                  width: "10px",
+                  height: "10px",
                   borderRadius: "50%",
                   backgroundColor: "#2ecc71",
-                  boxShadow: "0 0 8px #2ecc71"
+                  boxShadow: "0 0 12px #2ecc71"
                 }} />
-                {participantsCount} pessoa{participantsCount !== 1 ? 's' : ''}
+                {participantsCount} {t("tv.participants", "Participantes")}
               </div>
               {state.queue.length > 0 && (
-                <div>
-                  {t("tv.nextSong", "Next song")}:{" "}
+                <div style={{ 
+                    color: "rgba(255,255,255,0.6)", 
+                    fontSize: "0.95rem", 
+                    fontWeight: 600,
+                    textTransform: "uppercase",
+                    letterSpacing: "1px"
+                }}>
+                  <span style={{ color: "#ff6600" }}>{t("tv.nextSong", "Next song")}:</span>{" "}
                   {state.queue[0].singers
                     ?.map(s => (typeof s === "string" ? s : s.name))
                     .join(" e ") || state.queue[0].requestedBy}
@@ -1205,173 +1261,216 @@ export default function RoomTV() {
           }}
         >
           <style>{`
+            @keyframes slideIn {
+                from { opacity: 0; transform: translateY(20px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
             .tv-vip-ticket {
               position: relative;
-              background: #111;
-              border-radius: 12px;
+              background: #0d0d0d;
+              border-radius: 16px;
               border: 2px solid #ff6600;
-              box-shadow: 0 0 15px rgba(255, 102, 0, 0.4), inset 0 0 20px rgba(255, 102, 0, 0.1);
+              box-shadow: 0 0 25px rgba(255, 102, 0, 0.3), inset 0 0 30px rgba(255, 102, 0, 0.05);
               overflow: hidden;
+              animation: slideIn 0.8s ease-out forwards;
             }
             .tv-vip-header {
-              padding: 24px;
-              border-bottom: 2px dashed rgba(255, 102, 0, 0.5);
+              padding: 2.5vh;
+              border-bottom: 2px dashed rgba(255, 102, 0, 0.4);
               background: repeating-linear-gradient(
                 45deg,
-                rgba(255, 102, 0, 0.05),
-                rgba(255, 102, 0, 0.05) 15px,
+                rgba(255, 102, 0, 0.03),
+                rgba(255, 102, 0, 0.03) 15px,
                 transparent 15px,
                 transparent 30px
               );
             }
             .tv-vip-title {
-              font-family: monospace;
+              font-family: 'Inter', sans-serif;
               color: transparent;
-              -webkit-text-stroke: 1px #ff6600;
-              text-shadow: 0 0 10px rgba(255, 102, 0, 0.8);
-              font-size: 2.2rem;
-              letter-spacing: 4px;
+              -webkit-text-stroke: 1.5px #ff6600;
+              text-shadow: 0 0 15px rgba(255, 102, 0, 0.7);
+              font-size: 2.5rem;
+              font-weight: 900;
+              letter-spacing: 6px;
               text-transform: uppercase;
               margin: 0;
             }
             .tv-vip-body {
-              padding: 30px;
-              background: linear-gradient(to bottom, rgba(0,0,0,0), rgba(0, 229, 255, 0.05));
+              padding: 3vh;
+              background: linear-gradient(to bottom, rgba(0,0,0,0), rgba(0, 229, 255, 0.03));
             }
             .tv-vip-btn-cyan {
               background: transparent;
-              border: 1px solid #00e5ff;
+              border: 1px solid rgba(0, 229, 255, 0.5);
               color: #00e5ff;
-              padding: 8px 16px;
-              border-radius: 6px;
+              padding: 10px 20px;
+              border-radius: 8px;
               font-size: 1rem;
-              font-weight: 600;
+              font-weight: 700;
               cursor: pointer;
               text-transform: uppercase;
-              transition: all 0.2s;
-              box-shadow: inset 0 0 8px rgba(0, 229, 255, 0.1);
+              transition: all 0.3s ease;
+              box-shadow: inset 0 0 10px rgba(0, 229, 255, 0.05);
+              display: flex;
+              align-items: center;
+              gap: 8px;
             }
             .tv-vip-btn-cyan:hover, .tv-vip-btn-cyan.active {
               background: rgba(0, 229, 255, 0.2);
-              box-shadow: inset 0 0 12px rgba(0, 229, 255, 0.4), 0 0 10px rgba(0, 229, 255, 0.5);
+              border-color: #00e5ff;
+              box-shadow: inset 0 0 15px rgba(0, 229, 255, 0.3), 0 0 20px rgba(0, 229, 255, 0.4);
               color: #fff;
+              transform: translateY(-2px);
             }
             .tv-vip-box {
-              background: rgba(0,0,0,0.5);
-              border: 1px solid #333;
-              border-radius: 8px;
-              padding: 20px;
+              background: rgba(20, 20, 20, 0.6);
+              backdrop-filter: blur(10px);
+              border: 1px solid rgba(255, 255, 255, 0.08);
+              border-radius: 12px;
+              padding: 2vh;
+              transition: all 0.3s ease;
+            }
+            .tv-vip-box:hover {
+                border-color: rgba(0, 229, 255, 0.3);
+                background: rgba(30, 30, 30, 0.8);
+            }
+            .tv-neon-text {
+                color: #00e5ff;
+                text-shadow: 0 0 10px rgba(0, 229, 255, 0.8), 0 0 20px rgba(0, 229, 255, 0.4);
+                font-weight: 900;
+            }
+            .tv-gradient-bg {
+                background: radial-gradient(circle at top right, rgba(255, 102, 0, 0.1), transparent 40%),
+                            radial-gradient(circle at bottom left, rgba(0, 229, 255, 0.05), transparent 40%);
             }
           `}</style>
           
           {/* Header */}
-          <div
+          <header
             style={{
-              display: "flex",
-              justifyContent: "space-between",
+              display: "grid",
+              gridTemplateColumns: "250px 1fr 250px",
               alignItems: "center",
-              marginBottom: 40,
+              gap: 20,
+              marginBottom: "5vh",
+              padding: "0 20px"
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
-              <button
-                onClick={() => navigate("/")}
-                style={{
-                  background: "transparent",
-                  border: "1px solid #ff6600",
-                  borderRadius: 8,
-                  padding: "12px 24px",
-                  color: "#ff6600",
-                  fontSize: "1.1rem",
-                  fontWeight: 600,
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 10,
-                  boxShadow: "inset 0 0 8px rgba(255,102,0,0.2), 0 0 8px rgba(255,102,0,0.2)"
-                }}
-              >
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+            {/* Esquerda: Logout */}
+            <div>
+                <button
+                    onClick={() => navigate("/")}
+                    style={{
+                    background: "rgba(255, 102, 0, 0.05)",
+                    border: "1.5px solid rgba(255, 102, 0, 0.4)",
+                    borderRadius: 12,
+                    padding: "1vh 1.5vw",
+                    color: "#ff6600",
+                    fontSize: "1rem",
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 12,
+                    transition: "all 0.3s ease",
+                    textTransform: "uppercase",
+                    letterSpacing: "1px"
+                    }}
+                    onMouseEnter={e => {
+                        e.currentTarget.style.background = "rgba(255, 102, 0, 0.15)";
+                        e.currentTarget.style.borderColor = "#ff6600";
+                        e.currentTarget.style.boxShadow = "0 0 15px rgba(255, 102, 0, 0.3)";
+                    }}
+                    onMouseLeave={e => {
+                        e.currentTarget.style.background = "rgba(255, 102, 0, 0.05)";
+                        e.currentTarget.style.borderColor = "rgba(255, 102, 0, 0.4)";
+                        e.currentTarget.style.boxShadow = "none";
+                    }}
                 >
-                  <path d="M15 18l-6-6 6-6" />
-                </svg>
-                {t("auth.logout", "Sair")}
-              </button>
-              <h1
-                style={{
-                  margin: 0,
-                  fontSize: "3rem",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 20,
-                  color: "#fff",
-                  textShadow: "0 0 15px rgba(255,255,255,0.3)"
-                }}
-              >
-                <Logo width={220} /> <span style={{ opacity: 0.5 }}>-</span> <span style={{ color: "#00e5ff", textShadow: "0 0 15px rgba(0,229,255,0.6)" }}>{t("tv.room", "Room")}: {code}</span>
-              </h1>
+                    <IconSkipBack size={18} />
+                    {t("auth.logout", "Sair")}
+                </button>
+            </div>
+
+            {/* Centro: Logo e Room Code */}
+            <div style={{ textAlign: "center" }}>
+                <div style={{ display: "inline-flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
+                    <Logo width={320} />
+                    <div style={{ 
+                        fontSize: "2.4rem", 
+                        letterSpacing: "4px",
+                        color: "#fff",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 15,
+                        marginTop: 10
+                    }}>
+                        <span style={{ opacity: 0.4, fontWeight: 300 }}>ROOM:</span>
+                        <span className="tv-neon-text" style={{ fontSize: "3rem" }}>{code}</span>
+                    </div>
+                </div>
             </div>
             
-            {/* QR Code Ticket */}
+            {/* Direita: QR Code Ticket */}
             <div
               className="tv-vip-ticket"
               style={{
                 display: "flex",
                 flexDirection: "row",
-                alignItems: "center",
+                alignItems: "stretch",
+                height: "18vh",
+                minHeight: "140px",
                 background: "#0d0d0d"
               }}
             >
               <div style={{ 
-                padding: "20px 30px", 
-                borderRight: "2px dashed rgba(255, 102, 0, 0.5)",
-                background: "repeating-linear-gradient(45deg, rgba(255, 102, 0, 0.05), rgba(255, 102, 0, 0.05) 10px, transparent 10px, transparent 20px)",
+                padding: "0 15px", 
+                borderRight: "2px dashed rgba(255, 102, 0, 0.4)",
+                background: "repeating-linear-gradient(45deg, rgba(255, 102, 0, 0.05), rgba(255, 102, 0, 0.05) 8px, transparent 8px, transparent 16px)",
                 display: "flex",
-                flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center"
                }}>
-                <span className="tv-vip-title" style={{ fontSize: "1.4rem", transform: "rotate(-90deg)", whiteSpace: "nowrap", margin: "30px 0" }}>
-                  ACCESS
+                <span className="tv-vip-title" style={{ fontSize: "1.2rem", transform: "rotate(-90deg)", whiteSpace: "nowrap" }}>
+                  TICKET
                 </span>
               </div>
-              <div style={{ padding: "20px 30px", textAlign: "center", background: "#fff", borderLeft: "4px solid #00e5ff" }}>
+              <div style={{ flex: 1, padding: "12px", textAlign: "center", background: "#fff", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
                 <img
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(
                     window.location.origin + "/join/" + code
                   )}&color=000000&bgcolor=ffffff`}
                   alt="QR Code"
                   loading="lazy"
                   style={{
                     display: "block",
-                    marginBottom: 12,
-                    width: 160,
-                    height: 160,
+                    width: "10vh",
+                    height: "10vh",
+                    maxHeight: "100px",
+                    maxWidth: "100px",
+                    marginBottom: 8,
                   }}
                 />
-                <div style={{ color: "#000", fontSize: "1.1rem", fontWeight: 900, textTransform: "uppercase", letterSpacing: "1px" }}>
+                <div style={{ color: "#000", fontSize: "0.75rem", fontWeight: 900, textTransform: "uppercase", letterSpacing: "1px" }}>
                   {t("tv.scanToJoin", "Escaneie para entrar")}
                 </div>
               </div>
             </div>
-          </div>
+          </header>
 
           {/* Conteúdo principal */}
-          <div
+          <main
             style={{
               flex: 1,
               display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: 40,
+              gridTemplateColumns: "1.1fr 0.9fr",
+              gap: "4vw",
               alignItems: "start",
+              maxWidth: "1600px",
+              margin: "0 auto",
+              width: "100%",
+              paddingBottom: "4vh"
             }}
           >
             {/* Próxima música / Fila */}
@@ -1620,7 +1719,30 @@ export default function RoomTV() {
                 )}
               </div>
             </div>
-          </div>
+          </main>
+
+          {/* Footer Informativo */}
+          <footer style={{ 
+            marginTop: "auto", 
+            padding: "2vh 0", 
+            borderTop: "1px solid rgba(255, 255, 255, 0.05)",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            opacity: 0.6,
+            fontSize: "0.9rem",
+            letterSpacing: "1px",
+            textTransform: "uppercase"
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 15 }}>
+                <div style={{ 
+                    width: 8, height: 8, borderRadius: "50%", background: "#2ecc71", boxShadow: "0 0 10px #2ecc71"
+                }} />
+                <span>{participantsCount} {t("tv.participants", "Participantes")}</span>
+            </div>
+            <div>{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+            <div style={{ fontWeight: 700 }}>KARAOKE FACTORY &copy; 2025</div>
+          </footer>
         </div>
       )}
 

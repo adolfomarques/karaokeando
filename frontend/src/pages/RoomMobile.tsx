@@ -412,9 +412,29 @@ export default function RoomMobile() {
   } | null>(null);
   const [modalPartner, setModalPartner] = useState<string>(""); // Partner ID selected in modal
   const [cooldownRemaining, setCooldownRemaining] = useState<number>(0);
+  const [reconnectKey, setReconnectKey] = useState(0); // Para forçar reconexão do WS
   const wsRef = useRef<WebSocket | null>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchAbortRef = useRef<AbortController | null>(null);
+
+  // Dynamic loading text steps
+  const [loadingStep, setLoadingStep] = useState(0);
+  const loadingMessages = [
+    t("mobile.searchingYouTube", "Searching YouTube..."),
+    t("mobile.analyzingResults", "Analyzing results..."),
+    t("mobile.almostReady", "Almost ready..."),
+  ];
+
+  useEffect(() => {
+    if (!searching) {
+      setLoadingStep(0);
+      return;
+    }
+    const interval = setInterval(() => {
+      setLoadingStep((prev) => (prev + 1) % loadingMessages.length);
+    }, 1500);
+    return () => clearInterval(interval);
+  }, [searching, loadingMessages.length]);
 
   const sendReaction = (emoji: string) => {
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
@@ -516,15 +536,20 @@ export default function RoomMobile() {
     const token = getToken();
 
     // Fallback: fetch state via HTTP in case WS is slow
-    getState(code)
-      .then(s => {
+    const refreshState = async () => {
+      try {
+        const s = await getState(code);
         if (s && s.error === "room_not_found") {
           setError(t("home.roomNotFound", "Room not found. Check the code."));
         } else if (s && !s.error) {
           setState(s);
         }
-      })
-      .catch(() => { });
+      } catch (e) {
+        console.error("Failed to refresh state", e);
+      }
+    };
+
+    refreshState();
 
     const ws = connectWS(
       code,
@@ -574,8 +599,52 @@ export default function RoomMobile() {
     );
     wsRef.current = ws;
 
-    return () => ws.close();
-  }, [code, user, nickname]);
+    // Polling fallback: if WS is dead, keep state updated via HTTP
+    const pollInterval = setInterval(() => {
+      if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+        getState(code)
+          .then(s => {
+            if (s && !s.error) setState(s);
+          })
+          .catch(() => { });
+        
+        getParticipants(code)
+          .then(data => {
+            if (data.participants) setParticipants(data.participants);
+          })
+          .catch(() => { });
+      }
+    }, 10000); // 10s fallback
+
+    return () => {
+      ws.close();
+      clearInterval(pollInterval);
+    };
+  }, [code, user, nickname, reconnectKey]);
+
+  // Handle visibility change to refresh state and reconnect WS if needed
+  useEffect(() => {
+    const handleSync = () => {
+      if (document.visibilityState === "visible" && code) {
+        console.log("[Visibility] Page visible/focused, refreshing state...");
+        // Re-fetch everything immediately
+        getState(code).then(s => { if (s && !s.error) setState(s); }).catch(() => { });
+        getParticipants(code).then(d => { if (d.participants) setParticipants(d.participants); }).catch(() => { });
+        
+        // Se o WS estiver morto, oReconnectKey força o efeito acima a rodar e reconectar
+        if (!wsRef.current || wsRef.current.readyState === WebSocket.CLOSED || wsRef.current.readyState === WebSocket.CLOSING) {
+          setReconnectKey(prev => prev + 1);
+        }
+      }
+    };
+
+    window.addEventListener("focus", handleSync);
+    document.addEventListener("visibilitychange", handleSync);
+    return () => {
+      window.removeEventListener("focus", handleSync);
+      document.removeEventListener("visibilitychange", handleSync);
+    };
+  }, [code]);
 
   // Fetch participants once on mount (WebSocket will keep it updated)
   useEffect(() => {
@@ -633,7 +702,7 @@ export default function RoomMobile() {
     if (videoId) {
       // It's a link - fetch video info from YouTube
       try {
-        const info = await getVideoInfo(videoId);
+        const info = await getVideoInfo(videoId, abortSignal);
         if (abortSignal.aborted) return;
         setSearchResults([
           {
@@ -677,7 +746,7 @@ export default function RoomMobile() {
     // No saved songs match - search YouTube
     setSearchResults([]);
     try {
-      const results = await searchYouTube(query);
+      const results = await searchYouTube(query, abortSignal);
       if (abortSignal.aborted) return;
       if (results.length === 0) {
         setSearchError(
@@ -724,13 +793,15 @@ export default function RoomMobile() {
     setSearching(true);
     setSearchResults([]);
 
+    searchAbortRef.current = new AbortController();
     try {
-      const results = await searchYouTube(query);
+      const results = await searchYouTube(query, searchAbortRef.current.signal);
       if (results.length === 0) {
         setSearchError(t("mobile.noSongFound", "No song found on YouTube."));
       }
       setSearchResults(results);
-    } catch {
+    } catch (err: any) {
+      if (err.name === 'AbortError') return;
       setSearchError(t("mobile.searchError", "Search error. Try again."));
     }
     setSearching(false);
@@ -967,7 +1038,7 @@ export default function RoomMobile() {
   }
 
   return (
-    <div className="container">
+    <div className="container" style={{ paddingBottom: 120 }}>
       {/* Toast notification */}
       {toast && (
         <div
@@ -1628,14 +1699,15 @@ export default function RoomMobile() {
                 {searchResults.length === 0 && !searching && (
                   <button
                     onClick={handleSearchYouTube}
+                    className="btn-neon-border"
                     style={{
                       width: "100%",
-                      background: "#555",
                       marginBottom: 12,
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                       gap: 8,
+                      height: 48, // Fixed height for better border alignment
                     }}
                   >
                     <IconSearch size={16} /> {t("mobile.searchYouTubeToo", "Search YouTube too")}
@@ -1646,9 +1718,14 @@ export default function RoomMobile() {
 
             {/* Resultados da busca */}
             {searching && (
-              <p style={{ color: "#888", textAlign: "center" }}>
-                {t("mobile.searchingYouTube", "Searching YouTube...")}
-              </p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 8 }}>
+                <p className="pulse-text" style={{ color: "var(--accent)", textAlign: "center", marginBottom: 8, fontWeight: 500 }}>
+                  {loadingMessages[loadingStep]}
+                </p>
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="shimmer" style={{ height: 80, width: "100%" }} />
+                ))}
+              </div>
             )}
             {searchError && (
               <p
@@ -1731,25 +1808,11 @@ export default function RoomMobile() {
                           style={{
                             fontSize: "0.8rem",
                             color: "#888",
-                            marginBottom: result.isEmbeddable === false ? 4 : 8,
+                            marginBottom: 8,
                           }}
                         >
                           {result.channelTitle}
                         </div>
-                        {result.isEmbeddable === false && (
-                          <div
-                            style={{
-                              fontSize: "0.72rem",
-                              color: "#e67e22",
-                              marginBottom: 8,
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 4,
-                            }}
-                          >
-                            ⚠️ {t("mobile.embedDisabledWarning", "This video may not play in the app")}
-                          </div>
-                        )}
                         <button
                           onClick={() => handleAddFromSearch(result)}
                           disabled={adding === result.videoId || cooldownRemaining > 0}

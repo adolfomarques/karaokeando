@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import Logo from "../components/Logo";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth, getToken } from "../context/AuthContext";
 import { getState, API_BASE, deleteRoom } from "../api";
 import { useTranslation } from "react-i18next";
-import LanguageSwitcher from "../components/LanguageSwitcher";
+import LandingHeader from "../components/LandingHeader";
+import { Toaster } from "react-hot-toast";
 
 interface MyRoom {
   code: string;
@@ -12,15 +13,14 @@ interface MyRoom {
 }
 
 export default function Home() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { user, loading: authLoading, logout, registerGuest } = useAuth();
 
   // Minhas salas (se for host)
   const [myRooms, setMyRooms] = useState<MyRoom[]>([]);
-  const [loadingMyRooms, setLoadingMyRooms] = useState(false);
 
-  // Estado para entrar em sala - pré-preenche com última sala visitada (se houver)
+  // Estado para entrar em sala
   const [joinCode, setJoinCode] = useState(() => {
     return localStorage.getItem("karaokefactory_last_room") || "";
   });
@@ -28,7 +28,7 @@ export default function Home() {
   const [joinError, setJoinError] = useState<string | null>(null);
   const [joinMode, setJoinMode] = useState<"participant" | "tv">("participant");
 
-  // Modal de registro rápido (visitante)
+  // Modais
   const [showGuestModal, setShowGuestModal] = useState(false);
   const [pendingRoomCode, setPendingRoomCode] = useState<string | null>(null);
   const [guestName, setGuestName] = useState("");
@@ -38,7 +38,6 @@ export default function Home() {
   const [guestLoading, setGuestLoading] = useState(false);
   const [guestNeedsLogin, setGuestNeedsLogin] = useState(false);
 
-  // Modal de senha TV
   const [showTvPasswordModal, setShowTvPasswordModal] = useState(false);
   const [tvPassword, setTvPassword] = useState("");
   const [tvPasswordError, setTvPasswordError] = useState<string | null>(null);
@@ -47,7 +46,6 @@ export default function Home() {
   // Carregar minhas salas se for host
   useEffect(() => {
     if (user?.canHost) {
-      setLoadingMyRooms(true);
       const token = getToken();
       fetch(`${API_BASE}/api/rooms/my-rooms`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -56,8 +54,7 @@ export default function Home() {
         .then(data => {
           if (data.rooms) setMyRooms(data.rooms);
         })
-        .catch(() => {})
-        .finally(() => setLoadingMyRooms(false));
+        .catch(() => {});
     }
   }, [user]);
 
@@ -65,52 +62,34 @@ export default function Home() {
     if (!window.confirm(t("home.confirmDelete", "Tem certeza que deseja excluir esta sala?"))) {
       return;
     }
-
     try {
       const res = await deleteRoom(code);
       if (res.success) {
         setMyRooms(prev => prev.filter(r => r.code !== code));
-      } else {
-        alert(t("home.deleteError", "Erro ao excluir a sala."));
       }
     } catch (e) {
       console.error(e);
-      alert(t("home.deleteError", "Erro ao excluir a sala."));
     }
   };
 
-  // Verifica sala e decide próximo passo
   const joinRoom = async () => {
     const code = joinCode.trim().toUpperCase();
     if (code.length < 4) return;
-
     setJoining(true);
     setJoinError(null);
-
     try {
       const state = await getState(code);
-
       if (!state || state.error === "room_not_found") {
         setJoinError(t("home.roomNotFound", "Sala não encontrada. Verifique o código."));
-        setJoining(false);
         return;
       }
-
-      // Sala existe!
       setPendingRoomCode(code);
-
       if (joinMode === "tv") {
-        // Modo TV - pede senha
         setShowTvPasswordModal(true);
+      } else if (user) {
+        navigate(`/room/${code}`);
       } else {
-        // Modo participante
-        if (user) {
-          // Já logado, vai direto
-          navigate(`/room/${code}`);
-        } else {
-          // Precisa se identificar - abre modal
-          setShowGuestModal(true);
-        }
+        setShowGuestModal(true);
       }
     } catch {
       setJoinError(t("home.checkRoomError", "Erro ao verificar sala. Tente novamente."));
@@ -119,25 +98,17 @@ export default function Home() {
     }
   };
 
-  // Submete senha da TV
   const handleTvPasswordSubmit = async () => {
     if (!pendingRoomCode || tvPassword.length < 6) return;
-
     setTvPasswordLoading(true);
     setTvPasswordError(null);
-
     try {
-      const res = await fetch(
-        `${API_BASE}/api/rooms/${pendingRoomCode}/tv/login`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ tvPassword: tvPassword }),
-        }
-      );
-
+      const res = await fetch(`${API_BASE}/api/rooms/${pendingRoomCode}/tv/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tvPassword: tvPassword }),
+      });
       const data = await res.json();
-
       if (res.ok && data.tvToken) {
         localStorage.setItem(`tvToken_${pendingRoomCode}`, data.tvToken);
         navigate(`/room/${pendingRoomCode}/tv`);
@@ -151,9 +122,7 @@ export default function Home() {
     }
   };
 
-  // Entrar na própria sala como TV (sem senha)
   const openMyRoomAsTV = (code: string) => {
-    // Para sala própria, gerar token direto no backend
     const token = getToken();
     fetch(`${API_BASE}/api/rooms/${code}/tv/owner-access`, {
       method: "POST",
@@ -166,708 +135,443 @@ export default function Home() {
           navigate(`/room/${code}/tv`);
         }
       })
-      .catch(() => {
-        // Fallback: vai para página de login TV
-        navigate(`/room/${code}/tv/login`);
-      });
+      .catch(() => navigate(`/room/${code}/tv/login`));
   };
 
-  // Submete registro de visitante e entra na sala
   const handleGuestSubmit = async () => {
     if (!guestName.trim() || !guestEmail.trim() || !guestPhone.trim()) {
       setGuestError(t("guest.fillAllFields", "Preencha todos os campos"));
       return;
     }
-
-    if (!guestEmail.includes("@")) {
-      setGuestError(t("guest.invalidEmail", "Email inválido"));
-      return;
-    }
-
-    const phoneDigits = guestPhone.replace(/\D/g, "");
-    if (phoneDigits.length < 10) {
-      setGuestError(t("guestReg.invalidPhone", "Telefone inválido (mínimo 10 dígitos)"));
-      return;
-    }
-
     setGuestLoading(true);
-    setGuestError(null);
-
-    const result = await registerGuest(
-      guestName.trim(),
-      guestEmail.trim(),
-      guestPhone.trim()
-    );
-
+    const result = await registerGuest(guestName.trim(), guestEmail.trim(), guestPhone.trim());
     setGuestLoading(false);
-
-    if (result.success) {
-      if (pendingRoomCode) {
-        navigate(`/room/${pendingRoomCode}`);
-      }
+    if (result.success && pendingRoomCode) {
+      navigate(`/room/${pendingRoomCode}`);
     } else if (result.requiresLogin) {
-      // Email belongs to a host - show message to login
       setGuestNeedsLogin(true);
-      setGuestError(null);
     } else {
-      setGuestError(result.error || "Erro ao registrar. Tente novamente.");
-    }
-  };
-
-  const handleCreateRoom = () => {
-    if (!user) {
-      navigate("/login");
-    } else if (!user.canHost) {
-      navigate("/complete-profile");
-    } else {
-      navigate("/create-room");
+      setGuestError(result.error || "Erro ao registrar");
     }
   };
 
   if (authLoading) {
     return (
-      <div
-        className="container"
-        style={{ paddingTop: 60, textAlign: "center" }}
-      >
-        <p>{t("home.loading", "Carregando...")}</p>
+      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", background: "#0a0a0a" }}>
+        <p style={{ color: "#fff" }}>{t("home.loading", "Carregando...")}</p>
       </div>
     );
   }
 
   return (
-    <div className="container" style={{ paddingTop: 40 }}>
-      <LanguageSwitcher />
-      <Logo width={480} />
-      <p style={{ textAlign: "center", color: "#888", marginTop: -10, marginBottom: 30 }}>
-        {t("home.slogan", "Karaokê em grupo, fácil e divertido")}
-      </p>
+    <div style={{ background: "#0a0a0a", minHeight: "100vh", fontFamily: "Inter, sans-serif" }}>
+      <LandingHeader />
+      <Toaster position="top-right" />
 
-      {/* Usuário logado */}
-      {user && (
-        <div className="card" style={{ marginBottom: 20 }}>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <div>
-              <strong>{user?.name}</strong>
-              <br />
-              <small style={{ color: "#888" }}>{user?.email}</small>
-              {user?.canHost && (
-                <span
-                  style={{
-                    marginLeft: 10,
-                    background: "#4CAF50",
-                    color: "white",
-                    padding: "2px 8px",
-                    borderRadius: 4,
-                    fontSize: "0.75rem",
-                  }}
-                >
-                  Host
-                </span>
-              )}
-            </div>
-            <button
-              onClick={logout}
-              style={{
-                background: "transparent",
-                border: "1px solid #666",
-                padding: "6px 12px",
-                fontSize: "0.9rem",
-              }}
-            >
-              {t("auth.logout", "Sair")}
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Minhas Salas (só para hosts) */}
-      {user?.canHost && (
-        <div 
-          className="card" 
-          style={{ 
-            marginBottom: 20, 
-            background: "#111", 
-            border: "1px solid #333", 
-            boxShadow: "0 8px 32px rgba(0,0,0,0.5)" 
-          }}
-        >
-          <style>{`
-            .vip-ticket-list {
-              display: flex;
-              flex-direction: column;
-              gap: 16px;
-            }
-            .vip-ticket {
-              position: relative;
-              background: #0d0d0d;
-              border-radius: 8px;
-              display: flex;
-              border: 1px solid #ff6600;
-              box-shadow: 0 0 8px rgba(255, 102, 0, 0.3), inset 0 0 12px rgba(255, 102, 0, 0.1);
-              transition: transform 0.2s ease, box-shadow 0.2s ease;
-              overflow: hidden;
-            }
-            .vip-ticket:hover {
-              transform: translateY(-2px);
-              box-shadow: 0 6px 16px rgba(255, 102, 0, 0.5), inset 0 0 20px rgba(255, 102, 0, 0.2);
-            }
-            .vip-ticket-stub {
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              padding: 16px;
-              border-right: 2px dashed rgba(255, 102, 0, 0.5);
-              background: repeating-linear-gradient(
-                45deg,
-                rgba(255, 102, 0, 0.05),
-                rgba(255, 102, 0, 0.05) 10px,
-                transparent 10px,
-                transparent 20px
-              );
-            }
-            .vip-ticket-code {
-              font-size: 1.8rem;
-              font-weight: 900;
-              color: transparent;
-              -webkit-text-stroke: 1px #ff6600;
-              letter-spacing: 1px;
-              text-shadow: 0 0 10px rgba(255, 102, 0, 0.8);
-              margin: 0;
-              font-family: monospace;
-            }
-            .vip-ticket-main {
-              flex: 1;
-              padding: 16px;
-              display: flex;
-              flex-direction: column;
-              justify-content: space-between;
-              background: linear-gradient(to right, rgba(0,0,0,0), rgba(0, 255, 255, 0.05));
-            }
-            .vip-ticket-header {
-              display: flex;
-              justify-content: space-between;
-              align-items: flex-start;
-              margin-bottom: 12px;
-            }
-            .vip-ticket-label {
-              font-size: 0.75rem;
-              color: #00e5ff;
-              text-transform: uppercase;
-              letter-spacing: 1px;
-              font-weight: 700;
-              text-shadow: 0 0 4px rgba(0,229,255,0.6);
-            }
-            .vip-ticket-date {
-              color: #888;
-              font-size: 0.8rem;
-              margin-top: 2px;
-            }
-            .vip-btn-row {
-              display: flex;
-              gap: 12px;
-            }
-            .vip-btn {
-              flex: 1;
-              background: transparent;
-              border: 1px solid #00e5ff;
-              color: #00e5ff;
-              padding: 8px 0;
-              border-radius: 4px;
-              font-size: 0.85rem;
-              font-weight: 600;
-              cursor: pointer;
-              text-transform: uppercase;
-              transition: all 0.2s;
-              box-shadow: inset 0 0 8px rgba(0, 229, 255, 0.1);
-            }
-            .vip-btn:hover {
-              background: rgba(0, 229, 255, 0.15);
-              box-shadow: inset 0 0 12px rgba(0, 229, 255, 0.3), 0 0 10px rgba(0, 229, 255, 0.4);
-              color: #fff;
-            }
-            .vip-btn.orange {
-              border-color: #ff6600;
-              color: #ff6600;
-              box-shadow: inset 0 0 8px rgba(255, 102, 0, 0.1);
-            }
-            .vip-btn.orange:hover {
-              background: rgba(255, 102, 0, 0.15);
-              box-shadow: inset 0 0 12px rgba(255, 102, 0, 0.3), 0 0 10px rgba(255, 102, 0, 0.4);
-              color: #fff;
-            }
-            .vip-delete-btn {
-              background: transparent;
-              border: none;
-              color: #666;
-              cursor: pointer;
-              padding: 4px;
-              transition: color 0.2s, filter 0.2s;
-            }
-            .vip-delete-btn:hover {
-              color: #ff3333;
-              filter: drop-shadow(0 0 5px rgba(255, 51, 51, 0.8));
-              transform: scale(1.1);
-            }
-            .vip-create-btn {
-              width: 100%;
-              margin-top: 16px;
-              background: transparent;
-              color: #ff6600;
-              border: 2px solid #ff6600;
-              font-weight: bold;
-              text-transform: uppercase;
-              letter-spacing: 1px;
-              text-shadow: 0 0 8px rgba(255, 102, 0, 0.6);
-              box-shadow: inset 0 0 10px rgba(255, 102, 0, 0.2), 0 0 10px rgba(255, 102, 0, 0.2);
-              transition: all 0.2s;
-            }
-            .vip-create-btn:hover {
-              background: rgba(255, 102, 0, 0.1);
-              box-shadow: inset 0 0 15px rgba(255, 102, 0, 0.4), 0 0 15px rgba(255, 102, 0, 0.4);
-              color: #fff;
-            }
-          `}</style>
-
-          <h2 style={{ color: "#fff", textShadow: "0 0 10px rgba(255,255,255,0.4)" }}>
-            🎟️ {t("home.myRooms", "Minhas Salas")}
-          </h2>
-
-          {loadingMyRooms ? (
-            <p style={{ color: "#888" }}>{t("home.loading", "Carregando...")}</p>
-          ) : myRooms.length === 0 ? (
-            <p style={{ color: "#888", fontSize: "0.9rem" }}>
-              {t("home.noRoomsYet", "Você ainda não tem salas criadas.")}
-            </p>
-          ) : (
-            <div className="vip-ticket-list">
-              {myRooms.map(room => (
-                <div key={room.code} className="vip-ticket">
-                  <div className="vip-ticket-stub">
-                    <span className="vip-ticket-code">{room.code}</span>
-                  </div>
-                  
-                  <div className="vip-ticket-main">
-                    <div className="vip-ticket-header">
-                      <div>
-                        <div className="vip-ticket-label">VIP ACCESS</div>
-                        <div className="vip-ticket-date">
-                          {new Date(room.createdAt).toLocaleDateString(i18n.language === "pt" ? "pt-BR" : "en-US")}
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => handleDeleteRoom(room.code)}
-                        className="vip-delete-btn"
-                        title={t("home.deleteRoom", "Excluir sala")}
-                      >
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <polyline points="3 6 5 6 21 6" />
-                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                          <line x1="10" y1="11" x2="10" y2="17" />
-                          <line x1="14" y1="11" x2="14" y2="17" />
-                        </svg>
-                      </button>
-                    </div>
-                    
-                    <div className="vip-btn-row">
-                      <button 
-                        className="vip-btn orange" 
-                        onClick={() => navigate(`/room/${room.code}`)}
-                      >
-                        🎤 {t("home.singBtn", "Cantar")}
-                      </button>
-                      <button 
-                        className="vip-btn" 
-                        onClick={() => openMyRoomAsTV(room.code)}
-                      >
-                        🖥️ {t("home.showOnTV", "Exibir")}
-                      </button>
-                    </div>
-                  </div>
+      {/* Hero / Main Action Section */}
+      <section style={{
+        padding: "60px 20px",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        textAlign: "center"
+      }}>
+        <div className="container" style={{ animation: "fadeInUp 0.8s ease-out" }}>
+          <Logo width={320} style={{ marginBottom: "20px" }} />
+          
+          {/* Main Content Area (Cyber-HUD style) */}
+          <div style={{
+            background: "rgba(255, 255, 255, 0.03)",
+            backdropFilter: "blur(20px)",
+            borderRadius: "24px",
+            padding: "40px",
+            width: "100%",
+            color: "#fff",
+            border: "1px solid rgba(255, 255, 255, 0.08)",
+            boxShadow: "0 40px 80px rgba(0,0,0,0.6)",
+            marginBottom: "40px",
+            textAlign: "left"
+          }}>
+            {user ? (
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "30px", borderBottom: "1px solid rgba(255,255,255,0.05)", paddingBottom: "20px" }}>
+                <div>
+                  <h2 style={{ margin: 0, fontSize: "1.5rem", fontWeight: "800", color: "#fff" }}>{t("common.welcome", "Olá")}, {user.name}</h2>
+                  <p style={{ margin: "4px 0 0", color: "#888" }}>{user.email}</p>
                 </div>
-              ))}
-            </div>
-          )}
+                <button onClick={logout} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", color: "#888", padding: "8px 16px" }}>
+                  {t("auth.logout", "Sair")}
+                </button>
+              </div>
+            ) : null}
 
-          <button onClick={handleCreateRoom} className="vip-create-btn">
-            + {t("home.createRoom", "Criar nova sala")}
-          </button>
-        </div>
-      )}
-
-      {/* Entrar em sala */}
-      <div className="card">
-        <h2>🎵 {t("home.joinRoom", "Entrar em uma sala")}</h2>
-        <p style={{ color: "#888", fontSize: "0.9rem", marginBottom: 16 }}>
-          {t("home.joinInstruction", "Digite o código da sala ou escaneie o QR Code na TV")}
-        </p>
-
-        <input
-          placeholder={t("home.roomCodePlaceholder", "Código da sala (ex: ABC12)")}
-          value={joinCode}
-          onChange={e => {
-            setJoinCode(e.target.value.toUpperCase());
-            if (joinError) setJoinError(null);
-          }}
-          onKeyDown={e => e.key === "Enter" && joinRoom()}
-          style={{ marginBottom: 16 }}
-        />
-
-        {/* Seletor de modo */}
-        <p
-          style={{
-            color: "#aaa",
-            fontSize: "0.95rem",
-            marginBottom: 14,
-            fontWeight: 500,
-          }}
-        >
-          {t("home.whatToDo", "O que você quer fazer?")}
-        </p>
-        <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
-          <button
-            onClick={() => setJoinMode("participant")}
-            style={{
-              flex: 1,
-              padding: "18px 12px",
-              background: joinMode === "participant" ? "#7c4dff" : "#2a2a2a",
-              border:
-                joinMode === "participant"
-                  ? "2px solid #9d7aff"
-                  : "2px solid #444",
-              borderRadius: 12,
-              color: "#fff",
-              cursor: "pointer",
-              textAlign: "center",
-            }}
-          >
-            <div style={{ fontSize: "1.6rem", marginBottom: 8 }}>🎤</div>
-            <div style={{ fontWeight: 600, fontSize: "1.05rem" }}>
-              {t("home.modeSinger", "Quero cantar")}
-            </div>
-            <div
-              style={{
-                fontSize: "0.82rem",
-                color: "#ccc",
-                marginTop: 8,
-                lineHeight: 1.4,
-              }}
-            >
-              {t("home.modeSingerDesc1", "Escolher músicas e")}
-              <br />
-              {t("home.modeSingerDesc2", "acompanhar a fila")}
-            </div>
-          </button>
-          <button
-            onClick={() => setJoinMode("tv")}
-            style={{
-              flex: 1,
-              padding: "18px 12px",
-              background: joinMode === "tv" ? "#7c4dff" : "#2a2a2a",
-              border:
-                joinMode === "tv" ? "2px solid #9d7aff" : "2px solid #444",
-              borderRadius: 12,
-              color: "#fff",
-              cursor: "pointer",
-              textAlign: "center",
-            }}
-          >
-            <div style={{ fontSize: "1.6rem", marginBottom: 8 }}>🖥️</div>
-            <div style={{ fontWeight: 600, fontSize: "1.05rem" }}>
-              {t("home.modeTV", "Exibir na tela")}
-            </div>
-            <div
-              style={{
-                fontSize: "0.82rem",
-                color: "#ccc",
-                marginTop: 8,
-                lineHeight: 1.4,
-              }}
-            >
-              {t("home.modeTVDesc1", "Mostrar vídeo e letra")}
-              <br />
-              {t("home.modeTVDesc2", "para todos verem")}
-            </div>
-          </button>
-        </div>
-
-        {joinError && (
-          <p style={{ color: "#ff6b6b", fontSize: "0.9rem", marginBottom: 12 }}>
-            {joinError}
-          </p>
-        )}
-
-        <button
-          onClick={joinRoom}
-          disabled={joining || !joinCode.trim()}
-          style={{ width: "100%", fontSize: "1.1rem" }}
-        >
-          {joining ? t("home.joining", "Verificando...") : t("home.continue", "Continuar")}
-        </button>
-      </div>
-
-      {/* Criar sala (só se não for host ainda) */}
-      {(!user || !user?.canHost) && (
-        <div className="card">
-          <h2>🎤 {t("home.createRoomHeader", "Criar sala")}</h2>
-          <p style={{ color: "#888", marginBottom: 12, fontSize: "0.9rem" }}>
-            {!user
-              ? t("home.loginToCreate", "Faça login para criar sua própria sala de karaokê")
-              : t("home.completeProfileToHost", "Complete seu cadastro para virar Host")}
-          </p>
-          <button onClick={handleCreateRoom} style={{ width: "100%" }}>
-            {!user ? t("auth.login", "Fazer login") : t("home.completeRegistration", "Completar cadastro")}
-          </button>
-        </div>
-      )}
-
-      {/* Link criar conta se não logado */}
-      {!user && (
-        <div style={{ textAlign: "center", marginTop: 20 }}>
-          <span style={{ color: "#888" }}>{t("home.noAccount", "Não tem conta?")} </span>
-          <a
-            href="/register"
-            style={{ color: "#4CAF50" }}
-            onClick={e => {
-              e.preventDefault();
-              navigate("/register");
-            }}
-          >
-            {t("auth.createAccount", "Criar conta")}
-          </a>
-        </div>
-      )}
-
-      {/* Modal de registro rápido (visitante) */}
-      {showGuestModal && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: "rgba(0,0,0,0.8)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 1000,
-            padding: 20,
-          }}
-          onClick={() => {
-            setShowGuestModal(false);
-            setGuestNeedsLogin(false);
-          }}
-        >
-          <div
-            style={{
-              background: "#1e1e1e",
-              borderRadius: 16,
-              padding: 24,
-              width: "100%",
-              maxWidth: 360,
-            }}
-            onClick={e => e.stopPropagation()}
-          >
-            {guestNeedsLogin ? (
-              // Tela de "precisa fazer login"
-              <>
-                <h3 style={{ margin: "0 0 16px", textAlign: "center" }}>
-                  👋 {t("guest.alreadyHaveAccount", "Você já tem uma conta!")}
-                </h3>
-                <p
+            <div style={{ display: "grid", gridTemplateColumns: window.innerWidth > 900 ? "1.2fr 1fr" : "1fr", gap: "40px" }}>
+              {/* Join Room Side */}
+              <div>
+                <h3 style={{ fontSize: "1.2rem", fontWeight: "800", marginBottom: "20px", color: "#fff" }}>🎵 {t("home.joinRoom", "Entrar em uma sala")}</h3>
+                <input
+                  placeholder={t("home.roomCodePlaceholder", "ABC12")}
+                  value={joinCode}
+                  onChange={e => setJoinCode(e.target.value.toUpperCase())}
+                  onKeyDown={e => e.key === "Enter" && joinRoom()}
                   style={{
-                    color: "#888",
-                    textAlign: "center",
-                    margin: "0 0 24px",
-                    fontSize: "0.95rem",
-                    lineHeight: 1.5,
-                  }}
-                >
-                  {t("guest.emailAlreadyRegistered1", "O email")} {" "}
-                  <strong style={{ color: "#fff" }}>{guestEmail}</strong>{" "}
-                  {t("guest.emailAlreadyRegistered2", "já está cadastrado. Faça login para continuar.")}
-                </p>
-
-                <button
-                  onClick={() => {
-                    setShowGuestModal(false);
-                    setGuestNeedsLogin(false);
-                    navigate("/login", {
-                      state: { returnTo: `/room/${pendingRoomCode}` },
-                    });
-                  }}
-                  style={{
-                    width: "100%",
-                    padding: 14,
-                    background: "#4CAF50",
-                    border: "none",
-                    borderRadius: 8,
+                    background: "rgba(255,255,255,0.05)",
+                    border: "1px solid rgba(255,255,255,0.1)",
                     color: "#fff",
-                    fontSize: 16,
-                    fontWeight: 600,
-                    cursor: "pointer",
-                    marginBottom: 12,
+                    padding: "16px",
+                    fontSize: "1.2rem",
+                    fontWeight: "700",
+                    marginBottom: "20px",
+                    borderRadius: "12px"
                   }}
-                >
-                  {t("auth.login", "Fazer login")}
-                </button>
-
-                <button
-                  onClick={() => {
-                    setGuestNeedsLogin(false);
-                    setGuestEmail("");
-                  }}
-                  style={{
-                    width: "100%",
-                    padding: 12,
-                    background: "transparent",
-                    border: "1px solid #444",
-                    borderRadius: 8,
-                    color: "#888",
-                    fontSize: 14,
-                    cursor: "pointer",
-                  }}
-                >
-                  {t("guest.useAnotherEmail", "Usar outro email")}
-                </button>
-              </>
-            ) : (
-              // Formulário normal de guest
-              <>
-                <h3 style={{ margin: "0 0 8px", textAlign: "center" }}>
-                  🎵 {t("guest.enterRoom", "Entrar na sala")} {pendingRoomCode}
-                </h3>
-                <p
-                  style={{
-                    color: "#888",
-                    textAlign: "center",
-                    margin: "0 0 20px",
-                    fontSize: "0.9rem",
-                  }}
-                >
-                  {t("guest.identifyYourself", "Identifique-se para participar")}
-                </p>
-
-                {guestError && (
-                  <div
+                />
+                <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
+                  <button
+                    onClick={() => setJoinMode("participant")}
                     style={{
-                      background: "#ff4444",
-                      color: "#fff",
-                      padding: 12,
-                      borderRadius: 8,
-                      marginBottom: 16,
-                      fontSize: "0.9rem",
-                      textAlign: "center",
+                      flex: 1,
+                      background: joinMode === "participant" ? "#ff007f" : "rgba(255,255,255,0.05)",
+                      color: joinMode === "participant" ? "#fff" : "#888",
+                      border: "none",
+                      borderRadius: "12px",
+                      padding: "12px",
+                      transition: "all 0.2s"
                     }}
                   >
-                    {guestError}
+                   🎤 {t("home.modeSinger", "Cantar")}
+                  </button>
+                  <button
+                    onClick={() => setJoinMode("tv")}
+                    style={{
+                      flex: 1,
+                      background: joinMode === "tv" ? "#ff007f" : "rgba(255,255,255,0.05)",
+                      color: joinMode === "tv" ? "#fff" : "#888",
+                      border: "none",
+                      borderRadius: "12px",
+                      padding: "12px",
+                      transition: "all 0.2s"
+                    }}
+                  >
+                    🖥️ {t("home.modeTV", "TV")}
+                  </button>
+                </div>
+                {joinError && <p style={{ color: "#ff4444", marginBottom: "10px" }}>{joinError}</p>}
+                <button
+                  onClick={joinRoom}
+                  disabled={joining || !joinCode}
+                  style={{ 
+                    width: "100%", 
+                    background: "#fff", 
+                    color: "#000", 
+                    borderRadius: "12px", 
+                    padding: "16px", 
+                    fontSize: "1.1rem",
+                    fontWeight: "800",
+                    boxShadow: "0 10px 20px rgba(0,0,0,0.2)"
+                  }}
+                >
+                  {joining ? t("common.wait", "Aguarde...") : t("common.enter", "Entrar")}
+                </button>
+              </div>
+
+              {/* My Rooms / Create Side */}
+              <div style={{ borderLeft: window.innerWidth > 900 ? "1px solid rgba(255,255,255,0.05)" : "none", paddingLeft: window.innerWidth > 900 ? "40px" : "0" }}>
+                {user?.canHost ? (
+                  <>
+                    <h3 style={{ fontSize: "1.2rem", fontWeight: "800", marginBottom: "20px", color: "#fff" }}>🎟️ {t("home.myRooms", "Minhas Salas")}</h3>
+                    <div style={{ maxHeight: "200px", overflowY: "auto", marginBottom: "20px" }}>
+                      {myRooms.length === 0 ? (
+                        <p style={{ color: "#555" }}>{t("home.noRoomsYet", "Sem salas")}</p>
+                      ) : (
+                        myRooms.map(r => (
+                          <div key={r.code} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px", background: "rgba(255,255,255,0.03)", borderRadius: "12px", marginBottom: "8px", border: "1px solid rgba(255,255,255,0.05)" }}>
+                            <strong style={{ fontSize: "1.1rem", color: "#fff" }}>{r.code}</strong>
+                            <div style={{ display: "flex", gap: "8px" }}>
+                              <button onClick={() => navigate(`/room/${r.code}`)} style={{ padding: "6px 12px", fontSize: "0.8rem", background: "#ff007f" }}>{t("home.singBtn", "Cantar")}</button>
+                              <button onClick={() => openMyRoomAsTV(r.code)} style={{ padding: "6px 12px", fontSize: "0.8rem", background: "#000" }}>{t("home.showOnTV", "TV")}</button>
+                              <button
+                                onClick={() => handleDeleteRoom(r.code)}
+                                style={{
+                                  padding: "6px 12px",
+                                  fontSize: "0.8rem",
+                                  background: "transparent",
+                                  border: "1px solid #ff4444",
+                                  color: "#ff4444"
+                                }}
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                    <button
+                      onClick={() => navigate("/create-room")}
+                      style={{ width: "100%", background: "transparent", border: "2px solid #ff007f", color: "#ff007f", borderRadius: "12px", fontWeight: "700" }}
+                    >
+                      + {t("home.createRoom", "Criar Sala")}
+                    </button>
+                  </>
+                ) : (
+                  <div style={{ textAlign: "center", paddingTop: "10px" }}>
+                    <h3 style={{ marginBottom: "16px", color: "#fff" }}>{t("home.createYourRoom", "Crie sua própria festa!")}</h3>
+                    <p style={{ color: "#888", marginBottom: "24px" }}>{t("home.loginToCreate", "Junte seus amigos e comece a festa agora.")}</p>
+                    <button
+                      onClick={() => navigate(user ? "/complete-profile" : "/login")}
+                      style={{ width: "100%", background: "#ff007f", borderRadius: "12px", fontWeight: "700" }}
+                    >
+                      {user ? t("home.completeRegistration", "Ser Host") : t("auth.login", "Entrar")}
+                    </button>
+                    {!user && (
+                      <p style={{ marginTop: "16px", fontSize: "0.9rem", color: "#666" }}>
+                        {t("home.noAccount", "Não tem conta?")} <span onClick={() => navigate("/register")} style={{ color: "#ff007f", cursor: "pointer", fontWeight: "700" }}>{t("auth.createAccount", "Cadastrar")}</span>
+                      </p>
+                    )}
                   </div>
                 )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
+      {/* How it Works Section */}
+      <section style={{ padding: "60px 20px", background: "#0a0a0a", textAlign: "center" }}>
+        <div className="container">
+          <h2 style={{ fontSize: "2.5rem", fontWeight: "900", color: "#fff", marginBottom: "12px" }}>
+            {t("landing.howItWorks.title", "How it works")}
+          </h2>
+          <p style={{ color: "#888", marginBottom: "60px", fontSize: "1.1rem" }}>
+            {t("landing.howItWorks.subtitle", "Three simple steps to start singing with your friends")}
+          </p>
+
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+            gap: "32px"
+          }}>
+            {[
+              { id: 1, icon: "➕", title: t("landing.howItWorks.step1Title"), desc: t("landing.howItWorks.step1Desc"), color: "#ff007f" },
+              { id: 2, icon: "↪️", title: t("landing.howItWorks.step2Title"), desc: t("landing.howItWorks.step2Desc"), color: "#00d1ff" },
+              { id: 3, icon: "🎤", title: t("landing.howItWorks.step3Title"), desc: t("landing.howItWorks.step3Desc"), color: "#7c4dff" }
+            ].map(step => (
+              <div key={step.id} style={{
+                background: "rgba(255,255,255,0.03)",
+                padding: "48px 32px",
+                borderRadius: "32px",
+                border: "1px solid rgba(255,255,255,0.05)",
+                textAlign: "left",
+                transition: "transform 0.3s ease",
+                cursor: "default"
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.transform = "translateY(-10px)"}
+              onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}
+              >
+                <div style={{
+                  width: "56px",
+                  height: "56px",
+                  borderRadius: "16px",
+                  background: `${step.color}20`,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "1.5rem",
+                  marginBottom: "32px",
+                  color: step.color
+                }}>
+                  {step.icon}
+                </div>
+                <h3 style={{ fontSize: "1.5rem", color: "#fff", marginBottom: "16px", fontWeight: "800" }}>{step.title}</h3>
+                <p style={{ color: "#888", lineHeight: "1.6", fontSize: "1.05rem" }}>{step.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Stats Bar */}
+      <section style={{ padding: "40px 0" }}>
+        <div className="container" style={{
+          background: "linear-gradient(90deg, #1b1b1b, #0d0d0d)",
+          borderRadius: "32px",
+          padding: "40px",
+          display: "flex",
+          flexWrap: "wrap",
+          justifyContent: "space-around",
+          gap: "40px",
+          border: "1px solid rgba(255,255,255,0.05)"
+        }}>
+          {[
+            { value: "100%", label: t("landing.stats.free"), icon: "💎" },
+            { value: "∞", label: t("landing.stats.songs"), icon: "🎵" },
+            { value: "QR", label: t("landing.stats.qr"), icon: "📱" },
+            { value: "⚡", label: t("landing.stats.realtime"), icon: "🎤" }
+          ].map((stat, i) => (
+            <div key={i} style={{ textAlign: "center", minWidth: "120px" }}>
+              <div style={{ fontSize: "2rem", fontWeight: "900", color: "#fff", marginBottom: "8px" }}>{stat.value}</div>
+              <div style={{ fontSize: "0.8rem", color: "#666", letterSpacing: "2px", fontWeight: "800" }}>{stat.label}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Ready to Sing CTA */}
+      <section style={{ padding: "120px 20px", textAlign: "center" }}>
+        <div className="container">
+          <h2 style={{
+             fontSize: "clamp(3rem, 10vw, 6rem)",
+             fontWeight: "900",
+             color: "#fff",
+             marginBottom: "32px",
+             letterSpacing: "-2px",
+             lineHeight: "1"
+          }}
+          dangerouslySetInnerHTML={{ __html: t("landing.cta.ready", "Ready to <span>sing</span>?") }}
+          />
+          <p style={{ color: "#888", marginBottom: "48px", fontSize: "1.2rem" }}>
+            {t("landing.cta.subtitle", "Start right now. No registration, no hassle.")}
+          </p>
+          <button
+            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+            style={{
+              background: "#ff007f",
+              padding: "20px 48px",
+              borderRadius: "50px",
+              fontSize: "1.2rem",
+              fontWeight: "800",
+              boxShadow: "0 20px 40px rgba(255, 0, 127, 0.3)",
+              transition: "transform 0.2s"
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.05)"}
+            onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
+          >
+            🚀 {t("landing.cta.start", "Create My Party")}
+          </button>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer style={{
+        padding: "80px 20px",
+        borderTop: "1px solid rgba(255,255,255,0.05)",
+        textAlign: "center"
+      }}>
+        <div className="container">
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "20px" }}>
+             <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <img 
+                  src="/am-logo.png" 
+                  alt="AM" 
+                  style={{ 
+                    width: "28px", 
+                    height: "28px", 
+                    borderRadius: "50%",
+                    objectFit: "cover",
+                    border: "1px solid rgba(255,255,255,0.1)"
+                  }} 
+                />
+                <span style={{ color: "#fff", fontSize: "0.85rem", fontWeight: "600", letterSpacing: "-0.3px" }}>by Adolfo Marques</span>
+             </div>
+             <div style={{ display: "flex", gap: "32px" }}>
+                <Link to="/terms" style={{ color: "#666", textDecoration: "none", fontSize: "0.9rem" }}>{t("landing.terms")}</Link>
+                <span style={{ color: "#333", fontSize: "0.9rem" }}>{t("landing.footer.copyright")}</span>
+             </div>
+          </div>
+        </div>
+      </footer>
+
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&display=swap');
+        
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(40px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        
+        h2 span {
+          color: #ff007f;
+          position: relative;
+          display: inline-block;
+        }
+        
+        h2 span::after {
+          content: '';
+          position: absolute;
+          bottom: 15%;
+          left: 0;
+          width: 100%;
+          height: 8px;
+          background: #ff007f40;
+          z-index: -1;
+          transform: skewX(-15deg);
+        }
+
+        input:focus {
+          outline: none;
+          border-color: #ff007f !important;
+          box-shadow: 0 0 0 4px rgba(255, 0, 127, 0.1);
+        }
+
+        ::-webkit-scrollbar {
+          width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+          background: #0d0d0d;
+        }
+        ::-webkit-scrollbar-thumb {
+          background: #222;
+          border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+          background: #333;
+        }
+      `}</style>
+      
+      {/* Modals are kept as they were in logic, but re-styled */}
+      {showGuestModal && (
+        <div className="modal-overlay" onClick={() => setShowGuestModal(false)} style={{
+          position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
+          background: "rgba(0,0,0,0.8)", backdropFilter: "blur(10px)",
+          display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2000, padding: 20
+        }}>
+          <div className="modal-content" onClick={e => e.stopPropagation()} style={{
+            background: "#fff", borderRadius: "32px", padding: "40px", width: "100%", maxWidth: "420px", color: "#000"
+          }}>
+            {guestNeedsLogin ? (
+               <>
+                 <h2 style={{ fontWeight: "900", marginBottom: "16px" }}>{t("guest.alreadyHaveAccount")}</h2>
+                 <p style={{ color: "#666", marginBottom: "32px" }}>{t("guest.emailAlreadyRegistered1")} <strong>{guestEmail}</strong> {t("guest.emailAlreadyRegistered2")}</p>
+                 <button onClick={() => navigate("/login", { state: { returnTo: `/room/${pendingRoomCode}` } })} style={{ width: "100%", background: "#ff007f", borderRadius: "16px", padding: "16px" }}>{t("auth.login")}</button>
+               </>
+            ) : (
+              <>
+                <h2 style={{ fontWeight: "900", marginBottom: "8px" }}>{t("guest.enterRoom")} {pendingRoomCode}</h2>
+                <p style={{ color: "#666", marginBottom: "30px" }}>{t("guest.identifyYourself")}</p>
+                {guestError && <p style={{ color: "#ff4444", marginBottom: "16px" }}>{guestError}</p>}
                 <input
                   type="text"
                   value={guestName}
                   onChange={e => setGuestName(e.target.value)}
-                  placeholder={t("guest.yourName", "Seu nome")}
-                  autoFocus
-                  style={{
-                    width: "100%",
-                    padding: 12,
-                    fontSize: 16,
-                    background: "#2a2a2a",
-                    border: "1px solid #444",
-                    borderRadius: 8,
-                    color: "#fff",
-                    marginBottom: 12,
-                    boxSizing: "border-box",
-                  }}
+                  placeholder={t("guest.yourName")}
+                  style={{ background: "#f5f5f5", border: "1px solid #eee", color: "#000", marginBottom: "16px", borderRadius: "12px" }}
                 />
-
                 <input
                   type="email"
                   value={guestEmail}
                   onChange={e => setGuestEmail(e.target.value)}
-                  placeholder={t("guest.yourEmail", "Seu email")}
-                  style={{
-                    width: "100%",
-                    padding: 12,
-                    fontSize: 16,
-                    background: "#2a2a2a",
-                    border: "1px solid #444",
-                    borderRadius: 8,
-                    color: "#fff",
-                    marginBottom: 12,
-                    boxSizing: "border-box",
-                  }}
+                  placeholder={t("guest.yourEmail")}
+                  style={{ background: "#f5f5f5", border: "1px solid #eee", color: "#000", marginBottom: "16px", borderRadius: "12px" }}
                 />
-
                 <input
                   type="tel"
                   value={guestPhone}
                   onChange={e => setGuestPhone(e.target.value)}
-                  placeholder={t("guest.yourPhone", "Seu celular (ex: 11999998888)")}
-                  onKeyDown={e => e.key === "Enter" && handleGuestSubmit()}
-                  style={{
-                    width: "100%",
-                    padding: 12,
-                    fontSize: 16,
-                    background: "#2a2a2a",
-                    border: "1px solid #444",
-                    borderRadius: 8,
-                    color: "#fff",
-                    marginBottom: 20,
-                    boxSizing: "border-box",
-                  }}
+                  placeholder={t("guest.yourPhone")}
+                  style={{ background: "#f5f5f5", border: "1px solid #eee", color: "#000", marginBottom: "30px", borderRadius: "12px" }}
                 />
-
-                <button
-                  onClick={handleGuestSubmit}
-                  disabled={
-                    guestLoading ||
-                    !guestName.trim() ||
-                    !guestEmail.trim() ||
-                    !guestPhone.trim()
-                  }
-                  style={{
-                    width: "100%",
-                    padding: 14,
-                    background: guestLoading ? "#666" : "#7c4dff",
-                    border: "none",
-                    borderRadius: 8,
-                    color: "#fff",
-                    fontSize: 16,
-                    fontWeight: 600,
-                    cursor: guestLoading ? "not-allowed" : "pointer",
-                    marginBottom: 12,
-                  }}
-                >
-                  {guestLoading ? t("guest.entering", "Entrando...") : t("guest.enterRoomBtn", "Entrar na sala")}
-                </button>
-
-                <button
-                  onClick={() => {
-                    setShowGuestModal(false);
-                    setGuestNeedsLogin(false);
-                  }}
-                  style={{
-                    width: "100%",
-                    padding: 12,
-                    background: "transparent",
-                    border: "1px solid #444",
-                    borderRadius: 8,
-                    color: "#888",
-                    fontSize: 14,
-                    cursor: "pointer",
-                  }}
-                >
-                  {t("common.cancel", "Cancelar")}
+                <button onClick={handleGuestSubmit} disabled={guestLoading} style={{ width: "100%", background: "#ff007f", color: "#fff", borderRadius: "16px", padding: "16px" }}>
+                  {guestLoading ? t("guest.entering") : t("guest.enterRoomBtn")}
                 </button>
               </>
             )}
@@ -875,124 +579,31 @@ export default function Home() {
         </div>
       )}
 
-      {/* Modal senha TV */}
       {showTvPasswordModal && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: "rgba(0,0,0,0.8)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 1000,
-            padding: 20,
-          }}
-          onClick={() => setShowTvPasswordModal(false)}
-        >
-          <div
-            style={{
-              background: "#1e1e1e",
-              borderRadius: 16,
-              padding: 24,
-              width: "100%",
-              maxWidth: 360,
-            }}
-            onClick={e => e.stopPropagation()}
-          >
-            <h3 style={{ margin: "0 0 8px", textAlign: "center" }}>
-              🔐 {t("tv.passwordTitle", "Senha da sala")}
-            </h3>
-            <p
-              style={{
-                color: "#888",
-                textAlign: "center",
-                margin: "0 0 20px",
-                fontSize: "0.9rem",
-              }}
-            >
-              {t("tv.passwordInstruction", "Digite a senha para abrir a exibição na sala")}{" "}
-              <strong>{pendingRoomCode}</strong>
-            </p>
-
-            {tvPasswordError && (
-              <div
-                style={{
-                  background: "#ff4444",
-                  color: "#fff",
-                  padding: 12,
-                  borderRadius: 8,
-                  marginBottom: 16,
-                  fontSize: "0.9rem",
-                  textAlign: "center",
-                }}
-              >
-                {tvPasswordError}
-              </div>
-            )}
-
+        <div className="modal-overlay" onClick={() => setShowTvPasswordModal(false)} style={{
+          position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
+          background: "rgba(0,0,0,0.8)", backdropFilter: "blur(10px)",
+          display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2000, padding: 20
+        }}>
+          <div className="modal-content" onClick={e => e.stopPropagation()} style={{
+            background: "#fff", borderRadius: "32px", padding: "40px", width: "100%", maxWidth: "420px", color: "#000",
+            textAlign: "center"
+          }}>
+            <h2 style={{ fontWeight: "900", marginBottom: "8px" }}>{t("tv.passwordTitle")}</h2>
+            <p style={{ color: "#666", marginBottom: "30px" }}>{t("tv.passwordInstruction")} <strong>{pendingRoomCode}</strong></p>
+            {tvPasswordError && <p style={{ color: "#ff4444", marginBottom: "16px" }}>{tvPasswordError}</p>}
             <input
               type="text"
-              inputMode="text"
-              autoComplete="off"
-              autoCapitalize="off"
-              value={tvPassword}
-              onChange={e => setTvPassword(e.target.value.slice(0, 6))}
-              placeholder={t("tv.passwordPlaceholder", "Ex: abc123")}
-              autoFocus
               maxLength={6}
+              value={tvPassword}
+              onChange={e => setTvPassword(e.target.value.toUpperCase())}
               style={{
-                width: "100%",
-                padding: 16,
-                fontSize: 24,
-                background: "#2a2a2a",
-                border: "1px solid #444",
-                borderRadius: 8,
-                color: "#fff",
-                marginBottom: 20,
-                boxSizing: "border-box",
-                textAlign: "center",
-                letterSpacing: "0.5em",
+                background: "#f5f5f5", border: "1px solid #eee", color: "#000", marginBottom: "30px", borderRadius: "16px",
+                textAlign: "center", fontSize: "2rem", letterSpacing: "10px", padding: "20px"
               }}
-              onKeyDown={e => e.key === "Enter" && handleTvPasswordSubmit()}
             />
-
-            <button
-              onClick={handleTvPasswordSubmit}
-              disabled={tvPasswordLoading || tvPassword.length < 6}
-              style={{
-                width: "100%",
-                padding: 14,
-                background: tvPasswordLoading ? "#666" : "#7c4dff",
-                border: "none",
-                borderRadius: 8,
-                color: "#fff",
-                fontSize: 16,
-                fontWeight: 600,
-                cursor: tvPasswordLoading ? "not-allowed" : "pointer",
-                marginBottom: 12,
-              }}
-            >
-              {tvPasswordLoading ? t("tv.verifying", "Verificando...") : t("common.enter", "Entrar")}
-            </button>
-
-            <button
-              onClick={() => setShowTvPasswordModal(false)}
-              style={{
-                width: "100%",
-                padding: 12,
-                background: "transparent",
-                border: "1px solid #444",
-                borderRadius: 8,
-                color: "#888",
-                fontSize: 14,
-                cursor: "pointer",
-              }}
-            >
-              {t("common.cancel", "Cancelar")}
+            <button onClick={handleTvPasswordSubmit} disabled={tvPasswordLoading} style={{ width: "100%", background: "#ff007f", color: "#fff", borderRadius: "16px", padding: "16px" }}>
+              {tvPasswordLoading ? t("tv.verifying") : t("common.enter")}
             </button>
           </div>
         </div>

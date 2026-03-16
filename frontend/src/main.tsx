@@ -19,6 +19,10 @@ import "./i18n";
 const RoomTV = lazy(() => import("./pages/RoomTV"));
 const RoomMobile = lazy(() => import("./pages/RoomMobile"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
+const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
+const AdminSongs = lazy(() => import("./pages/admin/AdminSongs"));
+const AdminPlaylists = lazy(() => import("./pages/admin/AdminPlaylists"));
+const AdminScoreConfig = lazy(() => import("./pages/admin/AdminScoreConfig"));
 
 function PageLoader() {
   return (
@@ -35,6 +39,8 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "YOUR_GOOGLE_CLIENT_ID";
 
+import Terms from "./pages/Terms";
+
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
@@ -45,6 +51,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<RegisterHost />} />
+              <Route path="/terms" element={<Terms />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/complete-profile" element={<CompleteProfile />} />
@@ -54,7 +61,11 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
               <Route path="/room/:code/tv" element={<RoomTV />} />
               <Route path="/room/:code/tv/login" element={<TvLogin />} />
               <Route path="/room/:code" element={<RoomMobile />} />
-              <Route path="/admin" element={<Dashboard />} />
+              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/songs" element={<AdminSongs />} />
+              <Route path="/admin/playlists" element={<AdminPlaylists />} />
+              <Route path="/admin/score-config" element={<AdminScoreConfig />} />
+              <Route path="/old-admin" element={<Dashboard />} />
             </Routes>
           </Suspense>
         </BrowserRouter>

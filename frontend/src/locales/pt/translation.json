@@ -38,7 +38,8 @@
     "joining": "Verificando...",
     "continue": "Continuar",
     "roomNotFound": "Sala não encontrada. Verifique o código.",
-    "checkRoomError": "Erro ao verificar sala. Tente novamente."
+    "checkRoomError": "Erro ao verificar sala. Tente novamente.",
+    "createYourRoom": "Crie sua própria festa!"
   },
   "auth": {
     "logout": "Sair",
@@ -440,5 +441,31 @@
       "{{name}}, VOCÊ É O(A) MAIOR! 100 PONTOS! HISTORIC!",
       "CHAMEM A RECORD! {{name}} FEZ 100 PONTOS! 📺🏆"
     ]
+  },
+  "landing": {
+    "terms": "Termos",
+    "howItWorks": {
+      "title": "Como funciona",
+      "subtitle": "Três passos simples para começar a cantar com seus amigos",
+      "step1Title": "Crie a Sala",
+      "step1Desc": "Dê um nome para sua sala e tenha seu código exclusivo para compartilhar.",
+      "step2Title": "Convide Amigos",
+      "step2Desc": "Compartilhe o código ou QR Code para seus amigos entrarem na sala.",
+      "step3Title": "Cantem Juntos",
+      "step3Desc": "Escolha as músicas, monte a fila e divirtam-se cantando em tempo real!"
+    },
+    "stats": {
+      "free": "100% GRÁTIS",
+      "songs": "∞ MÚSICAS",
+      "qr": "QR CODE",
+      "realtime": "TEMPO REAL"
+    },
+    "cta": {
+      "ready": "Pronto para <span>cantar</span>?",
+      "start": "Criar Minha Sala"
+    },
+    "footer": {
+      "copyright": "© 2026 My Karaoke Party"
+    }
   }
 }

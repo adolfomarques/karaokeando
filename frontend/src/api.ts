@@ -28,20 +28,24 @@ export interface YouTubeSearchResult {
 }
 
 export async function searchYouTube(
-  query: string
+  query: string,
+  signal?: AbortSignal
 ): Promise<YouTubeSearchResult[]> {
   const res = await fetch(
-    `${API_BASE}/api/youtube/search?q=${encodeURIComponent(query)}`
+    `${API_BASE}/api/youtube/search?q=${encodeURIComponent(query)}`,
+    { signal }
   );
   if (!res.ok) return [];
   return res.json();
 }
 
 export async function getVideoInfo(
-  videoId: string
+  videoId: string,
+  signal?: AbortSignal
 ): Promise<YouTubeSearchResult> {
   const res = await fetch(
-    `${API_BASE}/api/youtube/info?videoId=${encodeURIComponent(videoId)}`
+    `${API_BASE}/api/youtube/info?videoId=${encodeURIComponent(videoId)}`,
+    { signal }
   );
   if (!res.ok) {
     return {
@@ -329,4 +333,135 @@ export async function getActiveRooms(adminKey: string): Promise<ActiveRoom[]> {
   if (!res.ok) return [];
   const data = await res.json();
   return data.activeRooms || [];
+}
+// ─────────────────────────────────────────────────────────────
+// Admin API
+// ─────────────────────────────────────────────────────────────
+
+export interface AdminStats {
+  userCount: number;
+  roomCount: number;
+  songCount: number;
+  recentRooms: {
+    code: string;
+    owner: string;
+    visitors: number;
+    createdAt: string;
+  }[];
+}
+
+export interface AdminSong {
+  id: string;
+  videoId: string;
+  title: string;
+  addedBy: string;
+  playCount: number;
+  createdAt: string;
+}
+
+export interface AdminBackground {
+  id: string;
+  url: string;
+  active: boolean;
+  createdAt: string;
+}
+
+export interface AdminPhrase {
+  id: string;
+  phrase: string;
+  minScore: number;
+  maxScore: number;
+  active: boolean;
+  createdAt: string;
+}
+
+export async function getAdminStats(): Promise<AdminStats> {
+  const token = localStorage.getItem("karaokefactory_token");
+  const res = await fetch(`${API_BASE}/api/admin/stats`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error("Acesso negado");
+  return res.json();
+}
+
+export async function getAdminSongs(): Promise<AdminSong[]> {
+  const token = localStorage.getItem("karaokefactory_token");
+  const res = await fetch(`${API_BASE}/api/admin/songs`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.json();
+}
+
+export async function deleteAdminSong(id: string) {
+  const token = localStorage.getItem("karaokefactory_token");
+  const res = await fetch(`${API_BASE}/api/admin/songs/${id}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.json();
+}
+
+export async function getAdminBackgrounds(): Promise<AdminBackground[]> {
+  const token = localStorage.getItem("karaokefactory_token");
+  const res = await fetch(`${API_BASE}/api/admin/backgrounds`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.json();
+}
+
+export async function addAdminBackground(url: string) {
+  const token = localStorage.getItem("karaokefactory_token");
+  const res = await fetch(`${API_BASE}/api/admin/backgrounds`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ url }),
+  });
+  return res.json();
+}
+
+export async function deleteAdminBackground(id: string) {
+  const token = localStorage.getItem("karaokefactory_token");
+  const res = await fetch(`${API_BASE}/api/admin/backgrounds/${id}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.json();
+}
+
+export async function getAdminPhrases(): Promise<AdminPhrase[]> {
+  const token = localStorage.getItem("karaokefactory_token");
+  const res = await fetch(`${API_BASE}/api/admin/phrases`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.json();
+}
+
+export async function addAdminPhrase(phrase: string, minScore: number, maxScore: number) {
+  const token = localStorage.getItem("karaokefactory_token");
+  const res = await fetch(`${API_BASE}/api/admin/phrases`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ phrase, minScore, maxScore }),
+  });
+  return res.json();
+}
+
+export async function deleteAdminPhrase(id: string) {
+  const token = localStorage.getItem("karaokefactory_token");
+  const res = await fetch(`${API_BASE}/api/admin/phrases/${id}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.json();
+}
+
+export async function getPublicScoreMeta(): Promise<{ backgrounds: AdminBackground[], phrases: AdminPhrase[] }> {
+  const res = await fetch(`${API_BASE}/api/public/score-meta`);
+  return res.json();
 }

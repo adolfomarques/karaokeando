@@ -16,6 +16,7 @@ export interface UserTokenPayload {
   email: string;
   name: string;
   canHost: boolean;
+  isAdmin: boolean;
   type: "user";
 }
 

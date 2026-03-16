@@ -6,6 +6,7 @@ import {
 } from "../score/pikaraokeScore";
 import { useTranslation } from "react-i18next";
 import { launchFireworkShow } from "../score/fireworks";
+import { getPublicScoreMeta, AdminBackground, AdminPhrase } from "../api";
 import "./ScoreOverlay.css";
 
 const IconMic = ({ size = 16 }: { size?: number }) => (
@@ -37,6 +38,13 @@ type Props = {
   onDone?: (finalScore: number) => void;
 };
 
+const DEFAULT_BACKGROUNDS = [
+  "https://images.unsplash.com/photo-1516280440614-37939bbacd81?q=80&w=1920&auto=format&fit=crop", // Karaoke Stage
+  "https://images.unsplash.com/photo-1493225255756-d9584f8606e9?q=80&w=1920&auto=format&fit=crop", // Concert Mic
+  "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?q=80&w=1920&auto=format&fit=crop", // Festival crowd
+  "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=1920&auto=format&fit=crop", // DJ Party
+];
+
 export default function ScoreOverlay({
   open,
   scoreOverride,
@@ -47,14 +55,35 @@ export default function ScoreOverlay({
   const { t } = useTranslation();
   const [scoreText, setScoreText] = useState("");
   const [reviewText, setReviewText] = useState("");
+  const [bgImage, setBgImage] = useState("");
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  const [metaBackgrounds, setMetaBackgrounds] = useState<AdminBackground[]>([]);
+  const [metaPhrases, setMetaPhrases] = useState<AdminPhrase[]>([]);
 
   // Store onDone in a ref to avoid re-triggering effect when callback changes
   const onDoneRef = useRef(onDone);
   onDoneRef.current = onDone;
 
   useEffect(() => {
+    // Load meta data once
+    getPublicScoreMeta().then(data => {
+      setMetaBackgrounds(data.backgrounds);
+      setMetaPhrases(data.phrases);
+    }).catch(() => {
+      // ignore
+    });
+  }, []);
+
+  useEffect(() => {
     if (!open) return;
+
+    // Pick random background on open
+    const allBgs = metaBackgrounds.length > 0 
+      ? metaBackgrounds.map(b => b.url) 
+      : DEFAULT_BACKGROUNDS;
+    const randomBg = allBgs[Math.floor(Math.random() * allBgs.length)];
+    setBgImage(randomBg);
 
     let cancelled = false;
 
@@ -84,13 +113,23 @@ export default function ScoreOverlay({
       setScoreText(String(scoreValue).padStart(2, "0"));
 
       const name = singer || t("mobile.alone", "Sozinho(a)");
-      const scoreKey = `reviews.scores.${scoreValue}`;
-      const exactTranslation = t(scoreKey, { name });
+      
+      // Try to find a dynamic phrase for this score
+      const matchingPhrases = metaPhrases.filter(p => scoreValue >= p.minScore && scoreValue <= p.maxScore);
+      let localizedReview = "";
 
-      // If i18next returns the key itself, it means the translation is missing for that specific score.
-      const localizedReview = exactTranslation !== scoreKey
-        ? exactTranslation
-        : t(`reviews.${scoreData.bucket}.${scoreData.reviewIndex}`, { name });
+      if (matchingPhrases.length > 0) {
+        const randomPhrase = matchingPhrases[Math.floor(Math.random() * matchingPhrases.length)].phrase;
+        localizedReview = randomPhrase.replace("{name}", name);
+      } else {
+        const scoreKey = `reviews.scores.${scoreValue}`;
+        const exactTranslation = t(scoreKey, { name });
+
+        // If i18next returns the key itself, it means the translation is missing for that specific score.
+        localizedReview = exactTranslation !== scoreKey
+          ? exactTranslation
+          : t(`reviews.${scoreData.bucket}.${scoreData.reviewIndex}`, { name });
+      }
 
       setReviewText(localizedReview);
 
@@ -119,12 +158,12 @@ export default function ScoreOverlay({
     return () => {
       cancelled = true;
     };
-  }, [open, scoreOverride, singer, enableAudio]);
+  }, [open, scoreOverride, singer, enableAudio, t, metaBackgrounds, metaPhrases]);
 
   if (!open) return null;
 
   return (
-    <div className="pk-score">
+    <div className="pk-score" style={{ backgroundImage: bgImage ? `url(${bgImage})` : undefined }}>
       <div className="pk-score__content">
         <div className="pk-score__your">{t("mobile.yourScore", "Sua Pontuação")}</div>
         <div className="pk-score__number">{scoreText}</div>

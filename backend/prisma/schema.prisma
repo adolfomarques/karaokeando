@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -14,9 +14,10 @@ model User {
   phone        String?
   passwordHash String?   @map("password_hash")
   city         String?
-  birthDate    DateTime? @map("birth_date") @db.Date
+  birthDate    DateTime? @map("birth_date")
   gender       String?
   canHost      Boolean   @default(false) @map("can_host")
+  isAdmin      Boolean   @default(false) @map("is_admin")
   createdAt    DateTime  @default(now()) @map("created_at")
 
   // Relations
@@ -48,5 +49,51 @@ model Song {
   createdAt    DateTime  @default(now()) @map("created_at")
   lastPlayedAt DateTime? @map("last_played_at")
 
+  playlists PlaylistSong[]
+
   @@map("songs")
+}
+
+model ScoreBackground {
+  id        String   @id @default(uuid())
+  url       String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("score_backgrounds")
+}
+
+model ScorePhrase {
+  id        String   @id @default(uuid())
+  phrase    String
+  minScore  Int      @default(0) @map("min_score")
+  maxScore  Int      @default(100) @map("max_score")
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("score_phrases")
+}
+
+model Playlist {
+  id        String   @id @default(uuid())
+  name      String
+  imageUrl  String?  @map("image_url")
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  songs PlaylistSong[]
+
+  @@map("playlists")
+}
+
+model PlaylistSong {
+  playlistId String @map("playlist_id")
+  songId     String @map("song_id")
+  order      Int    @default(0)
+
+  playlist Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+  song     Song     @relation(fields: [songId], references: [id], onDelete: Cascade)
+
+  @@id([playlistId, songId])
+  @@map("playlist_songs")
 }
