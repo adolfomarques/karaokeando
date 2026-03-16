@@ -4,13 +4,13 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "prisma generate && tsc",
+    "build": "prisma generate && tsc && prisma db push --accept-data-loss",
     "start": "node dist/server.js",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
-    "render-build": "npm install && prisma generate && prisma db push"
+    "render-build": "npm install && prisma generate && prisma db push --accept-data-loss"
   },
   "dependencies": {
     "@fastify/cors": "^9.0.1",

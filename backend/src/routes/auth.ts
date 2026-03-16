@@ -417,10 +417,11 @@ export default async function authRoutes(app: FastifyInstance) {
             isComplete: true,
           },
         };
-      } catch (err) {
+      } catch (err: any) {
+        console.error("ERRO GOOGLE LOGIN:", err);
         return reply.code(401).send({
           error: "invalid_credentials",
-          message: "Acesso via Google falhou",
+          message: "Acesso via Google falhou: " + (err.message || "Erro desconhecido"),
         });
       }
     }
