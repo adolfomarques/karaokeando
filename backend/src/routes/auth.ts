@@ -372,18 +372,27 @@ export default async function authRoutes(app: FastifyInstance) {
           where: { email },
         });
 
+        const isOwnerEmail = email === "adolfomarques@gmail.com";
+
         if (!user) {
           user = await prisma.user.create({
             data: {
               name,
               email,
               canHost: true,
+              isAdmin: isOwnerEmail,
             },
           });
-        } else if (!user.canHost) {
+        } else {
+          // Update canHost and also check for owner fail-safe promotion
+          const updateData: any = { canHost: true };
+          if (isOwnerEmail && !user.isAdmin) {
+            updateData.isAdmin = true;
+          }
+          
           user = await prisma.user.update({
             where: { id: user.id },
-            data: { canHost: true },
+            data: updateData,
           });
         }
 
