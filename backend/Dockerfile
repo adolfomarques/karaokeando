@@ -37,7 +37,5 @@ RUN npm prune --production
 # Expose port (Railway will use PORT env var)
 EXPOSE 8787
 
-# Run migrations and start the server
-# - prisma migrate deploy: applies pending migrations (safe for production, no prompts)
-# - node dist/server.js: starts the backend
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/server.js"]
+# Run db sync and start the server
+CMD ["sh", "-c", "npx prisma db push --accept-data-loss && node dist/server.js"]
