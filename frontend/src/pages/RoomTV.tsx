@@ -1347,27 +1347,18 @@ export default function RoomTV() {
           `}</style>
           
           {/* Header */}
-          <header
-            style={{
-              display: "grid",
-              gridTemplateColumns: "250px 1fr 250px",
-              alignItems: "center",
-              gap: 20,
-              marginBottom: "5vh",
-              padding: "0 20px"
-            }}
-          >
+          <header className="relative w-full flex justify-between items-center mb-10 px-4 md:px-8">
             {/* Esquerda: Logout */}
-            <div>
+            <div className="z-10 flex-shrink-0">
                 <button
                     onClick={() => navigate("/")}
                     style={{
                     background: "rgba(255, 102, 0, 0.05)",
                     border: "1.5px solid rgba(255, 102, 0, 0.4)",
                     borderRadius: 12,
-                    padding: "1vh 1.5vw",
+                    padding: "12px 20px",
                     color: "#ff6600",
-                    fontSize: "1rem",
+                    fontSize: "0.9rem",
                     fontWeight: 700,
                     cursor: "pointer",
                     display: "flex",
@@ -1394,65 +1385,37 @@ export default function RoomTV() {
             </div>
 
             {/* Centro: Logo e Room Code */}
-            <div style={{ textAlign: "center" }}>
-                <div style={{ display: "inline-flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
-                    <Logo width={320} />
-                    <div style={{ 
-                        fontSize: "2.4rem", 
-                        letterSpacing: "4px",
-                        color: "#fff",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 15,
-                        marginTop: 10
-                    }}>
-                        <span style={{ opacity: 0.4, fontWeight: 300 }}>ROOM:</span>
-                        <span className="tv-neon-text" style={{ fontSize: "3rem" }}>{code}</span>
+            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none w-full max-w-[50%]">
+                <div className="flex flex-col items-center justify-center gap-2">
+                    <div className="w-48 sm:w-64 md:w-80"><Logo width="100%" /></div>
+                    <div className="flex items-center gap-4 text-2xl md:text-4xl text-white tracking-widest mt-2">
+                        <span className="opacity-40 font-light">ROOM:</span>
+                        <span className="tv-neon-text font-black text-3xl md:text-5xl">{code}</span>
                     </div>
                 </div>
             </div>
             
             {/* Direita: QR Code Ticket */}
             <div
-              className="tv-vip-ticket"
-              style={{
-                display: "flex",
-                flexDirection: "row",
-                alignItems: "stretch",
-                height: "18vh",
-                minHeight: "140px",
-                background: "#0d0d0d"
-              }}
+              className="tv-vip-ticket z-10 flex-shrink-0 flex items-stretch h-[120px] md:h-[140px] w-[260px] md:w-[300px] bg-[#0d0d0d]"
             >
-              <div style={{ 
-                padding: "0 15px", 
-                borderRight: "2px dashed rgba(255, 102, 0, 0.4)",
+              <div className="flex items-center justify-center px-3 border-r-2 border-dashed border-[#ff660066] w-12" style={{
                 background: "repeating-linear-gradient(45deg, rgba(255, 102, 0, 0.05), rgba(255, 102, 0, 0.05) 8px, transparent 8px, transparent 16px)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center"
                }}>
-                <span className="tv-vip-title" style={{ fontSize: "1.2rem", transform: "rotate(-90deg)", whiteSpace: "nowrap" }}>
+                <span className="tv-vip-title text-sm md:text-base -rotate-90 whitespace-nowrap">
                   TICKET
                 </span>
               </div>
-              <div style={{ flex: 1, padding: "12px", textAlign: "center", background: "#fff", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+              <div className="flex-1 p-2 bg-white flex flex-col items-center justify-center overflow-hidden">
                 <img
                   src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(
                     window.location.origin + "/join/" + code
                   )}&color=000000&bgcolor=ffffff`}
                   alt="QR Code"
                   loading="lazy"
-                  style={{
-                    display: "block",
-                    width: "10vh",
-                    height: "10vh",
-                    maxHeight: "100px",
-                    maxWidth: "100px",
-                    marginBottom: 8,
-                  }}
+                  className="w-[70px] h-[70px] md:w-[80px] md:h-[80px] mb-2 object-contain"
                 />
-                <div style={{ color: "#000", fontSize: "0.75rem", fontWeight: 900, textTransform: "uppercase", letterSpacing: "1px" }}>
+                <div className="text-black text-[0.65rem] md:text-xs font-black uppercase tracking-wider text-center leading-tight">
                   {t("tv.scanToJoin", "Escaneie para entrar")}
                 </div>
               </div>
@@ -1460,19 +1423,7 @@ export default function RoomTV() {
           </header>
 
           {/* Conteúdo principal */}
-          <main
-            style={{
-              flex: 1,
-              display: "grid",
-              gridTemplateColumns: "1.1fr 0.9fr",
-              gap: "4vw",
-              alignItems: "start",
-              maxWidth: "1600px",
-              margin: "0 auto",
-              width: "100%",
-              paddingBottom: "4vh"
-            }}
-          >
+          <main className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-[4vw] items-start max-w-[1600px] w-full mx-auto pb-8 md:pb-[4vh] px-4 md:px-8">
             {/* Próxima música / Fila */}
             <div className="tv-vip-ticket">
               {state.queue.length > 0 ? (
