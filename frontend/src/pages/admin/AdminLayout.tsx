@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import Logo from "../../components/Logo";
@@ -8,16 +8,41 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const navigate = useNavigate();
   const location = useLocation();
 
-  useEffect(() => {
-    if (!loading && (!user || !user.isAdmin)) {
-      navigate("/");
-    }
-  }, [user, loading, navigate]);
-
-  if (loading || !user || !user.isAdmin) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-[#0a0a0c]">
         <div className="text-white">Verificando permissões...</div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-[#0a0a0c] text-white p-4 text-center">
+        <h1 className="text-2xl font-bold mb-4 text-red-500">Acesso Restrito</h1>
+        <p className="mb-6">Você precisa estar logado para acessar esta área.</p>
+        <button 
+          onClick={() => navigate("/login")}
+          className="bg-red-600 px-6 py-2 rounded-xl font-bold"
+        >
+          Fazer Login
+        </button>
+      </div>
+    );
+  }
+
+  if (!user.isAdmin) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-[#0a0a0c] text-white p-4 text-center">
+        <h1 className="text-2xl font-bold mb-4 text-red-500">Acesso Negado</h1>
+        <p className="mb-2">Sua conta ({user.email}) não tem privilégios de administrador.</p>
+        <p className="mb-6 text-gray-400">Verifique se o deploy do servidor já terminou ou tente sair e entrar novamente.</p>
+        <button 
+          onClick={() => navigate("/")}
+          className="bg-white/10 px-6 py-2 rounded-xl font-bold"
+        >
+          Voltar para Home
+        </button>
       </div>
     );
   }
