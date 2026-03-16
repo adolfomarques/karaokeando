@@ -422,6 +422,19 @@ export async function addAdminBackground(url: string) {
   return res.json();
 }
 
+export async function updateAdminBackground(id: string, url: string) {
+  const token = localStorage.getItem("karaokefactory_token");
+  const res = await fetch(`${API_BASE}/api/admin/backgrounds/${id}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ url }),
+  });
+  return res.json();
+}
+
 export async function deleteAdminBackground(id: string) {
   const token = localStorage.getItem("karaokefactory_token");
   const res = await fetch(`${API_BASE}/api/admin/backgrounds/${id}`, {
@@ -443,6 +456,19 @@ export async function addAdminPhrase(phrase: string, minScore: number, maxScore:
   const token = localStorage.getItem("karaokefactory_token");
   const res = await fetch(`${API_BASE}/api/admin/phrases`, {
     method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ phrase, minScore, maxScore }),
+  });
+  return res.json();
+}
+
+export async function updateAdminPhrase(id: string, phrase: string, minScore: number, maxScore: number) {
+  const token = localStorage.getItem("karaokefactory_token");
+  const res = await fetch(`${API_BASE}/api/admin/phrases/${id}`, {
+    method: "PATCH",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
