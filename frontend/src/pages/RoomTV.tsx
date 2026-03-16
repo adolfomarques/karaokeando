@@ -1347,18 +1347,18 @@ export default function RoomTV() {
           `}</style>
           
           {/* Header */}
-          <header className="relative w-full flex justify-between items-center mb-10 px-4 md:px-8">
+          <header className="w-full flex flex-col md:flex-row justify-between items-center gap-6 mb-10 px-4 md:px-8">
             {/* Esquerda: Logout */}
-            <div className="z-10 flex-shrink-0">
+            <div className="flex-1 flex justify-start w-full md:w-auto">
                 <button
                     onClick={() => navigate("/")}
                     style={{
                     background: "rgba(255, 102, 0, 0.05)",
                     border: "1.5px solid rgba(255, 102, 0, 0.4)",
                     borderRadius: 12,
-                    padding: "12px 20px",
+                    padding: "10px 16px",
                     color: "#ff6600",
-                    fontSize: "0.9rem",
+                    fontSize: "0.85rem",
                     fontWeight: 700,
                     cursor: "pointer",
                     display: "flex",
@@ -1385,38 +1385,38 @@ export default function RoomTV() {
             </div>
 
             {/* Centro: Logo e Room Code */}
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none w-full max-w-[50%]">
-                <div className="flex flex-col items-center justify-center gap-2">
-                    <div className="w-48 sm:w-64 md:w-80"><Logo width="100%" /></div>
-                    <div className="flex items-center gap-4 text-2xl md:text-4xl text-white tracking-widest mt-2">
-                        <span className="opacity-40 font-light">ROOM:</span>
-                        <span className="tv-neon-text font-black text-3xl md:text-5xl">{code}</span>
-                    </div>
+            <div className="flex-1 flex flex-col items-center justify-center gap-1 md:gap-2">
+                <div className="w-48 md:w-64"><Logo width="100%" /></div>
+                <div className="flex items-center gap-3 text-xl md:text-3xl text-white tracking-widest mt-1">
+                    <span className="opacity-40 font-light">ROOM:</span>
+                    <span className="tv-neon-text font-black text-2xl md:text-4xl">{code}</span>
                 </div>
             </div>
             
             {/* Direita: QR Code Ticket */}
-            <div
-              className="tv-vip-ticket z-10 flex-shrink-0 flex items-stretch h-[120px] md:h-[140px] w-[260px] md:w-[300px] bg-[#0d0d0d]"
-            >
-              <div className="flex items-center justify-center px-3 border-r-2 border-dashed border-[#ff660066] w-12" style={{
-                background: "repeating-linear-gradient(45deg, rgba(255, 102, 0, 0.05), rgba(255, 102, 0, 0.05) 8px, transparent 8px, transparent 16px)",
-               }}>
-                <span className="tv-vip-title text-sm md:text-base -rotate-90 whitespace-nowrap">
-                  TICKET
-                </span>
-              </div>
-              <div className="flex-1 p-2 bg-white flex flex-col items-center justify-center overflow-hidden">
-                <img
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(
-                    window.location.origin + "/join/" + code
-                  )}&color=000000&bgcolor=ffffff`}
-                  alt="QR Code"
-                  loading="lazy"
-                  className="w-[70px] h-[70px] md:w-[80px] md:h-[80px] mb-2 object-contain"
-                />
-                <div className="text-black text-[0.65rem] md:text-xs font-black uppercase tracking-wider text-center leading-tight">
-                  {t("tv.scanToJoin", "Escaneie para entrar")}
+            <div className="flex-1 flex justify-end w-full md:w-auto">
+              <div
+                className="tv-vip-ticket flex items-stretch h-[100px] md:h-[120px] w-full max-w-[260px] bg-[#0d0d0d]"
+              >
+                <div className="flex items-center justify-center px-2 md:px-3 border-r-2 border-dashed border-[#ff660066]" style={{
+                  background: "repeating-linear-gradient(45deg, rgba(255, 102, 0, 0.05), rgba(255, 102, 0, 0.05) 8px, transparent 8px, transparent 16px)",
+                 }}>
+                  <span className="tv-vip-title text-sm md:text-base tracking-[4px]" style={{ writingMode: 'vertical-rl', textOrientation: 'mixed', transform: 'rotate(180deg)' }}>
+                    TICKET
+                  </span>
+                </div>
+                <div className="flex-1 p-2 bg-white flex flex-col items-center justify-center overflow-hidden">
+                  <img
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(
+                      window.location.origin + "/join/" + code
+                    )}&color=000000&bgcolor=ffffff`}
+                    alt="QR Code"
+                    loading="lazy"
+                    className="w-[60px] h-[60px] md:w-[70px] md:h-[70px] mb-1 md:mb-2 object-contain"
+                  />
+                  <div className="text-black text-[0.60rem] md:text-[0.70rem] font-black uppercase tracking-wider text-center leading-tight">
+                    {t("tv.scanToJoin", "Escaneie para entrar")}
+                  </div>
                 </div>
               </div>
             </div>
