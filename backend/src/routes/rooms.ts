@@ -21,11 +21,11 @@ const tvLoginSchema = z.object({
   tvPassword: z.string().min(1, "Senha é obrigatória"),
 });
 
-// Generate room code (5 characters, uppercase alphanumeric)
+// Generate room code (3 characters, uppercase alphanumeric)
 function generateRoomCode(): string {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // Removed confusing chars (0, O, 1, I)
   let code = "";
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < 3; i++) {
     code += chars[Math.floor(Math.random() * chars.length)];
   }
   return code;

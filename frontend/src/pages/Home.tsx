@@ -74,7 +74,7 @@ export default function Home() {
 
   const joinRoom = async () => {
     const code = joinCode.trim().toUpperCase();
-    if (code.length < 4) return;
+    if (code.length < 3) return;
     setJoining(true);
     setJoinError(null);
     try {
