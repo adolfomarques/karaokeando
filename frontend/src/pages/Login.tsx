@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import Logo from "../components/Logo";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useGoogleLogin } from '@react-oauth/google';
@@ -14,6 +14,20 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isWakingUp, setIsWakingUp] = useState(false);
+
+  // Monitora o estado de Loading. Se demorar mais que 4s, o servidor "Render" provavelmente está acordando
+  useEffect(() => {
+    let timer: any;
+    if (loading) {
+      timer = setTimeout(() => {
+        setIsWakingUp(true);
+      }, 4000);
+    } else {
+      setIsWakingUp(false);
+    }
+    return () => clearTimeout(timer);
+  }, [loading]);
 
   // Get return URL from navigation state
   const state = location.state as { returnTo?: string; redirectTo?: string; roomCode?: string } | null;
@@ -111,6 +125,23 @@ export default function Login() {
               }}
             >
               {error}
+            </div>
+          )}
+
+          {isWakingUp && !error && (
+            <div
+              style={{
+                background: "rgba(255, 102, 0, 0.15)",
+                color: "#ff6600",
+                border: "1px solid rgba(255, 102, 0, 0.4)",
+                padding: "12px 16px",
+                borderRadius: 8,
+                marginBottom: 16,
+                fontSize: "0.85rem",
+                textAlign: "center"
+              }}
+            >
+              ⏳ {t("login.wakingUp", "O servidor está acordando após inatividade (pode levar até 40s nas primeiras vezes)...")}
             </div>
           )}
 
