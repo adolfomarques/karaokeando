@@ -235,6 +235,8 @@
     "password": "Senha",
     "createHost": "Criar conta de Host",
     "entering": "Entrando...",
+    "wakingUpTitle": "Acordando o Palco",
+    "wakingUp": "O servidor está ligando os equipamentos... Pode levar até 40s nas primeiras vezes.",
     "invalidCredentials": "Email ou senha incorretos",
     "forgotPassword": "Esqueceu a senha?"
   },

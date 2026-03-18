@@ -5,6 +5,62 @@ import { useNavigate, Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useGoogleLogin } from '@react-oauth/google';
 
+const LoadingOverlay = ({ isWakingUp, t }: { isWakingUp: boolean, t: any }) => (
+  <div style={{
+    position: 'absolute',
+    inset: 0,
+    zIndex: 100,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.85)',
+    backdropFilter: 'blur(8px)',
+    borderRadius: 'inherit',
+    textAlign: 'center',
+    padding: '24px',
+    color: '#fff',
+    animation: 'fadeInOverlay 0.4s ease-out',
+    userSelect: 'none'
+  }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', maxWidth: '300px' }}>
+      {isWakingUp ? (
+        <div style={{ animation: 'pulseWarmup 2s infinite ease-in-out' }}>
+          <div style={{ fontSize: '3.5rem', marginBottom: '16px' }}>🎙️</div>
+          <h3 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '12px', color: '#ff6600', textTransform: 'uppercase', letterSpacing: '1px' }}>
+            {t("login.wakingUpTitle", "Acordando o Palco")}
+          </h3>
+          <p style={{ fontSize: '0.95rem', lineHeight: 1.6, opacity: 0.9, fontWeight: 500 }}>
+            {t("login.wakingUp", "O servidor está ligando os equipamentos... Pode levar até 40s nas primeiras vezes.")}
+          </p>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <div style={{
+            width: '48px',
+            height: '48px',
+            border: '4px solid rgba(255,255,255,0.1)',
+            borderTopColor: '#ff6600',
+            borderRadius: '50%',
+            animation: 'spinLoader 1s linear infinite',
+            marginBottom: '20px'
+          }} />
+          <p style={{ fontSize: '1.1rem', fontWeight: 600, letterSpacing: '0.5px' }}>{t("login.entering", "Autenticando...")}</p>
+        </div>
+      )}
+    </div>
+    <style>{`
+      @keyframes spinLoader { to { transform: rotate(360deg); } }
+      @keyframes fadeInOverlay { from { opacity: 0; } to { opacity: 1; } }
+      @keyframes pulseWarmup {
+        0% { transform: scale(1); opacity: 0.9; }
+        50% { transform: scale(1.05); opacity: 1; }
+        100% { transform: scale(1); opacity: 0.9; }
+      }
+    `}</style>
+  </div>
+);
+
 export default function Login() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -78,9 +134,11 @@ export default function Login() {
         {t("login.desc", "Entrar na sua conta")}
       </p>
 
-      <div className="card">
+      <div className="card" style={{ position: "relative", overflow: "hidden" }}>
+        {loading && <LoadingOverlay isWakingUp={isWakingUp} t={t} />}
         <button
           type="button"
+          disabled={loading}
           onClick={() => handleGoogleLogin()}
           style={{
             width: "100%",
@@ -128,22 +186,7 @@ export default function Login() {
             </div>
           )}
 
-          {isWakingUp && !error && (
-            <div
-              style={{
-                background: "rgba(255, 102, 0, 0.15)",
-                color: "#ff6600",
-                border: "1px solid rgba(255, 102, 0, 0.4)",
-                padding: "12px 16px",
-                borderRadius: 8,
-                marginBottom: 16,
-                fontSize: "0.85rem",
-                textAlign: "center"
-              }}
-            >
-              ⏳ {t("login.wakingUp", "O servidor está acordando após inatividade (pode levar até 40s nas primeiras vezes)...")}
-            </div>
-          )}
+          {/* O aviso de Waking Up foi movido para o LoadingOverlay principal */}
 
           <label style={{ display: "block", marginBottom: 4, fontWeight: 500 }}>
             {t("login.email", "Email")}

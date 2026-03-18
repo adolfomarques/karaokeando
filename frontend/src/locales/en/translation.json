@@ -235,6 +235,8 @@
     "password": "Password",
     "createHost": "Create Host account",
     "entering": "Logging in...",
+    "wakingUpTitle": "Waking Up the Stage",
+    "wakingUp": "The server is starting up after inactivity (may take up to 40s the first time)...",
     "invalidCredentials": "Username or password invalid",
     "forgotPassword": "Forgot password?"
   },
