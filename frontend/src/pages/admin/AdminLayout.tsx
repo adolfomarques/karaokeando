@@ -2,8 +2,10 @@ import React from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import Logo from "../../components/Logo";
+import { useTranslation } from "react-i18next";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const { t } = useTranslation();
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -11,7 +13,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-[#0a0a0c]">
-        <div className="text-white">Verificando permissões...</div>
+        <div className="text-white">{t("admin.verifyingPermissions", "Verificando permissões...")}</div>
       </div>
     );
   }
@@ -19,13 +21,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (!user) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-[#0a0a0c] text-white p-4 text-center">
-        <h1 className="text-2xl font-bold mb-4 text-red-500">Acesso Restrito</h1>
-        <p className="mb-6">Você precisa estar logado para acessar esta área.</p>
+        <h1 className="text-2xl font-bold mb-4 text-red-500">{t("admin.restrictedAccess", "Acesso Restrito")}</h1>
+        <p className="mb-6">{t("admin.mustBeLoggedIn", "Você precisa estar logado para acessar esta área.")}</p>
         <button 
           onClick={() => navigate("/login")}
           className="bg-red-600 px-6 py-2 rounded-xl font-bold"
         >
-          Fazer Login
+          {t("auth.login", "Fazer Login")}
         </button>
       </div>
     );
@@ -34,24 +36,24 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (!user.isAdmin) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-[#0a0a0c] text-white p-4 text-center">
-        <h1 className="text-2xl font-bold mb-4 text-red-500">Acesso Negado</h1>
-        <p className="mb-2">Sua conta ({user.email}) não tem privilégios de administrador.</p>
-        <p className="mb-6 text-gray-400">Verifique se o deploy do servidor já terminou ou tente sair e entrar novamente.</p>
+        <h1 className="text-2xl font-bold mb-4 text-red-500">{t("admin.accessDenied", "Acesso Negado")}</h1>
+        <p className="mb-2">{t("admin.noAdminPrivileges", { email: user.email })}</p>
+        <p className="mb-6 text-gray-400">{t("admin.checkDeploy", "Verifique se o deploy do servidor já terminou ou tente sair e entrar novamente.")}</p>
         <button 
           onClick={() => navigate("/")}
           className="bg-white/10 px-6 py-2 rounded-xl font-bold"
         >
-          Voltar para Home
+          {t("admin.backToHome", "Voltar para Home")}
         </button>
       </div>
     );
   }
 
   const navItems = [
-    { label: "Dashboard", path: "/admin" },
-    { label: "Músicas", path: "/admin/songs" },
-    { label: "Playlists", path: "/admin/playlists" },
-    { label: "Configuração de Score", path: "/admin/score-config" },
+    { label: t("admin.dashboard", "Dashboard"), path: "/admin" },
+    { label: t("admin.songs", "Músicas"), path: "/admin/songs" },
+    { label: t("admin.playlists", "Playlists"), path: "/admin/playlists" },
+    { label: t("admin.scoreConfig", "Configuração de Score"), path: "/admin/score-config" },
   ];
 
   return (
@@ -66,13 +68,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </div>
           </div>
           <div className="text-[10px] text-gray-500 font-mono tracking-widest uppercase mt-4">
-            System Control Center
+            {t("admin.systemControl", "System Control Center")}
           </div>
         </div>
 
         <nav className="flex-1 py-6">
           <div className="px-6 mb-4 text-[10px] text-gray-600 font-bold uppercase tracking-[0.2em]">
-            Menu Principal
+            {t("admin.mainMenu", "Menu Principal")}
           </div>
           <div className="space-y-1">
             {navItems.map((item) => {
@@ -92,13 +94,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
 
           <div className="mt-10 px-6 mb-4 text-[10px] text-gray-600 font-bold uppercase tracking-[0.2em]">
-            Gestão Direta
+            {t("admin.directManagement", "Gestão Direta")}
           </div>
           <Link
             to="/"
             className="flex items-center px-8 py-4 text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 transition-all"
           >
-            Ir para o Site →
+            {t("admin.goToSite", "Ir para o Site →")}
           </Link>
         </nav>
 
@@ -122,17 +124,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <header className="h-16 border-b border-white/5 flex items-center justify-between px-10 bg-[#0a0a0c] sticky top-0 z-10">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-[#00f5ff] animate-pulse"></div>
-            <span className="text-[10px] font-mono text-gray-400 uppercase tracking-widest">System Online</span>
+            <span className="text-[10px] font-mono text-gray-400 uppercase tracking-widest">{t("admin.systemOnline", "System Online")}</span>
           </div>
           <div className="flex items-center gap-6">
             <button className="text-xs text-gray-500 hover:text-white transition-colors uppercase tracking-widest font-bold">
-              Logs
+              {t("admin.logs", "Logs")}
             </button>
             <button
               onClick={() => {}} // Could add logout here
               className="text-xs text-red-500 hover:text-red-400 transition-colors uppercase tracking-widest font-bold"
             >
-              Sign Out
+              {t("admin.signOut", "Sign Out")}
             </button>
           </div>
         </header>

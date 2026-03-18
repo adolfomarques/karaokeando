@@ -1,13 +1,15 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import AdminLayout from "./AdminLayout";
 import { 
   getAdminBackgrounds, addAdminBackground, updateAdminBackground, deleteAdminBackground, 
   getAdminPhrases, addAdminPhrase, updateAdminPhrase, deleteAdminPhrase,
   AdminBackground, AdminPhrase 
 } from "../../api";
-import { Toaster, toast } from "react-hot-toast";
+import { toast } from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 
 export default function AdminScoreConfig() {
+  const { t } = useTranslation();
   const [backgrounds, setBackgrounds] = useState<AdminBackground[]>([]);
   const [phrases, setPhrases] = useState<AdminPhrase[]>([]);
 
@@ -27,7 +29,7 @@ export default function AdminScoreConfig() {
         setBackgrounds(bgData);
         setPhrases(phraseData);
       })
-      .catch((err) => toast.error("Erro ao carregar dados: " + err.message));
+      .catch((err) => toast.error(t("admin.connError", "Erro ao carregar dados") + ": " + err.message));
   };
 
   useEffect(() => {
@@ -40,16 +42,16 @@ export default function AdminScoreConfig() {
     try {
       if (editingBgId) {
         await updateAdminBackground(editingBgId, bgUrl);
-        toast.success("Background atualizado");
+        toast.success(t("common.save", "Salvo"));
       } else {
         await addAdminBackground(bgUrl);
-        toast.success("Background adicionado");
+        toast.success(t("admin.backgroundCreated", "Background adicionado"));
       }
       setBgUrl("");
       setEditingBgId(null);
       loadData();
     } catch {
-      toast.error(editingBgId ? "Erro ao atualizar background" : "Erro ao adicionar background");
+      toast.error(t("admin.deleteError", "Erro ao processar"));
     }
   };
 
@@ -70,10 +72,10 @@ export default function AdminScoreConfig() {
     try {
       if (editingPhraseId) {
         await updateAdminPhrase(editingPhraseId, phraseText, minScore, maxScore);
-        toast.success("Frase atualizada");
+        toast.success(t("common.save", "Salvo"));
       } else {
         await addAdminPhrase(phraseText, minScore, maxScore);
-        toast.success("Frase adicionada");
+        toast.success(t("admin.phraseCreated", "Frase adicionada"));
       }
       setPhraseText("");
       setMinScore(0);
@@ -81,7 +83,7 @@ export default function AdminScoreConfig() {
       setEditingPhraseId(null);
       loadData();
     } catch {
-      toast.error(editingPhraseId ? "Erro ao atualizar frase" : "Erro ao adicionar frase");
+      toast.error(t("admin.deleteError", "Erro ao processar"));
     }
   };
 
@@ -101,61 +103,60 @@ export default function AdminScoreConfig() {
   };
 
   const handleDeleteBg = async (id: string) => {
-    if (!window.confirm("Remover imagem de fundo?")) return;
+    if (!window.confirm(t("admin.deleteBackgroundConfirm", "Remover imagem de fundo?"))) return;
     try {
       await deleteAdminBackground(id);
-      toast.success("Background removido");
+      toast.success(t("admin.backgroundDeleted", "Background removido"));
       loadData();
     } catch {
-      toast.error("Erro ao remover background");
+      toast.error(t("admin.deleteError", "Erro ao remover"));
     }
   };
 
   const handleDeletePhrase = async (id: string) => {
-    if (!window.confirm("Remover frase de pontuação?")) return;
+    if (!window.confirm(t("admin.deletePhraseConfirm", "Remover frase de pontuação?"))) return;
     try {
       await deleteAdminPhrase(id);
-      toast.success("Frase removida");
+      toast.success(t("admin.phraseDeleted", "Frase removida"));
       loadData();
     } catch {
-      toast.error("Erro ao remover frase");
+      toast.error(t("admin.deleteError", "Erro ao remover"));
     }
   };
 
   return (
     <AdminLayout>
-      <Toaster position="top-right" />
       <div className="max-w-7xl space-y-24 pb-20">
         <header className="mb-12">
-          <h1 className="text-4xl font-black mb-2 tracking-tighter uppercase neon-glow-cyan">
+          <h1 className="text-4xl font-black mb-2 tracking-tighter uppercase neon-glow-cyan text-white">
             Score <span className="text-white/20">/</span> Config
           </h1>
           <p className="text-gray-500 text-sm font-mono tracking-widest uppercase">
-            Personalize as imagens e frases baseadas na pontuação
+            {t("admin.scoreLogic", "Personalize as imagens e frases baseadas na pontuação")}
           </p>
         </header>
 
         {/* BACKGROUNDS SECTION */}
         <section>
           <div className="flex items-center gap-4 mb-8">
-            <h2 className="text-xs font-bold uppercase tracking-[0.4em] text-white">Fundos de Tela Animados</h2>
+            <h2 className="text-xs font-bold uppercase tracking-[0.4em] text-white">{t("admin.backgrounds", "Fundos de Tela")}</h2>
             <div className="flex-1 h-[1px] bg-white/[0.05]"></div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
             {/* Form */}
             <div className="lg:col-span-4">
-              <form onSubmit={handleAddOrUpdateBackground} className="admin-card p-10 space-y-6 border border-white/5 bg-white/[0.01]">
+              <form onSubmit={handleAddOrUpdateBackground} className="admin-card p-10 space-y-6 border border-white/5 bg-[#0d0d12]">
                 <h3 className="text-gray-500 text-[10px] font-bold uppercase tracking-[0.3em] mb-4">
-                  {editingBgId ? "Editando Fundo de Tela" : "Adicionar Fundo de Tela"}
+                  {editingBgId ? t("admin.preview", "Editando") : t("admin.addBackground", "Adicionar")}
                 </h3>
                 <div>
-                  <label htmlFor="bg-url" className="block text-[10px] text-gray-500 font-mono uppercase tracking-widest mb-2">URL da Imagem (Ex: GIF, JPG, PNG)</label>
+                  <label htmlFor="bg-url" className="block text-[10px] text-gray-500 font-mono uppercase tracking-widest mb-2">{t("admin.imageUrl", "URL da Imagem")}</label>
                   <input 
                     id="bg-url"
                     type="url" 
                     placeholder="https://..."
-                    className="w-full bg-black/50 border border-white/5 rounded-none px-6 py-4 focus:outline-none focus:border-[#00f5ff] text-xs font-mono transition-colors placeholder:text-gray-800"
+                    className="w-full bg-black/50 border border-white/5 rounded-none px-6 py-4 focus:outline-none focus:border-[#00f5ff] text-xs font-mono transition-colors placeholder:text-gray-800 text-white"
                     value={bgUrl}
                     onChange={(e) => setBgUrl(e.target.value)}
                     required
@@ -166,7 +167,7 @@ export default function AdminScoreConfig() {
                     type="submit"
                     className="flex-1 bg-white text-black font-black uppercase text-xs tracking-[0.2em] py-5 hover:bg-[#00f5ff] transition-colors"
                   >
-                    {editingBgId ? "Salvar" : "Adicionar"}
+                    {editingBgId ? t("common.save", "Salvar") : t("common.add", "Adicionar")}
                   </button>
                   {editingBgId && (
                     <button 
@@ -206,8 +207,8 @@ export default function AdminScoreConfig() {
                 </div>
               ))}
               {backgrounds.length === 0 && (
-                <div className="col-span-full py-16 text-center admin-card border-dashed border-white/10 opacity-30">
-                  <span className="font-mono text-xs uppercase tracking-widest italic">Nenhum fundo cadastrado</span>
+                <div className="col-span-full py-16 text-center admin-card border-dashed border-white/10 opacity-30 bg-[#0d0d12]">
+                  <span className="font-mono text-xs uppercase tracking-widest italic">{t("admin.noBackgrounds", "Nenhum fundo cadastrado")}</span>
                 </div>
               )}
             </div>
@@ -217,23 +218,23 @@ export default function AdminScoreConfig() {
         {/* PHRASES SECTION */}
         <section>
           <div className="flex items-center gap-4 mb-8">
-            <h2 className="text-xs font-bold uppercase tracking-[0.4em] text-white">Frases de Avaliação</h2>
+            <h2 className="text-xs font-bold uppercase tracking-[0.4em] text-white">{t("admin.phrases", "Frases de Avaliação")}</h2>
             <div className="flex-1 h-[1px] bg-white/[0.05]"></div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
             {/* Form */}
             <div className="lg:col-span-4">
-              <form onSubmit={handleAddOrUpdatePhrase} className="admin-card p-10 space-y-8 border border-white/5 bg-white/[0.01]">
+              <form onSubmit={handleAddOrUpdatePhrase} className="admin-card p-10 space-y-8 border border-white/5 bg-[#0d0d12]">
                 <h3 className="text-gray-500 text-[10px] font-bold uppercase tracking-[0.3em] mb-4">
-                  {editingPhraseId ? "Editando Frase" : "Nova Frase"}
+                  {editingPhraseId ? t("admin.preview", "Editando") : t("admin.addPhrase", "Nova Frase")}
                 </h3>
                 <div>
-                  <label htmlFor="phrase-text" className="block text-[10px] text-gray-500 font-mono uppercase tracking-widest mb-2">Mensagem a Exibir</label>
+                  <label htmlFor="phrase-text" className="block text-[10px] text-gray-500 font-mono uppercase tracking-widest mb-2">{t("admin.phraseText", "Mensagem a Exibir")}</label>
                   <textarea 
                     id="phrase-text"
-                    placeholder="Ex: Você cantou muito bem!"
-                    className="w-full bg-black/50 border border-white/5 rounded-none px-6 py-4 focus:outline-none focus:border-[#00f5ff] text-xs font-mono h-32 resize-none transition-colors placeholder:text-gray-800"
+                    placeholder={t("admin.phrasePlaceholder", "Ex: Você cantou muito bem!")}
+                    className="w-full bg-black/50 border border-white/5 rounded-none px-6 py-4 focus:outline-none focus:border-[#00f5ff] text-xs font-mono h-32 resize-none transition-colors placeholder:text-gray-800 text-white"
                     value={phraseText}
                     onChange={(e) => setPhraseText(e.target.value)}
                     required
@@ -241,22 +242,22 @@ export default function AdminScoreConfig() {
                 </div>
                 <div className="grid grid-cols-2 gap-6">
                   <div>
-                    <label htmlFor="min-score" className="block text-[10px] text-gray-500 font-mono uppercase tracking-widest mb-2">Nota Mínima</label>
+                    <label htmlFor="min-score" className="block text-[10px] text-gray-500 font-mono uppercase tracking-widest mb-2">{t("admin.minScore", "Nota Mínima")}</label>
                     <input 
                       id="min-score"
                       type="number" 
-                      className="w-full bg-black/50 border border-white/5 rounded-none px-4 py-3 focus:outline-none focus:border-[#00f5ff] text-xs font-mono"
+                      className="w-full bg-black/50 border border-white/5 rounded-none px-4 py-3 focus:outline-none focus:border-[#00f5ff] text-xs font-mono text-white"
                       value={minScore}
                       onChange={(e) => setMinScore(parseInt(e.target.value))}
                       min="0" max="100"
                     />
                   </div>
                   <div>
-                    <label htmlFor="max-score" className="block text-[10px] text-gray-500 font-mono uppercase tracking-widest mb-2">Nota Máxima</label>
+                    <label htmlFor="max-score" className="block text-[10px] text-gray-500 font-mono uppercase tracking-widest mb-2">{t("admin.maxScore", "Nota Máxima")}</label>
                     <input 
                       id="max-score"
                       type="number" 
-                      className="w-full bg-black/50 border border-white/5 rounded-none px-4 py-3 focus:outline-none focus:border-[#00f5ff] text-xs font-mono"
+                      className="w-full bg-black/50 border border-white/5 rounded-none px-4 py-3 focus:outline-none focus:border-[#00f5ff] text-xs font-mono text-white"
                       value={maxScore}
                       onChange={(e) => setMaxScore(parseInt(e.target.value))}
                       min="0" max="100"
@@ -268,7 +269,7 @@ export default function AdminScoreConfig() {
                     type="submit"
                     className="flex-1 bg-[#00f5ff] text-black font-black uppercase text-xs tracking-[0.2em] py-5 hover:bg-[#2dd4bf] transition-colors"
                   >
-                    {editingPhraseId ? "Salvar Frase" : "Criar Frase"}
+                    {editingPhraseId ? t("common.save", "Salvar") : t("common.add", "Criar")}
                   </button>
                   {editingPhraseId && (
                     <button 
@@ -286,7 +287,7 @@ export default function AdminScoreConfig() {
             {/* List */}
             <div className="lg:col-span-8 space-y-4 stagger-in">
               {phrases.map(phrase => (
-                <div key={phrase.id} className="admin-card p-8 group flex items-center justify-between border border-white/5 bg-white/[0.01]">
+                <div key={phrase.id} className="admin-card p-8 group flex items-center justify-between border border-white/5 bg-[#0d0d12]">
                   <div className="flex-1">
                     <div className="flex items-center gap-4 mb-3">
                       <span className="px-3 py-1 bg-[#00f5ff]/10 text-[#00f5ff] text-[10px] font-black font-mono border border-[#00f5ff]/20">
@@ -315,8 +316,8 @@ export default function AdminScoreConfig() {
                 </div>
               ))}
               {phrases.length === 0 && (
-                <div className="py-16 text-center admin-card border-dashed border-white/10 opacity-30">
-                  <span className="font-mono text-xs uppercase tracking-widest italic">Nenhuma frase cadastrada</span>
+                <div className="py-16 text-center admin-card border-dashed border-white/10 opacity-30 bg-[#0d0d12]">
+                  <span className="font-mono text-xs uppercase tracking-widest italic">{t("admin.noPhrases", "Nenhuma frase cadastrada")}</span>
                 </div>
               )}
             </div>

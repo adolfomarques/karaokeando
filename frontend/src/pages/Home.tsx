@@ -59,7 +59,7 @@ export default function Home() {
   }, [user]);
 
   const handleDeleteRoom = async (code: string) => {
-    if (!window.confirm(t("home.confirmDelete", "Tem certeza que deseja excluir esta sala?"))) {
+    if (!window.confirm(t("home.confirmDelete", "Are you sure you want to delete this room?"))) {
       return;
     }
     try {
@@ -158,7 +158,7 @@ export default function Home() {
   if (authLoading) {
     return (
       <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", background: "#0a0a0a" }}>
-        <p style={{ color: "#fff" }}>{t("home.loading", "Carregando...")}</p>
+        <p style={{ color: "#fff" }}>{t("home.loading", "Loading...")}</p>
       </div>
     );
   }
@@ -321,11 +321,11 @@ export default function Home() {
                       onClick={() => navigate(user ? "/complete-profile" : "/login")}
                       style={{ width: "100%", background: "#ff007f", borderRadius: "12px", fontWeight: "700" }}
                     >
-                      {user ? t("home.completeRegistration", "Ser Host") : t("auth.login", "Entrar")}
+                      {user ? t("home.completeRegistration", "Be Host") : t("auth.login", "Login")}
                     </button>
                     {!user && (
                       <p style={{ marginTop: "16px", fontSize: "0.9rem", color: "#666" }}>
-                        {t("home.noAccount", "Não tem conta?")} <span onClick={() => navigate("/register")} style={{ color: "#ff007f", cursor: "pointer", fontWeight: "700" }}>{t("auth.createAccount", "Cadastrar")}</span>
+                        {t("home.noAccount", "Don't have an account?")} <span onClick={() => navigate("/register")} style={{ color: "#ff007f", cursor: "pointer", fontWeight: "700" }}>{t("auth.createAccount", "Register")}</span>
                       </p>
                     )}
                   </div>
@@ -474,7 +474,7 @@ export default function Home() {
                 <span style={{ color: "#fff", fontSize: "0.85rem", fontWeight: "600", letterSpacing: "-0.3px" }}>by Adolfo Marques</span>
              </div>
              <div style={{ display: "flex", gap: "32px" }}>
-                <Link to="/terms" style={{ color: "#666", textDecoration: "none", fontSize: "0.9rem" }}>{t("landing.terms")}</Link>
+                <Link to="/terms" style={{ color: "#666", textDecoration: "none", fontSize: "0.9rem" }}>{t("landing.terms.title", "Terms")}</Link>
                 <span style={{ color: "#333", fontSize: "0.9rem" }}>{t("landing.footer.copyright")}</span>
              </div>
           </div>

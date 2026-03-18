@@ -32,13 +32,13 @@ export default function GuestRegister() {
     setError("");
 
     if (!phone.trim()) {
-      setError(t("guestReg.phoneRequired", "Informe seu telefone"));
+      setError(t("guestReg.phoneRequired", "Please provide your phone number"));
       return;
     }
 
     const phoneDigits = phone.replace(/\D/g, "");
     if (phoneDigits.length < 10) {
-      setError(t("guestReg.invalidPhone", "Telefone inválido (mínimo 10 dígitos)"));
+      setError(t("guestReg.invalidPhone", "Invalid phone number (minimum 10 digits)"));
       return;
     }
 
@@ -60,7 +60,7 @@ export default function GuestRegister() {
         navigate(redirectTo);
       }
     } else {
-      setError(result.error || t("guestReg.registerError", "Erro ao registrar"));
+      setError(result.error || t("guestReg.registerError", "Error registering"));
     }
   };
 
@@ -72,16 +72,16 @@ export default function GuestRegister() {
         if (result.success) {
           navigate(redirectTo);
         } else {
-          setError(result.error || "Erro no login com Google");
+          setError(result.error || "Google login error");
         }
       } catch {
-        setError("Erro ao autenticar via Google.");
+        setError("Error authenticating via Google.");
       } finally {
         setLoading(false);
       }
     },
     onError: () => {
-      setError("Falha ao abrir popup do Google.");
+      setError("Failed to open Google popup.");
     }
   });
 
@@ -90,8 +90,8 @@ export default function GuestRegister() {
       <Logo width={300} />
       <p style={{ textAlign: "center", color: "#888", marginBottom: 32 }}>
         {roomCode
-          ? t("guestReg.enterRoomWithCode", `Informe seus dados para entrar na sala ${roomCode}`, { code: roomCode })
-          : t("guestReg.enterData", "Informe seus dados para continuar")}
+          ? t("guestReg.enterRoomWithCode", `Tell us who you are to join room ${roomCode}`, { code: roomCode })
+          : t("guestReg.enterData", "Tell us who you are to continue")}
       </p>
 
       <div className="card">
@@ -112,13 +112,13 @@ export default function GuestRegister() {
           )}
 
           <label style={{ display: "block", marginBottom: 4, fontWeight: 500 }}>
-            {t("guestReg.yourName", "Seu Nome")}
+            {t("guestReg.yourName", "Your Name")}
           </label>
           <input
             type="text"
             value={name}
             onChange={e => setName(e.target.value)}
-            placeholder={t("guestReg.namePlaceholder", "Como quer ser chamado")}
+            placeholder={t("guestReg.namePlaceholder", "How do you want to be called?")}
             required
             style={{ marginBottom: 16 }}
           />
@@ -136,13 +136,13 @@ export default function GuestRegister() {
           />
 
           <label style={{ display: "block", marginBottom: 4, fontWeight: 500 }}>
-            {t("guestReg.phone", "Telefone")}
+            {t("guestReg.phone", "Phone")}
           </label>
           <input
             type="tel"
             value={phone}
             onChange={e => setPhone(e.target.value)}
-            placeholder="(11) 99999-9999"
+            placeholder="(00) 00000-0000"
             required
             style={{ marginBottom: 24 }}
           />
@@ -153,16 +153,16 @@ export default function GuestRegister() {
             style={{ width: "100%", marginBottom: 24 }}
           >
             {loading
-              ? t("guestReg.entering", "Entrando...")
+              ? t("guestReg.entering", "Entering...")
               : roomCode
-              ? t("guestReg.enterRoomBtn", "Entrar na Sala")
-              : t("common.continue", "Continuar")}
+              ? t("guestReg.enterRoomBtn", "Join Room")
+              : t("common.continue", "Continue")}
           </button>
         </form>
 
         <div style={{ display: "flex", alignItems: "center", marginBottom: 24 }}>
           <div style={{ flex: 1, borderBottom: "1px solid #333" }}></div>
-          <span style={{ padding: "0 10px", color: "#666", fontSize: "0.85rem", textTransform: "uppercase" }}>{t("guestReg.or", "OU")}</span>
+          <span style={{ padding: "0 10px", color: "#666", fontSize: "0.85rem", textTransform: "uppercase" }}>{t("guestReg.or", "OR")}</span>
           <div style={{ flex: 1, borderBottom: "1px solid #333" }}></div>
         </div>
 
@@ -190,7 +190,7 @@ export default function GuestRegister() {
               <path fill="#EA4335" d="M -14.754 43.989 C -12.984 43.989 -11.404 44.599 -10.154 45.789 L -6.734 42.369 C -8.804 40.429 -11.514 39.239 -14.754 39.239 C -19.444 39.239 -23.494 41.939 -25.464 45.859 L -21.484 48.949 C -20.534 46.099 -17.884 43.989 -14.754 43.989 Z"/>
             </g>
           </svg>
-          {t("guestReg.googleBtn", "Entrar com o Google")}
+          {t("guestReg.googleBtn", "Sign in with Google")}
         </button>
 
         <p style={{ textAlign: "center", marginBottom: 12 }}>
@@ -202,7 +202,7 @@ export default function GuestRegister() {
             }}
             style={{ color: "#007bff", fontWeight: 600 }}
           >
-            {t("guestReg.loginBtn", "Fazer login com email")}
+            {t("guestReg.loginBtn", "Login with email")}
           </a>
         </p>
 
@@ -212,7 +212,7 @@ export default function GuestRegister() {
             state={{ redirectTo, roomCode }}
             style={{ color: "#4CAF50", fontWeight: 600 }}
           >
-            {t("guestReg.createHostBtn", "Criar conta de Host")}
+            {t("guestReg.createHostBtn", "Create Host account")}
           </Link>
         </p>
       </div>

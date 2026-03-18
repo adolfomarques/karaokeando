@@ -63,7 +63,7 @@ export default function LandingHeader() {
             onMouseEnter={(e) => (e.currentTarget.style.color = "#ccc")}
             onMouseLeave={(e) => (e.currentTarget.style.color = "#666")}
           >
-            {t("landing.terms", "Terms")}
+            {t("landing.terms.title", "Terms")}
           </Link>
           <LanguageSwitcher />
         </div>

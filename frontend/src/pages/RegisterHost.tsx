@@ -30,7 +30,7 @@ export default function RegisterHost() {
     setError("");
 
     if (password !== confirmPassword) {
-      setError(t("createRoom.passwordsDontMatch", "As senhas não coincidem"));
+      setError(t("createRoom.passwordsDontMatch", "Passwords do not match"));
       return;
     }
 
@@ -46,10 +46,10 @@ export default function RegisterHost() {
       if (result.success) {
         navigate(returnTo);
       } else {
-        setError(result.error || t("register.error", "Erro ao criar conta"));
+        setError(result.error || t("register.error", "Error creating account"));
       }
     } catch {
-      setError(t("tvLogin.connError", "Erro de conexão"));
+      setError(t("tvLogin.connError", "Connection error"));
     } finally {
       setLoading(false);
     }
@@ -63,16 +63,16 @@ export default function RegisterHost() {
         if (result.success) {
           navigate(returnTo);
         } else {
-          setError(result.error || "Erro no login com Google");
+          setError(result.error || "Google login error");
         }
       } catch {
-        setError("Erro ao autenticar via Google.");
+        setError("Error authenticating via Google.");
       } finally {
         setLoading(false);
       }
     },
     onError: () => {
-      setError("Falha ao abrir popup do Google.");
+      setError("Failed to open Google popup.");
     }
   });
 
@@ -80,7 +80,7 @@ export default function RegisterHost() {
     <div className="container" style={{ paddingTop: 40, maxWidth: 400 }}>
       <Logo width={300} />
       <p style={{ textAlign: "center", color: "#888", marginBottom: 24 }}>
-        {t("register.desc", "Crie sua conta para poder criar salas de karaokê")}
+        {t("register.desc", "Create your account to create karaoke rooms")}
       </p>
 
       <div className="card">
@@ -108,12 +108,12 @@ export default function RegisterHost() {
               <path fill="#EA4335" d="M -14.754 43.989 C -12.984 43.989 -11.404 44.599 -10.154 45.789 L -6.734 42.369 C -8.804 40.429 -11.514 39.239 -14.754 39.239 C -19.444 39.239 -23.494 41.939 -25.464 45.859 L -21.484 48.949 C -20.534 46.099 -17.884 43.989 -14.754 43.989 Z"/>
             </g>
           </svg>
-          {t("register.googleBtn", "Criar conta com o Google")}
+          {t("register.googleBtn", "Create account with Google")}
         </button>
 
         <div style={{ display: "flex", alignItems: "center", marginBottom: 24 }}>
           <div style={{ flex: 1, borderBottom: "1px solid #333" }}></div>
-          <span style={{ padding: "0 10px", color: "#666", fontSize: "0.85rem", textTransform: "uppercase" }}>ou use seu email</span>
+          <span style={{ padding: "0 10px", color: "#666", fontSize: "0.85rem", textTransform: "uppercase" }}>{t("register.orEmail", "or use your email")}</span>
           <div style={{ flex: 1, borderBottom: "1px solid #333" }}></div>
         </div>
 
@@ -134,13 +134,13 @@ export default function RegisterHost() {
           )}
 
           <label style={{ display: "block", marginBottom: 4, fontWeight: 500 }}>
-            {t("register.nameLabel", "Seu nome")}
+            {t("register.nameLabel", "Your name")}
           </label>
           <input
             type="text"
             value={name}
             onChange={e => setName(e.target.value)}
-            placeholder={t("register.namePlaceholder", "Como quer ser chamado?")}
+            placeholder={t("register.namePlaceholder", "How do you want to be called?")}
             required
             style={{ marginBottom: 16 }}
           />
@@ -152,32 +152,32 @@ export default function RegisterHost() {
             type="email"
             value={email}
             onChange={e => setEmail(e.target.value)}
-            placeholder="seu@email.com"
+            placeholder="your@email.com"
             required
             style={{ marginBottom: 16 }}
           />
 
           <label style={{ display: "block", marginBottom: 4, fontWeight: 500 }}>
-            {t("login.password", "Senha")}
+            {t("login.password", "Password")}
           </label>
           <input
             type="password"
             value={password}
             onChange={e => setPassword(e.target.value)}
-            placeholder={t("register.passwordPlaceholder", "Mín. 6 caracteres")}
+            placeholder={t("register.passwordPlaceholder", "Min. 6 characters")}
             required
             minLength={6}
             style={{ marginBottom: 16 }}
           />
 
           <label style={{ display: "block", marginBottom: 4, fontWeight: 500 }}>
-            {t("register.confirmPassword", "Confirmar Senha")}
+            {t("register.confirmPassword", "Confirm Password")}
           </label>
           <input
             type="password"
             value={confirmPassword}
             onChange={e => setConfirmPassword(e.target.value)}
-            placeholder={t("register.confirmPasswordPlaceholder", "Repita sua senha")}
+            placeholder={t("register.confirmPasswordPlaceholder", "Repeat your password")}
             required
             minLength={6}
             style={{ marginBottom: 24 }}
@@ -188,20 +188,20 @@ export default function RegisterHost() {
             disabled={loading}
             style={{ width: "100%", marginBottom: 16 }}
           >
-            {loading ? t("register.creating", "Criando conta...") : t("register.createBtn", "Criar conta e continuar")}
+            {loading ? t("register.creating", "Creating account...") : t("register.createBtn", "Create account and continue")}
           </button>
         </form>
 
         <p style={{ textAlign: "center", color: "#888", fontSize: "0.9rem", marginBottom: 8 }}>
-          {t("home.noAccount", "Já tem conta?")}{" "}
+          {t("home.alreadyHaveAccount", "Already have an account?")}{" "}
           <Link to="/login" style={{ color: "#4CAF50", fontWeight: 600 }}>
-            {t("auth.login", "Fazer login")}
+            {t("auth.login", "Login")}
           </Link>
         </p>
 
         <p style={{ textAlign: "center", fontSize: "0.9rem" }}>
           <Link to="/forgot-password" style={{ color: "#888", textDecoration: "underline" }}>
-            {t("login.forgotPassword", "Esqueceu a senha?")}
+            {t("login.forgotPassword", "Forgot password?")}
           </Link>
         </p>
 
@@ -209,7 +209,7 @@ export default function RegisterHost() {
 
       <div style={{ textAlign: "center", marginTop: 24 }}>
         <Link to="/" style={{ color: "#888" }}>
-          {t("common.backToHome", "← Voltar ao início")}
+          {t("common.backToHome", "← Back to home")}
         </Link>
       </div>
     </div>

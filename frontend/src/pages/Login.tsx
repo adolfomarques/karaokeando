@@ -28,10 +28,10 @@ const LoadingOverlay = ({ isWakingUp, t }: { isWakingUp: boolean, t: any }) => (
         <div style={{ animation: 'pulseWarmup 2s infinite ease-in-out' }}>
           <div style={{ fontSize: '3.5rem', marginBottom: '16px' }}>🎙️</div>
           <h3 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '12px', color: '#ff6600', textTransform: 'uppercase', letterSpacing: '1px' }}>
-            {t("login.wakingUpTitle", "Acordando o Palco")}
+            {t("login.wakingUpTitle", "Waking Up the Stage")}
           </h3>
           <p style={{ fontSize: '0.95rem', lineHeight: 1.6, opacity: 0.9, fontWeight: 500 }}>
-            {t("login.wakingUp", "O servidor está ligando os equipamentos... Pode levar até 40s nas primeiras vezes.")}
+            {t("login.wakingUp", "The server is starting up after inactivity (may take up to 40s the first time)...")}
           </p>
         </div>
       ) : (
@@ -45,7 +45,7 @@ const LoadingOverlay = ({ isWakingUp, t }: { isWakingUp: boolean, t: any }) => (
             animation: 'spinLoader 1s linear infinite',
             marginBottom: '20px'
           }} />
-          <p style={{ fontSize: '1.1rem', fontWeight: 600, letterSpacing: '0.5px' }}>{t("login.entering", "Autenticando...")}</p>
+          <p style={{ fontSize: '1.1rem', fontWeight: 600, letterSpacing: '0.5px' }}>{t("login.entering", "Authenticating...")}</p>
         </div>
       )}
     </div>
@@ -114,16 +114,16 @@ export default function Login() {
         if (result.success) {
           navigate(returnTo);
         } else {
-          setError(result.error || "Erro no login com Google");
+          setError(result.error || "Google login error");
         }
       } catch {
-        setError("Erro ao autenticar via Google.");
+        setError("Error authenticating via Google.");
       } finally {
         setLoading(false);
       }
     },
     onError: () => {
-      setError("Falha ao abrir popup do Google.");
+      setError("Failed to open Google popup.");
     }
   });
 
@@ -131,7 +131,7 @@ export default function Login() {
     <div className="container" style={{ paddingTop: 60, maxWidth: 400 }}>
       <Logo width={300} />
       <p style={{ textAlign: "center", color: "#888", marginBottom: 32 }}>
-        {t("login.desc", "Entrar na sua conta")}
+        {t("login.desc", "Login to your account")}
       </p>
 
       <div className="card" style={{ position: "relative", overflow: "hidden" }}>
@@ -161,12 +161,12 @@ export default function Login() {
               <path fill="#EA4335" d="M -14.754 43.989 C -12.984 43.989 -11.404 44.599 -10.154 45.789 L -6.734 42.369 C -8.804 40.429 -11.514 39.239 -14.754 39.239 C -19.444 39.239 -23.494 41.939 -25.464 45.859 L -21.484 48.949 C -20.534 46.099 -17.884 43.989 -14.754 43.989 Z"/>
             </g>
           </svg>
-          {t("login.googleBtn", "Entrar com o Google")}
+          {t("login.googleBtn", "Sign in with Google")}
         </button>
 
         <div style={{ display: "flex", alignItems: "center", marginBottom: 24 }}>
           <div style={{ flex: 1, borderBottom: "1px solid #333" }}></div>
-          <span style={{ padding: "0 10px", color: "#666", fontSize: "0.85rem", textTransform: "uppercase" }}>ou use seu email</span>
+          <span style={{ padding: "0 10px", color: "#666", fontSize: "0.85rem", textTransform: "uppercase" }}>{t("login.orUseEmail", "or use your email")}</span>
           <div style={{ flex: 1, borderBottom: "1px solid #333" }}></div>
         </div>
 
@@ -186,8 +186,6 @@ export default function Login() {
             </div>
           )}
 
-          {/* O aviso de Waking Up foi movido para o LoadingOverlay principal */}
-
           <label style={{ display: "block", marginBottom: 4, fontWeight: 500 }}>
             {t("login.email", "Email")}
           </label>
@@ -201,7 +199,7 @@ export default function Login() {
           />
 
           <label style={{ display: "block", marginBottom: 4, fontWeight: 500 }}>
-            {t("login.password", "Senha")}
+            {t("login.password", "Password")}
           </label>
           <input
             type="password"
@@ -217,26 +215,26 @@ export default function Login() {
             disabled={loading}
             style={{ width: "100%", marginBottom: 16 }}
           >
-            {loading ? t("login.entering", "Entrando...") : t("common.enter", "Entrar")}
+            {loading ? t("login.entering", "Logging in...") : t("common.enter", "Login")}
           </button>
         </form>
 
         <p style={{ textAlign: "center", color: "#888", fontSize: "0.9rem", marginBottom: 8 }}>
-          {t("home.noAccount", "Não tem conta?")}{" "}
+          {t("home.noAccount", "Don't have an account?")}{" "}
           <Link to="/register" style={{ color: "#4CAF50", fontWeight: 600 }}>
-            {t("login.createHost", "Criar conta de Host")}
+            {t("login.createHost", "Create Host account")}
           </Link>
         </p>
 
         <p style={{ textAlign: "center", fontSize: "0.9rem" }}>
           <Link to="/forgot-password" style={{ color: "#888", textDecoration: "underline" }}>
-            {t("login.forgotPassword", "Esqueceu a senha?")}
+            {t("login.forgotPassword", "Forgot password?")}
           </Link>
         </p>
 
         <p style={{ textAlign: "center", marginTop: 16 }}>
           <Link to="/" style={{ color: "#888" }}>
-            {t("common.backToHome", "← Voltar ao início")}
+            {t("common.backToHome", "← Back to home")}
           </Link>
         </p>
       </div>

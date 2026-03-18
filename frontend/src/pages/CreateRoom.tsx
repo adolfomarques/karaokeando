@@ -25,12 +25,12 @@ export default function CreateRoom() {
     setError("");
 
     if (tvPassword.length !== 6) {
-      setError(t("createRoom.sixChars", "A senha do TV deve ter exatamente 6 caracteres"));
+      setError(t("createRoom.sixChars", "TV password must be exactly 6 characters"));
       return;
     }
 
     if (tvPassword !== confirmPassword) {
-      setError(t("createRoom.passwordsDontMatch", "As senhas não coincidem"));
+      setError(t("createRoom.passwordsDontMatch", "Passwords do not match"));
       return;
     }
 
@@ -68,10 +68,10 @@ export default function CreateRoom() {
         // Navigate to TV view
         navigate(`/room/${data.roomCode}/tv`);
       } else {
-        setError(data.message || t("createRoom.error", "Erro ao criar sala"));
+        setError(data.message || t("createRoom.error", "Error creating room"));
       }
     } catch {
-      setError(t("tvLogin.connError", "Erro de conexão"));
+      setError(t("tvLogin.connError", "Connection error"));
     } finally {
       setLoading(false);
     }
@@ -81,7 +81,7 @@ export default function CreateRoom() {
     <div className="container" style={{ paddingTop: 60, maxWidth: 400 }}>
       <Logo width={200} />
       <p style={{ textAlign: "center", color: "#888", marginBottom: 32 }}>
-        {t("createRoom.desc1", "Defina uma senha para o modo TV")}
+        {t("createRoom.desc1", "Set a password for TV mode")}
       </p>
 
       <div className="card">
@@ -117,7 +117,7 @@ export default function CreateRoom() {
           </div>
 
           <label style={{ display: "block", marginBottom: 4, fontWeight: 500 }}>
-            {t("createRoom.tvPassword", "Senha do TV (6 caracteres)")}
+            {t("createRoom.tvPassword", "TV Password (6 chars)")}
           </label>
           <input
             type="text"
@@ -135,13 +135,13 @@ export default function CreateRoom() {
           />
 
           <label style={{ display: "block", marginBottom: 4, fontWeight: 500 }}>
-            {t("createRoom.confirmPassword", "Confirmar Senha")}
+            {t("createRoom.confirmPassword", "Confirm Password")}
           </label>
           <input
             type="text"
             value={confirmPassword}
             onChange={e => setConfirmPassword(e.target.value.slice(0, 6))}
-            placeholder={t("createRoom.placeholderConfirm", "Digite novamente")}
+            placeholder={t("createRoom.placeholderConfirm", "Type again")}
             required
             maxLength={6}
             style={{
@@ -157,7 +157,7 @@ export default function CreateRoom() {
             disabled={loading || tvPassword.length !== 6}
             style={{ width: "100%" }}
           >
-            {loading ? t("home.creating", "Criando...") : t("createRoom.btn", "Criar Sala")}
+            {loading ? t("createRoom.creating", "Creating...") : t("createRoom.btn", "Create Room")}
           </button>
         </form>
       </div>

@@ -19,12 +19,12 @@ export default function ResetPassword() {
     e.preventDefault();
 
     if (!token) {
-      toast.error(t("resetPassword.tokenMissing", "Token de recuperação ausente."));
+      toast.error(t("resetPassword.tokenMissing", "Recovery token missing."));
       return;
     }
 
     if (password !== confirmPassword) {
-      toast.error(t("resetPassword.passwordsDontMatch", "As senhas não coincidem."));
+      toast.error(t("resetPassword.passwordsDontMatch", "Passwords do not match."));
       return;
     }
 
@@ -40,13 +40,13 @@ export default function ResetPassword() {
       const data = await res.json();
 
       if (res.ok) {
-        toast.success(t("resetPassword.success", "Senha atualizada com sucesso!"));
+        toast.success(t("resetPassword.success", "Password updated successfully!"));
         navigate("/login");
       } else {
-        toast.error(data.message || t("resetPassword.error", "Erro ao redefinir senha"));
+        toast.error(data.message || t("resetPassword.error", "Error resetting password"));
       }
     } catch {
-      toast.error(t("common.connError", "Erro de conexão"));
+      toast.error(t("tvLogin.connError", "Connection error"));
     } finally {
       setLoading(false);
     }
@@ -58,10 +58,10 @@ export default function ResetPassword() {
         <Logo width={300} />
         <div className="card" style={{ marginTop: 32 }}>
           <p style={{ color: "#ff4444", marginBottom: 24 }}>
-            {t("resetPassword.invalidToken", "Link de recuperação inválido ou expirado.")}
+            {t("resetPassword.invalidToken", "Invalid or expired recovery link.")}
           </p>
           <button onClick={() => navigate("/forgot-password")}>
-            {t("resetPassword.requestNew", "Solicitar novo link")}
+            {t("resetPassword.requestNew", "Request new link")}
           </button>
         </div>
       </div>
@@ -72,32 +72,32 @@ export default function ResetPassword() {
     <div className="container" style={{ paddingTop: 60, maxWidth: 400 }}>
       <Logo width={300} />
       <p style={{ textAlign: "center", color: "#888", marginBottom: 32 }}>
-        {t("resetPassword.title", "Crie sua nova senha")}
+        {t("resetPassword.title", "Create your new password")}
       </p>
 
       <div className="card">
         <form onSubmit={handleSubmit}>
           <label style={{ display: "block", marginBottom: 4, fontWeight: 500 }}>
-            {t("resetPassword.newPasswordLabel", "Nova Senha")}
+            {t("resetPassword.newPasswordLabel", "New Password")}
           </label>
           <input
             type="password"
             value={password}
             onChange={e => setPassword(e.target.value)}
-            placeholder={t("resetPassword.passwordPlaceholder", "No mínimo 6 caracteres")}
+            placeholder={t("resetPassword.passwordPlaceholder", "At least 6 characters")}
             required
             minLength={6}
             style={{ marginBottom: 16 }}
           />
 
           <label style={{ display: "block", marginBottom: 4, fontWeight: 500 }}>
-            {t("resetPassword.confirmPasswordLabel", "Confirmar Nova Senha")}
+            {t("resetPassword.confirmPasswordLabel", "Confirm New Password")}
           </label>
           <input
             type="password"
             value={confirmPassword}
             onChange={e => setConfirmPassword(e.target.value)}
-            placeholder={t("resetPassword.confirmPlaceholder", "Confirme sua senha")}
+            placeholder={t("resetPassword.confirmPlaceholder", "Confirm your password")}
             required
             style={{ marginBottom: 24 }}
           />
@@ -107,7 +107,7 @@ export default function ResetPassword() {
             disabled={loading}
             style={{ width: "100%" }}
           >
-            {loading ? t("resetPassword.submitting", "Atualizando...") : t("resetPassword.submitBtn", "Redefinir Senha")}
+            {loading ? t("resetPassword.submitting", "Updating...") : t("resetPassword.submitBtn", "Reset Password")}
           </button>
         </form>
       </div>

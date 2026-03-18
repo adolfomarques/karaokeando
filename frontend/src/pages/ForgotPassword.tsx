@@ -30,10 +30,10 @@ export default function ForgotPassword() {
         setSubmitted(true);
       } else {
         const data = await res.json();
-        toast.error(data.message || "Erro ao solicitar redefinição");
+        toast.error(data.message || t("forgotPassword.error", "Error requesting reset"));
       }
     } catch {
-      toast.error("Erro de conexão");
+      toast.error(t("tvLogin.connError", "Connection error"));
     } finally {
       setLoading(false);
     }
@@ -43,7 +43,7 @@ export default function ForgotPassword() {
     <div className="container" style={{ paddingTop: 60, maxWidth: 400 }}>
       <Logo width={300} />
       <p style={{ textAlign: "center", color: "#888", marginBottom: 32 }}>
-        {t("forgotPassword.desc", "Recuperar senha de acesso")}
+        {t("forgotPassword.desc", "Recover access password")}
       </p>
 
       <div className="card">
@@ -51,22 +51,22 @@ export default function ForgotPassword() {
           <div style={{ textAlign: "center", padding: "20px 0" }}>
             <div style={{ fontSize: "3rem", marginBottom: 16 }}>📩</div>
             <h3 style={{ margin: "0 0 16px", color: "#4CAF50" }}>
-              {t("forgotPassword.successTitle", "Verifique seu email!")}
+              {t("forgotPassword.successTitle", "Check your email!")}
             </h3>
             <p style={{ color: "#aaa", fontSize: "0.95rem", lineHeight: 1.5, marginBottom: 24 }}>
-              {t("forgotPassword.successDesc", "Enviamos um link de recuperação para {{email}}. Por favor, verifique sua caixa de entrada e também a pasta de spam.", { email })}
+              {t("forgotPassword.successDesc", "We sent a recovery link to {{email}}. Please check your inbox and also the spam folder.", { email })}
             </p>
             <button 
               onClick={() => setSubmitted(false)} 
               style={{ background: "transparent", border: "1px solid #444", color: "#fff", marginBottom: 16 }}
             >
-              {t("forgotPassword.tryAgain", "Tentar novamente")}
+              {t("forgotPassword.tryAgain", "Try again")}
             </button>
           </div>
         ) : (
           <form onSubmit={handleSubmit}>
             <p style={{ color: "#aaa", fontSize: "0.9rem", marginBottom: 24, lineHeight: 1.5 }}>
-              {t("forgotPassword.instruction", "Digite o e-mail associado à sua conta. Enviaremos um link para redefinir sua senha.")}
+              {t("forgotPassword.instruction", "Enter the email associated with your account. We will send a link to reset your password.")}
             </p>
 
             <label style={{ display: "block", marginBottom: 4, fontWeight: 500 }}>
@@ -76,7 +76,7 @@ export default function ForgotPassword() {
               type="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
-              placeholder={t("forgotPassword.emailPlaceholder", "seu@email.com")}
+              placeholder={t("forgotPassword.emailPlaceholder", "your@email.com")}
               required
               style={{ marginBottom: 24 }}
             />
@@ -86,14 +86,14 @@ export default function ForgotPassword() {
               disabled={loading}
               style={{ width: "100%", marginBottom: 16 }}
             >
-              {loading ? t("forgotPassword.submitting", "Enviando link...") : t("forgotPassword.submitBtn", "Enviar link de recuperação")}
+              {loading ? t("forgotPassword.submitting", "Sending link...") : t("forgotPassword.submitBtn", "Send recovery link")}
             </button>
           </form>
         )}
 
         <p style={{ textAlign: "center", fontSize: "0.9rem", marginTop: 16 }}>
           <Link to="/login" style={{ color: "#888", textDecoration: "underline" }}>
-            {t("common.backToLogin", "← Voltar ao login")}
+            {t("common.backToLogin", "← Back to login")}
           </Link>
         </p>
       </div>

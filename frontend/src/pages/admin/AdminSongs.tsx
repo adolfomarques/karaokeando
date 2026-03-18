@@ -1,18 +1,24 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { getAdminSongs, deleteAdminSong } from "../../api";
 import AdminLayout from "./AdminLayout";
-import { getAdminSongs, deleteAdminSong, AdminSong } from "../../api";
-import { Toaster, toast } from "react-hot-toast";
+import { toast } from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 
 export default function AdminSongs() {
-  const [songs, setSongs] = useState<AdminSong[]>([]);
+  const { t } = useTranslation();
+  const [songs, setSongs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [search, setSearch] = useState("");
 
-  const loadSongs = () => {
-    setLoading(true);
-    getAdminSongs()
-      .then(setSongs)
-      .finally(() => setLoading(false));
+  const loadSongs = async () => {
+    try {
+      const data = await getAdminSongs();
+      setSongs(data);
+    } catch (err) {
+      toast.error(t("admin.connError", "Erro ao carregar músicas"));
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -20,90 +26,85 @@ export default function AdminSongs() {
   }, []);
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm("Tem certeza que deseja remover esta música do cache?")) return;
-    
+    if (!window.confirm(t("admin.confirmDeleteSong", "Tem certeza que deseja remover esta música do cache?"))) return;
     try {
       await deleteAdminSong(id);
-      toast.success("Música removida com sucesso");
-      setSongs(songs.filter(s => s.id !== id));
-    } catch {
-      toast.error("Erro ao remover música");
+      toast.success(t("admin.deleteSuccess", "Música removida"));
+      loadSongs();
+    } catch (err) {
+      toast.error(t("admin.deleteError", "Erro ao remover"));
     }
   };
 
   const filteredSongs = songs.filter(s => 
-    s.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    s.videoId.toLowerCase().includes(searchTerm.toLowerCase())
+    s.title.toLowerCase().includes(search.toLowerCase()) || 
+    s.id.toLowerCase().includes(search.toLowerCase())
   );
+
+  if (loading) return <AdminLayout><div className="text-[#00f5ff] font-mono animate-pulse uppercase tracking-widest text-xs">{t("admin.downloadingRegistry", "Downloading_Registry...")}</div></AdminLayout>;
 
   return (
     <AdminLayout>
-      <Toaster position="top-right" />
       <div className="max-w-7xl">
-        <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-8">
-          <div>
-            <h1 className="text-4xl font-black mb-2 tracking-tighter uppercase neon-glow-cyan">
-              Músicas <span className="text-white/20">/</span> Cache
-            </h1>
-            <p className="text-gray-500 text-sm font-mono tracking-widest uppercase">
-              Gerenciamento de Ativos de Áudio e Vídeo
-            </p>
-          </div>
-          <div className="relative w-full md:w-96">
-            <input
-              type="text"
-              aria-label="Buscar músicas no cache"
-              placeholder="PESQUISAR_IDENTIFICADOR_OU_TITULO..."
-              className="w-full bg-[#121216] border border-white/5 rounded-none px-6 py-4 text-xs font-mono uppercase tracking-[0.2em] focus:outline-none focus:border-[#00f5ff] transition-colors placeholder:text-gray-700"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-700 pointer-events-none font-mono text-[10px]">SRC_QUERY</div>
-          </div>
+        <header className="mb-12">
+          <h1 className="text-4xl font-black mb-2 tracking-tighter uppercase neon-glow-cyan">
+             {t("admin.songs", "Músicas")} <span className="text-white/20">/</span> {t("admin.cache", "Cache")}
+          </h1>
+          <p className="text-gray-500 text-sm font-mono tracking-widest uppercase">
+            {t("admin.assetManagement", "Gerenciamento de Ativos de Áudio e Vídeo")}
+          </p>
         </header>
 
-        <div className="admin-card border border-white/5">
+        <div className="mb-8 relative group">
+          <input 
+            type="text" 
+            placeholder={t("admin.searchPlaceholder", "PESQUISAR_IDENTIFICADOR_OU_TITULO...")}
+            className="w-full bg-[#0d0d12] border border-white/5 px-6 py-4 text-xs font-mono tracking-widest placeholder:text-gray-700 focus:outline-none focus:border-[#00f5ff]/30 transition-all"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          <div className="absolute right-6 top-1/2 -translate-y-1/2 text-[10px] text-gray-700 font-mono hidden group-focus-within:block uppercase tracking-widest">Searching_Now...</div>
+        </div>
+
+        <div className="admin-card border border-white/5 bg-[#0d0d12]">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="admin-table-header text-gray-500 text-[10px] font-bold uppercase tracking-widest">
-                  <th className="px-10 py-5">Visual</th>
-                  <th className="px-10 py-5">Metadata</th>
-                  <th className="px-10 py-5">Métrica (Plays)</th>
-                  <th className="px-10 py-5">Registrador</th>
-                  <th className="px-10 py-5 text-right">Controle</th>
+                <tr className="admin-table-header text-gray-500 text-[10px] font-bold uppercase tracking-widest bg-black/50">
+                  <th className="px-10 py-5">{t("admin.visual", "Visual")}</th>
+                  <th className="px-10 py-5">{t("admin.metadata", "Metadata")}</th>
+                  <th className="px-10 py-5">{t("admin.metrics", "Métrica (Plays)")}</th>
+                  <th className="px-10 py-5 text-right">{t("admin.control", "Controle")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5 text-sm">
                 {filteredSongs.map((song) => (
                   <tr key={song.id} className="hover:bg-[#00f5ff]/[0.02] transition-colors group">
                     <td className="px-10 py-5">
-                      <div className="relative w-24 h-14 bg-black border border-white/5 overflow-hidden">
-                        <img 
-                          src={`https://i.ytimg.com/vi/${song.videoId}/default.jpg`} 
+                      <div className="w-24 aspect-video bg-[#050507] border border-white/5 overflow-hidden relative">
+                         <img 
+                          src={`https://img.youtube.com/vi/${song.id}/mqdefault.jpg`} 
                           alt="" 
-                          className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" 
+                          className="w-full h-full object-cover opacity-50 grayscale group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-500"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                         <div className="absolute inset-x-0 bottom-0 bg-[#00f5ff] h-[1px] scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-500"></div>
                       </div>
                     </td>
                     <td className="px-10 py-5">
-                      <div className="font-bold text-white mb-1 tracking-tight group-hover:text-[#00f5ff] transition-colors">{song.title}</div>
-                      <div className="text-gray-600 text-[10px] font-mono uppercase tracking-widest">{song.videoId}</div>
+                      <div className="font-bold text-gray-200 mb-1 max-w-md truncate uppercase tracking-tighter">{song.title}</div>
+                      <div className="font-mono text-[10px] text-gray-600 tracking-widest uppercase">{song.id}</div>
                     </td>
                     <td className="px-10 py-5">
-                       <span className="text-xl font-black neon-text-cyan admin-stat-value">{song.playCount}</span>
+                       <span className="font-mono text-xs font-black text-gray-500 group-hover:text-white transition-colors">
+                        {String(song.playCount).padStart(4, '0')} PLAYS
+                       </span>
                     </td>
-                    <td className="px-10 py-5 text-gray-500 font-medium">{song.addedBy}</td>
                     <td className="px-10 py-5 text-right">
                       <button 
-                        onClick={() => handleDelete(song.id)}
-                        className="p-3 bg-red-600/5 text-red-500 hover:bg-red-600 hover:text-white transition-all border border-red-500/20 hover:border-red-600"
-                        title="Remover do Cache"
+                         onClick={() => handleDelete(song.id)}
+                         className="text-[10px] font-mono font-bold text-gray-700 hover:text-red-500 transition-colors uppercase tracking-[0.2em]"
                       >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
+                        [REMOVE_CACHE]
                       </button>
                     </td>
                   </tr>
