@@ -2,86 +2,260 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ════════════════════════════════════════════════════════
+   KARAOKE LIQUID GLASS SYSTEM — Design Tokens
+   ════════════════════════════════════════════════════════ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
 :root {
-  --bg: #0d0d0d;
-  --card: #1a1a1a;
-  --accent: #ff4081;
-  --text: #fff;
-  --muted: #888;
+  /* Cores */
+  --bg:            #0A0A0A;
+  --primary:       #FF0080;
+  --primary-glow:  rgba(255, 0, 128, 0.5);
+  --secondary:     #7928CA;
+  --text:          #FFFFFF;
+  --text-muted:    rgba(255, 255, 255, 0.6);
+  --accent:        #FF0080;
+  --muted:         rgba(255, 255, 255, 0.4);
+
+  /* Glass */
+  --glass-bg:       rgba(255, 255, 255, 0.05);
+  --glass-bg-heavy: rgba(255, 255, 255, 0.08);
+  --glass-border:   rgba(255, 255, 255, 0.10);
+  --glass-blur:     blur(24px);
+  --glass-shadow:   0 10px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255,255,255,0.05);
+  --glass-radius:   20px;
+
+  /* Glow */
+  --glow-primary:  0 0 30px rgba(255, 0, 128, 0.45);
+  --glow-strong:   0 0 50px rgba(255, 0, 128, 0.70);
+
+  /* Transição Global */
+  --transition: all 0.25s ease;
 }
 
-* {
+/* ── Reset & Base ───────────────────────────────────────── */
+*, *::before, *::after {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  margin: 0;
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   background: var(--bg);
   color: var(--text);
   min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
 }
 
-/* Global button/input styles — NOT applied inside .admin-layout */
-body:not(:has(.admin-layout)) button {
-  cursor: pointer;
-  border: none;
-  border-radius: 8px;
-  padding: 12px 24px;
-  font-size: 1rem;
-  font-weight: 600;
-  background: var(--accent);
-  color: #fff;
-  transition: opacity 0.2s;
-}
-body:not(:has(.admin-layout)) button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-body:not(:has(.admin-layout)) button:hover:not(:disabled) {
-  opacity: 0.85;
+/* ── Animated Background Blobs ──────────────────────────── */
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(90px);
+  pointer-events: none;
+  z-index: 0;
+  transition: transform 0.3s ease;
 }
 
-body:not(:has(.admin-layout)) input {
-  padding: 12px 16px;
-  border-radius: 8px;
-  border: 1px solid #333;
-  background: #222;
-  color: #fff;
-  font-size: 1rem;
-  width: 100%;
+body::before {
+  width: 600px;
+  height: 600px;
+  top: -15%;
+  left: -10%;
+  background: radial-gradient(circle, rgba(255, 0, 128, 0.18) 0%, transparent 70%);
+  animation: blobDrift1 14s ease-in-out infinite alternate;
 }
 
+body::after {
+  width: 700px;
+  height: 700px;
+  bottom: -20%;
+  right: -15%;
+  background: radial-gradient(circle, rgba(121, 40, 202, 0.16) 0%, transparent 70%);
+  animation: blobDrift2 18s ease-in-out infinite alternate;
+}
+
+@keyframes blobDrift1 {
+  0%   { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(60px, 80px) scale(1.12); }
+}
+@keyframes blobDrift2 {
+  0%   { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(-50px, -70px) scale(1.1); }
+}
+
+/* ── Layout ─────────────────────────────────────────────── */
 .container {
+  position: relative;
+  z-index: 1;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 24px 16px;
+  padding: 24px 20px;
 }
+
 @media (max-width: 600px) {
   .container {
-    max-width: 480px;
+    padding: 16px 14px;
   }
 }
 
+/* ── Glass Card ─────────────────────────────────────────── */
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--glass-radius);
+  box-shadow: var(--glass-shadow);
+  position: relative;
+  overflow: hidden;
+  transition: var(--transition);
+}
+
+.glass-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    140deg,
+    rgba(255, 255, 255, 0.07) 0%,
+    rgba(255, 255, 255, 0.00) 60%
+  );
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.glass-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.16);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.08);
+}
+
+/* Legacy .card → glass */
 .card {
-  background: var(--card);
-  border-radius: 12px;
-  padding: 20px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--glass-radius);
+  box-shadow: var(--glass-shadow);
+  padding: 32px;
   margin-bottom: 16px;
+  position: relative;
+  overflow: hidden;
 }
 
-h1,
-h2,
-h3 {
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.06) 0%, transparent 60%);
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+/* ── Global Buttons (exceto admin) ──────────────────────── */
+body:not(:has(.admin-layout)) button {
+  cursor: pointer;
+  border: none;
+  border-radius: 999px;
+  padding: 12px 28px;
+  font-size: 1rem;
+  font-weight: 600;
+  font-family: inherit;
+  background: linear-gradient(135deg, #FF0080, #FF4D6D);
+  color: #fff;
+  transition: var(--transition);
+  box-shadow: 0 0 20px rgba(255, 0, 128, 0.35);
+  letter-spacing: 0.01em;
+}
+
+body:not(:has(.admin-layout)) button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+body:not(:has(.admin-layout)) button:hover:not(:disabled) {
+  transform: scale(1.04);
+  box-shadow: 0 0 35px rgba(255, 0, 128, 0.65);
+}
+
+body:not(:has(.admin-layout)) button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+/* ── Global Inputs (exceto admin) ───────────────────────── */
+body:not(:has(.admin-layout)) input {
+  padding: 14px 18px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  color: #fff;
+  font-size: 1rem;
+  font-family: inherit;
+  width: 100%;
+  transition: var(--transition);
+  outline: none;
+}
+
+body:not(:has(.admin-layout)) input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+body:not(:has(.admin-layout)) input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(255, 0, 128, 0.20);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* ── Typography ─────────────────────────────────────────── */
+h1, h2, h3 {
   margin: 0 0 16px;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+  line-height: 1.15;
 }
 
+/* ── Glow Pulse ─────────────────────────────────────────── */
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(255, 0, 128, 0.4); }
+  50%       { box-shadow: 0 0 45px rgba(255, 0, 128, 0.75); }
+}
+
+.glow-pulse {
+  animation: glowPulse 2.5s ease-in-out infinite;
+}
+
+/* ── Hover lift ─────────────────────────────────────────── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(32px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInLogo {
+  from { opacity: 0; transform: translateY(-12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Queue / Room shared items ──────────────────────────── */
 .queue-item {
   display: flex;
   justify-content: space-between;
-  padding: 8px 0;
-  border-bottom: 1px solid #333;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
+
 .queue-item:last-child {
   border-bottom: none;
 }
@@ -92,66 +266,79 @@ h3 {
   padding: 6px 0;
 }
 
+/* ── Now Playing ────────────────────────────────────────── */
 .now-playing {
-  background: linear-gradient(135deg, #ff4081 0%, #00bcd4 100%);
-  border-radius: 12px;
-  padding: 20px;
+  background: linear-gradient(135deg, rgba(255, 64, 129, 0.25) 0%, rgba(0, 188, 212, 0.15) 100%);
+  border: 1px solid rgba(255, 64, 129, 0.25);
+  border-radius: 16px;
+  padding: 24px;
   margin-bottom: 16px;
   text-align: center;
+  backdrop-filter: blur(12px);
 }
 
+/* ── Video Player ───────────────────────────────────────── */
 .player-wrapper {
   position: relative;
   width: 100%;
-  padding-bottom: 56.25%; /* 16:9 */
+  padding-bottom: 56.25%;
   background: #000;
-  border-radius: 12px;
+  border-radius: 16px;
   overflow: hidden;
   margin-bottom: 16px;
 }
+
 .player-wrapper iframe {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
   border: none;
 }
 
-.tabs {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
-}
-.tabs button {
-  flex: 1;
-  background: #333;
-}
-.tabs button.active {
-  background: var(--accent);
-}
-
-/* YouTube player container - ensure iframe fills it */
 .yt-container {
   position: relative;
   width: 100%;
   height: 0;
-  padding-bottom: 56.25%; /* 16:9 aspect ratio */
+  padding-bottom: 56.25%;
   background: #000;
-  border-radius: 12px;
+  border-radius: 16px;
   overflow: hidden;
 }
+
 .yt-container > div,
 .yt-container iframe {
   position: absolute !important;
-  top: 0;
-  left: 0;
+  top: 0; left: 0;
   width: 100% !important;
   height: 100% !important;
   border: none;
 }
 
-/* ─── Loading Shimmer ─── */
+/* ── Tabs ───────────────────────────────────────────────── */
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.tabs button {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.05) !important;
+  box-shadow: none !important;
+  border-radius: 12px !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  padding: 10px !important;
+  color: var(--text-muted) !important;
+}
+
+.tabs button.active {
+  background: linear-gradient(135deg, #FF0080, #FF4D6D) !important;
+  color: #fff !important;
+  box-shadow: 0 0 20px rgba(255, 0, 128, 0.4) !important;
+  border-color: transparent !important;
+}
+
+/* ── Shimmer ────────────────────────────────────────────── */
 .shimmer {
   background: linear-gradient(
     90deg,
@@ -160,33 +347,29 @@ h3 {
     rgba(255, 255, 255, 0.03) 75%
   );
   background-size: 200% 100%;
-  animation: shimmer-anim 1.5s infinite linear;
+  animation: shimmerAnim 1.5s infinite linear;
   border-radius: 8px;
 }
 
-@keyframes shimmer-anim {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
+@keyframes shimmerAnim {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 .pulse-text {
-  animation: pulse-op 1.5s infinite ease-in-out;
+  animation: pulseOp 1.5s infinite ease-in-out;
 }
 
-@keyframes pulse-op {
+@keyframes pulseOp {
   0%, 100% { opacity: 0.5; }
-  50% { opacity: 1; }
+  50%       { opacity: 1; }
 }
 
-/* ─── Neon Border Flow ─── */
+/* ── Neon Border Spin ───────────────────────────────────── */
 .btn-neon-border {
   position: relative;
   overflow: hidden;
-  background: #222 !important;
+  background: #1a1a1a !important;
   color: #fff !important;
   border: none !important;
   z-index: 1;
@@ -194,22 +377,16 @@ h3 {
 }
 
 .btn-neon-border:active {
-  transform: scale(0.98);
+  transform: scale(0.97) !important;
 }
 
 .btn-neon-border::before {
   content: "";
   position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: conic-gradient(
-    transparent,
-    var(--accent),
-    transparent 30%
-  );
-  animation: rotate-neon 2s linear infinite;
+  top: -50%; left: -50%;
+  width: 200%; height: 200%;
+  background: conic-gradient(transparent, var(--primary), transparent 30%);
+  animation: rotateNeon 2s linear infinite;
   z-index: -2;
 }
 
@@ -217,21 +394,17 @@ h3 {
   content: "";
   position: absolute;
   inset: 2px;
-  background: #222;
+  background: #1a1a1a;
   border-radius: 6px;
   z-index: -1;
 }
 
-@keyframes rotate-neon {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+@keyframes rotateNeon {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
 }
 
-/* ─── Admin Dashboard Styles ─── */
+/* ── Admin (inalterado) ─────────────────────────────────── */
 .admin-card {
   background: #121216;
   border: 1px solid rgba(255, 255, 255, 0.05);
@@ -262,36 +435,26 @@ h3 {
   border-bottom: 2px solid rgba(255, 255, 255, 0.05);
 }
 
-.neon-glow-cyan {
-  text-shadow: 0 0 10px rgba(0, 245, 255, 0.5);
-}
-
-.neon-text-cyan {
-  color: #00f5ff;
-}
+.neon-glow-cyan { text-shadow: 0 0 10px rgba(0, 245, 255, 0.5); }
+.neon-text-cyan { color: #00f5ff; }
 
 .admin-stat-value {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   letter-spacing: -0.05em;
 }
 
 .stagger-in > * {
-  animation: fade-in-up 0.5s ease-out forwards;
+  animation: fadeInUp 0.5s ease-out forwards;
   opacity: 0;
-}
-
-@keyframes fade-in-up {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 .stagger-in > *:nth-child(1) { animation-delay: 0.1s; }
 .stagger-in > *:nth-child(2) { animation-delay: 0.2s; }
 .stagger-in > *:nth-child(3) { animation-delay: 0.3s; }
 .stagger-in > *:nth-child(4) { animation-delay: 0.4s; }
+
+/* ── Scrollbar ──────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #0A0A0A; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.22); }

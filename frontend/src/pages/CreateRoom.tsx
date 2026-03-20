@@ -14,7 +14,6 @@ export default function CreateRoom() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Redirect if not a host
   if (!user?.canHost) {
     navigate("/complete-profile");
     return null;
@@ -25,131 +24,101 @@ export default function CreateRoom() {
     setError("");
 
     if (tvPassword.length !== 6) {
-      setError(t("createRoom.sixChars", "TV password must be exactly 6 characters"));
+      setError(t("createRoom.sixChars", "A senha da TV deve ter exatamente 6 caracteres"));
       return;
     }
-
     if (tvPassword !== confirmPassword) {
-      setError(t("createRoom.passwordsDontMatch", "Passwords do not match"));
+      setError(t("createRoom.passwordsDontMatch", "As senhas não coincidem"));
       return;
     }
 
     setLoading(true);
-
     try {
       const token = getToken();
       const res = await fetch(`${API_BASE}/api/rooms`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ tvPassword }),
       });
-
       const data = await res.json();
 
       if (res.ok) {
-        // Save TV token for this room
-        const tvRes = await fetch(
-          `${API_BASE}/api/rooms/${data.roomCode}/tv/login`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ tvPassword }),
-          }
-        );
-
+        const tvRes = await fetch(`${API_BASE}/api/rooms/${data.roomCode}/tv/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ tvPassword }),
+        });
         if (tvRes.ok) {
           const tvData = await tvRes.json();
           localStorage.setItem(`tvToken_${data.roomCode}`, tvData.tvToken);
         }
-
-        // Navigate to TV view
         navigate(`/room/${data.roomCode}/tv`);
       } else {
-        setError(data.message || t("createRoom.error", "Error creating room"));
+        setError(data.message || t("createRoom.error", "Erro ao criar sala"));
       }
     } catch {
-      setError(t("tvLogin.connError", "Connection error"));
+      setError(t("tvLogin.connError", "Erro de conexão"));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="container" style={{ paddingTop: 60, maxWidth: 400 }}>
-      <Logo width={200} />
-      <p style={{ textAlign: "center", color: "#888", marginBottom: 32 }}>
-        {t("createRoom.desc1", "Set a password for TV mode")}
+    <div style={{ minHeight: "100vh", background: "#0A0A0A", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 20px" }}>
+      <Logo width={220} style={{ marginBottom: "8px" }} />
+      <p style={{ textAlign: "center", color: "rgba(255,255,255,0.4)", marginBottom: "28px", fontSize: "0.95rem" }}>
+        {t("createRoom.desc1", "Configure a senha do modo TV")}
       </p>
 
-      <div className="card">
+      <div className="glass-card" style={{ padding: "36px", width: "100%", maxWidth: "420px" }}>
         <form onSubmit={handleSubmit}>
           {error && (
-            <div
-              style={{
-                background: "#ff4444",
-                color: "white",
-                padding: "12px 16px",
-                borderRadius: 8,
-                marginBottom: 16,
-                fontSize: "0.9rem",
-              }}
-            >
-              {error}
+            <div style={{
+              background: "rgba(255,80,80,0.15)", color: "#ff6b6b",
+              padding: "12px 14px", borderRadius: "10px", marginBottom: "14px", fontSize: "0.88rem",
+              border: "1px solid rgba(255,80,80,0.3)",
+            }}>
+              ⚠️ {error}
             </div>
           )}
 
-          <div
-            style={{
-              background: "#333",
-              padding: "12px 16px",
-              borderRadius: 8,
-              marginBottom: 20,
-              fontSize: "0.9rem",
-            }}
-          >
-            <p style={{ margin: 0 }}>
-              💡 {t("createRoom.desc2", "This password will be used to access")} <strong>{t("createRoom.tvMode", "TV mode")}</strong>{" "}
-              {t("createRoom.desc3", "of the room. Share only with those who should control the TV.")}
-            </p>
+          {/* Info glass box */}
+          <div style={{
+            background: "rgba(255,255,255,0.04)",
+            border: "1px solid rgba(255,255,255,0.08)",
+            padding: "14px 16px",
+            borderRadius: "12px",
+            marginBottom: "22px",
+            fontSize: "0.88rem",
+            color: "rgba(255,255,255,0.55)",
+            lineHeight: 1.6,
+          }}>
+            💡 {t("createRoom.desc2", "Esta senha será usada para acessar o")} <strong style={{ color: "rgba(255,255,255,0.8)" }}>{t("createRoom.tvMode", "modo TV")}</strong>{" "}
+            {t("createRoom.desc3", "da sala. Compartilhe apenas com quem deve controlar a TV.")}
           </div>
 
-          <label style={{ display: "block", marginBottom: 4, fontWeight: 500 }}>
-            {t("createRoom.tvPassword", "TV Password (6 chars)")}
+          <label style={{ display: "block", marginBottom: "6px", fontWeight: 500, fontSize: "0.88rem", color: "rgba(255,255,255,0.7)" }}>
+            {t("createRoom.tvPassword", "Senha da TV (6 chars)")}
           </label>
           <input
             type="text"
             value={tvPassword}
             onChange={e => setTvPassword(e.target.value.slice(0, 6))}
             placeholder={t("createRoom.placeholderTV", "Ex: abc123")}
-            required
-            maxLength={6}
-            style={{
-              marginBottom: 16,
-              letterSpacing: "0.2em",
-              textAlign: "center",
-              fontSize: "1.2rem",
-            }}
+            required maxLength={6}
+            style={{ marginBottom: "14px", letterSpacing: "0.25em", textAlign: "center", fontSize: "1.3rem" }}
           />
 
-          <label style={{ display: "block", marginBottom: 4, fontWeight: 500 }}>
-            {t("createRoom.confirmPassword", "Confirm Password")}
+          <label style={{ display: "block", marginBottom: "6px", fontWeight: 500, fontSize: "0.88rem", color: "rgba(255,255,255,0.7)" }}>
+            {t("createRoom.confirmPassword", "Confirmar Senha")}
           </label>
           <input
             type="text"
             value={confirmPassword}
             onChange={e => setConfirmPassword(e.target.value.slice(0, 6))}
-            placeholder={t("createRoom.placeholderConfirm", "Type again")}
-            required
-            maxLength={6}
-            style={{
-              marginBottom: 24,
-              letterSpacing: "0.2em",
-              textAlign: "center",
-              fontSize: "1.2rem",
-            }}
+            placeholder={t("createRoom.placeholderConfirm", "Digite novamente")}
+            required maxLength={6}
+            style={{ marginBottom: "26px", letterSpacing: "0.25em", textAlign: "center", fontSize: "1.3rem" }}
           />
 
           <button
@@ -157,7 +126,7 @@ export default function CreateRoom() {
             disabled={loading || tvPassword.length !== 6}
             style={{ width: "100%" }}
           >
-            {loading ? t("createRoom.creating", "Creating...") : t("createRoom.btn", "Create Room")}
+            {loading ? t("createRoom.creating", "Criando...") : t("createRoom.btn", "Criar Sala")}
           </button>
         </form>
       </div>

@@ -15,10 +15,7 @@ export default function LanguageSwitcher() {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     };
@@ -28,78 +25,73 @@ export default function LanguageSwitcher() {
 
   const languages = [
     { code: "en", label: "EN", flag: "🇺🇸" },
-    { code: "pt", label: "PT-BR", flag: "🇧🇷" },
+    { code: "pt", label: "PT", flag: "🇧🇷" },
   ];
 
-  const activeColor = "#c6ff00"; // Usando o Acid Green do design Clubbing Brutalista
+  const active = languages.find(l => l.code === currentLang)!;
 
   return (
-    <div
-      ref={dropdownRef}
-      style={{
-        position: "relative",
-        zIndex: 1100,
-      }}
-    >
+    <div ref={dropdownRef} style={{ position: "relative", zIndex: 1100 }}>
+      {/* Trigger */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         style={{
           display: "flex",
           alignItems: "center",
-          gap: "8px",
-          background: "transparent",
+          gap: "6px",
+          background: "rgba(255,255,255,0.06)",
           color: "#fff",
-          border: isOpen ? `1px solid rgba(255,255,255,0.2)` : "1px solid rgba(255,255,255,0.1)",
-          padding: "6px 12px",
+          border: "1px solid rgba(255,255,255,0.10)",
+          padding: "5px 12px",
           borderRadius: "8px",
           cursor: "pointer",
-          fontSize: "0.9rem",
+          fontSize: "0.82rem",
           fontWeight: 600,
           transition: "all 0.2s",
-          outline: "none",
+          backdropFilter: "blur(8px)",
+          boxShadow: "none",
+        }}
+        onMouseEnter={e => {
+          e.currentTarget.style.background = "rgba(255,255,255,0.10)";
+          e.currentTarget.style.borderColor = "rgba(255,0,128,0.35)";
+        }}
+        onMouseLeave={e => {
+          e.currentTarget.style.background = "rgba(255,255,255,0.06)";
+          e.currentTarget.style.borderColor = "rgba(255,255,255,0.10)";
         }}
       >
-        <span style={{ fontSize: "1.1rem" }}>
-          {languages.find((l) => l.code === currentLang)?.flag}
-        </span>
-        <span style={{ color: "#eee" }}>
-          {languages.find((l) => l.code === currentLang)?.label}
-        </span>
+        <span style={{ fontSize: "1rem" }}>{active.flag}</span>
+        <span>{active.label}</span>
         <svg
-          width="12"
-          height="12"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="3"
-          strokeLinecap="round"
-          strokeLinejoin="round"
+          width="10" height="10" viewBox="0 0 24 24"
+          fill="none" stroke="currentColor" strokeWidth="3"
+          strokeLinecap="round" strokeLinejoin="round"
           style={{
             transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
             transition: "transform 0.2s",
-            marginLeft: "2px",
-            color: "#888",
+            color: "rgba(255,255,255,0.5)",
           }}
         >
-          <polyline points="6 9 12 15 18 9"></polyline>
+          <polyline points="6 9 12 15 18 9" />
         </svg>
       </button>
 
+      {/* Dropdown */}
       {isOpen && (
-        <div
-          style={{
-            position: "absolute",
-            top: "calc(100% + 10px)",
-            right: 0,
-            background: "#1c1c1c",
-            border: "1px solid #333",
-            borderRadius: "14px",
-            overflow: "hidden",
-            width: "140px",
-            boxShadow: "0 10px 30px rgba(0,0,0,0.8)",
-            animation: "fadeInDown 0.15s ease-out",
-          }}
-        >
+        <div style={{
+          position: "absolute",
+          top: "calc(100% + 8px)",
+          right: 0,
+          background: "rgba(18,18,22,0.92)",
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+          border: "1px solid rgba(255,255,255,0.10)",
+          borderRadius: "12px",
+          overflow: "hidden",
+          width: "120px",
+          boxShadow: "0 12px 40px rgba(0,0,0,0.7)",
+          animation: "fadeInDown 0.15s ease-out",
+        }}>
           {languages.map((lng, index) => {
             const isActive = currentLang === lng.code;
             return (
@@ -109,43 +101,37 @@ export default function LanguageSwitcher() {
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  justifyContent: "space-between",
+                  gap: "8px",
                   width: "100%",
-                  padding: "12px 16px",
-                  background: isActive ? "rgba(198, 255, 0, 0.05)" : "transparent",
+                  padding: "10px 14px",
+                  background: isActive ? "rgba(255,0,128,0.12)" : "transparent",
                   border: "none",
-                  borderBottom:
-                    index === 0 ? "1px solid #333" : "none",
+                  borderBottom: index === 0 ? "1px solid rgba(255,255,255,0.06)" : "none",
                   cursor: "pointer",
-                  fontSize: "1rem",
-                  fontWeight: isActive ? 700 : 600,
+                  fontSize: "0.88rem",
+                  fontWeight: isActive ? 700 : 500,
+                  color: isActive ? "#FF0080" : "rgba(255,255,255,0.75)",
+                  borderRadius: "0",
+                  boxShadow: "none",
                   transition: "background 0.2s",
                 }}
-                onMouseEnter={(e) => {
-                  if (!isActive) e.currentTarget.style.background = "#2a2a2a";
+                onMouseEnter={e => {
+                  if (!isActive) e.currentTarget.style.background = "rgba(255,255,255,0.06)";
                 }}
-                onMouseLeave={(e) => {
+                onMouseLeave={e => {
                   if (!isActive) e.currentTarget.style.background = "transparent";
                 }}
               >
-                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <span style={{ fontSize: "1.2rem" }}>{lng.flag}</span>
-                  <span style={{ color: isActive ? activeColor : "#ccc" }}>
-                    {lng.label}
-                  </span>
-                </div>
+                <span style={{ fontSize: "1rem" }}>{lng.flag}</span>
+                {lng.label}
                 {isActive && (
                   <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke={activeColor}
-                    strokeWidth="3"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
+                    width="12" height="12" viewBox="0 0 24 24"
+                    fill="none" stroke="#FF0080" strokeWidth="3"
+                    strokeLinecap="round" strokeLinejoin="round"
+                    style={{ marginLeft: "auto" }}
                   >
-                    <polyline points="20 6 9 17 4 12"></polyline>
+                    <polyline points="20 6 9 17 4 12" />
                   </svg>
                 )}
               </button>
@@ -153,10 +139,11 @@ export default function LanguageSwitcher() {
           })}
         </div>
       )}
+
       <style>{`
         @keyframes fadeInDown {
-          from { opacity: 0; transform: translateY(-10px); }
-          to { opacity: 1; transform: translateY(0); }
+          from { opacity: 0; transform: translateY(-8px); }
+          to   { opacity: 1; transform: translateY(0); }
         }
       `}</style>
     </div>

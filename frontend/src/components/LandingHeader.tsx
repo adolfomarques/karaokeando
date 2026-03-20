@@ -12,78 +12,87 @@ export default function LandingHeader() {
       left: 0,
       right: 0,
       width: "100%",
-      background: "rgba(10, 10, 10, 0.92)",
-      backdropFilter: "blur(12px)",
-      borderBottom: "1px solid rgba(255, 255, 255, 0.05)",
+      background: "rgba(10, 10, 10, 0.75)",
+      backdropFilter: "blur(24px)",
+      WebkitBackdropFilter: "blur(24px)",
+      borderBottom: "1px solid rgba(255, 255, 255, 0.07)",
       zIndex: 1000,
     }}>
-      {/* Use the same .container class as the page content for perfect alignment */}
-      <div className="container" style={{
+      <div style={{
+        maxWidth: "1200px",
+        margin: "0 auto",
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        padding: "14px 16px",
+        padding: "12px 20px",
+        gap: "12px",
       }}>
-        {/* Logo Section */}
-        <Link to="/" style={{ display: "flex", alignItems: "center", gap: "10px", textDecoration: "none", flexShrink: 0 }}>
+        {/* Left: Logo/Brand */}
+        <Link to="/" style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "10px",
+          textDecoration: "none",
+          flexShrink: 0,
+        }}>
           <img
             src="/am-logo.png"
             alt="Logo AM"
             style={{
-              width: "36px",
-              height: "36px",
+              width: "34px",
+              height: "34px",
               borderRadius: "50%",
               objectFit: "cover",
-              border: "1px solid rgba(255, 255, 255, 0.15)"
+              border: "1px solid rgba(255,255,255,0.12)",
             }}
           />
           <span style={{
             color: "#fff",
             fontWeight: "700",
-            fontSize: "1rem",
+            fontSize: "0.95rem",
             letterSpacing: "-0.3px",
-            whiteSpace: "nowrap"
+            whiteSpace: "nowrap",
           }}>
             Adolfo Marques
           </span>
         </Link>
 
-        {/* Right Section: Terms + Language side by side */}
+        {/* Right: Terms + Language */}
         <div style={{
           display: "flex",
           alignItems: "center",
           gap: "8px",
           flexShrink: 0,
-          marginLeft: "auto"
         }}>
           <Link
             to="/terms"
             style={{
-              color: "#aaa",
+              color: "rgba(255,255,255,0.55)",
               textDecoration: "none",
-              fontSize: "clamp(0.7rem, 2vw, 0.85rem)",
-              fontWeight: "600",
-              transition: "color 0.2s",
+              fontSize: "clamp(0.72rem, 2vw, 0.82rem)",
+              fontWeight: "500",
               whiteSpace: "nowrap",
-              padding: "4px 8px",
-              background: "rgba(255, 255, 255, 0.05)",
+              padding: "5px 10px",
+              background: "rgba(255,255,255,0.05)",
               borderRadius: "8px",
-              border: "1px solid rgba(255, 255, 255, 0.05)"
+              border: "1px solid rgba(255,255,255,0.07)",
+              transition: "all 0.2s ease",
             }}
-            onMouseEnter={(e) => {
+            onMouseEnter={e => {
               e.currentTarget.style.color = "#fff";
-              e.currentTarget.style.background = "rgba(255, 255, 255, 0.1)";
+              e.currentTarget.style.background = "rgba(255,255,255,0.10)";
+              e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)";
             }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.color = "#aaa";
-              e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)";
+            onMouseLeave={e => {
+              e.currentTarget.style.color = "rgba(255,255,255,0.55)";
+              e.currentTarget.style.background = "rgba(255,255,255,0.05)";
+              e.currentTarget.style.borderColor = "rgba(255,255,255,0.07)";
             }}
           >
             {t("landing.terms.title", "Terms")}
           </Link>
-          <div style={{ position: "relative", zIndex: 1100 }}>
-            <LanguageSwitcher />
-          </div>
+
+          <LanguageSwitcher />
         </div>
       </div>
     </header>
