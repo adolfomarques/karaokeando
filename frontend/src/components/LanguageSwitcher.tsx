@@ -37,10 +37,8 @@ export default function LanguageSwitcher() {
     <div
       ref={dropdownRef}
       style={{
-        position: "absolute",
-        top: 20,
-        right: 20,
-        zIndex: 9999,
+        position: "relative",
+        zIndex: 1100,
       }}
     >
       <button
@@ -49,14 +47,14 @@ export default function LanguageSwitcher() {
           display: "flex",
           alignItems: "center",
           gap: "8px",
-          background: "#111",
+          background: "transparent",
           color: "#fff",
-          border: isOpen ? `2px solid #007bff` : "2px solid #333",
-          padding: "6px 14px",
-          borderRadius: "24px",
+          border: isOpen ? `1px solid rgba(255,255,255,0.2)` : "1px solid rgba(255,255,255,0.1)",
+          padding: "6px 12px",
+          borderRadius: "8px",
           cursor: "pointer",
-          fontSize: "1rem",
-          fontWeight: 700,
+          fontSize: "0.9rem",
+          fontWeight: 600,
           transition: "all 0.2s",
           outline: "none",
         }}

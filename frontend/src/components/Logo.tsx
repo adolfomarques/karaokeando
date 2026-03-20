@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 
-export default function Logo({ width = 280, style = {} }: { width?: number | string; style?: React.CSSProperties }) {
+export default function Logo({ width = 336, style = {} }: { width?: number | string; style?: React.CSSProperties }) {
   const { t } = useTranslation();
   return (
     <div style={{ 

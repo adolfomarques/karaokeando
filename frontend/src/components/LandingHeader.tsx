@@ -49,23 +49,41 @@ export default function LandingHeader() {
         </Link>
 
         {/* Right Section: Terms + Language side by side */}
-        <div style={{ display: "flex", alignItems: "center", gap: "16px", flexShrink: 0 }}>
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+          flexShrink: 0,
+          marginLeft: "auto"
+        }}>
           <Link
             to="/terms"
             style={{
-              color: "#666",
+              color: "#aaa",
               textDecoration: "none",
-              fontSize: "0.85rem",
-              fontWeight: "500",
+              fontSize: "clamp(0.7rem, 2vw, 0.85rem)",
+              fontWeight: "600",
               transition: "color 0.2s",
-              whiteSpace: "nowrap"
+              whiteSpace: "nowrap",
+              padding: "4px 8px",
+              background: "rgba(255, 255, 255, 0.05)",
+              borderRadius: "8px",
+              border: "1px solid rgba(255, 255, 255, 0.05)"
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = "#ccc")}
-            onMouseLeave={(e) => (e.currentTarget.style.color = "#666")}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = "#fff";
+              e.currentTarget.style.background = "rgba(255, 255, 255, 0.1)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = "#aaa";
+              e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)";
+            }}
           >
             {t("landing.terms.title", "Terms")}
           </Link>
-          <LanguageSwitcher />
+          <div style={{ position: "relative", zIndex: 1100 }}>
+            <LanguageSwitcher />
+          </div>
         </div>
       </div>
     </header>

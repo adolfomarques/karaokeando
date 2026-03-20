@@ -170,7 +170,7 @@ export default function Home() {
 
       {/* Hero / Main Action Section */}
       <section style={{
-        padding: "36px 20px",
+        padding: "25px 20px",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -178,7 +178,7 @@ export default function Home() {
         textAlign: "center"
       }}>
         <div className="container" style={{ animation: "fadeInUp 0.8s ease-out" }}>
-          <Logo width={320} style={{ marginBottom: "36px" }} />
+          <Logo width={384} style={{ marginBottom: "36px" }} />
           
           {/* Main Content Area (Cyber-HUD style) */}
           <div style={{
