@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useAuth, getToken } from "../context/AuthContext";
+import { useAuth } from "../context/AuthContext";
 import { getDeviceFingerprint } from "../lib/deviceId";
 import {
   connectWS,
@@ -9,19 +9,15 @@ import {
   getState,
   getParticipants,
   getSongLibrary,
-  getTopSongs,
   deleteSong,
-  sendPlayerCommand,
-  nextSong,
-  finalizeSong,
   removeQueueItem,
   searchYouTube,
   getVideoInfo,
-  updateUserName,
   type SavedSong,
-  type TopSong,
   type YouTubeSearchResult,
 } from "../api";
+import { GlassContainer, LiquidBackground } from "../components/ui/LiquidGlassLayout";
+import Logo from "../components/Logo";
 
 interface Singer {
   id: string;
@@ -69,48 +65,21 @@ type RankingView = "solo" | "duet";
 
 // Icon components
 const IconTrash = ({ size = 16 }: { size?: number }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <polyline points="3 6 5 6 21 6"></polyline>
     <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
   </svg>
 );
 
-const IconPlus = ({ size = 16 }: { size?: number }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2.5"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
+const IconPlus = ({ size = 16, className, style, color }: { size?: number; className?: string; style?: React.CSSProperties; color?: string }) => (
+  <svg width={size} height={size} className={className} style={style} viewBox="0 0 24 24" fill="none" stroke={color || "currentColor"} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
     <line x1="12" y1="5" x2="12" y2="19"></line>
     <line x1="5" y1="12" x2="19" y2="12"></line>
   </svg>
 );
 
-const IconMic = ({ size = 16 }: { size?: number }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
+const IconMic = ({ size = 16, className, style, color }: { size?: number; className?: string; style?: React.CSSProperties; color?: string }) => (
+  <svg width={size} height={size} className={className} style={style} viewBox="0 0 24 24" fill="none" stroke={color || "currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
     <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
     <line x1="12" y1="19" x2="12" y2="23"></line>
@@ -118,66 +87,46 @@ const IconMic = ({ size = 16 }: { size?: number }) => (
   </svg>
 );
 
-const IconMusic = ({ size = 16 }: { size?: number }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
+const IconMusic = ({ size = 16, className, style, color }: { size?: number; className?: string; style?: React.CSSProperties; color?: string }) => (
+  <svg width={size} height={size} className={className} style={style} viewBox="0 0 24 24" fill="none" stroke={color || "currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M9 18V5l12-2v13"></path>
     <circle cx="6" cy="18" r="3"></circle>
     <circle cx="18" cy="16" r="3"></circle>
   </svg>
 );
 
-const IconSearch = ({ size = 16 }: { size?: number }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
+const IconSearch = ({ size = 16, className, style, color }: { size?: number; className?: string; style?: React.CSSProperties; color?: string }) => (
+  <svg width={size} height={size} className={className} style={style} viewBox="0 0 24 24" fill="none" stroke={color || "currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="11" cy="11" r="8"></circle>
     <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
   </svg>
 );
 
-const IconEdit = ({ size = 16 }: { size?: number }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+const IconX = ({ size = 16 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="18" y1="6" x2="6" y2="18"></line>
+    <line x1="6" y1="6" x2="18" y2="18"></line>
   </svg>
 );
 
-const IconTrophy = ({ size = 16 }: { size?: number }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
+const IconUser = ({ size = 16, color }: { size?: number, color?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color || "currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+    <circle cx="12" cy="7" r="4"></circle>
+  </svg>
+);
+
+const IconUsers = ({ size = 16, color }: { size?: number, color?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color || "currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+    <circle cx="9" cy="7" r="4"></circle>
+    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+  </svg>
+);
+
+const IconTrophy = ({ size = 16, className, style, color }: { size?: number; className?: string; style?: React.CSSProperties; color?: string }) => (
+  <svg width={size} height={size} className={className} style={style} viewBox="0 0 24 24" fill="none" stroke={color || "currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
     <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
     <path d="M4 22h16"></path>
@@ -187,2314 +136,579 @@ const IconTrophy = ({ size = 16 }: { size?: number }) => (
   </svg>
 );
 
+const IconLibrary = ({ size = 16, color }: { size?: number, color?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color || "currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M8 17.5a2.5 2.5 0 0 0 0-5H4.5a2.5 2.5 0 0 0 0 5H8z"></path>
+    <path d="M19.5 17.5a2.5 2.5 0 0 0 0-5H16a2.5 2.5 0 0 0 0 5h3.5z"></path>
+    <path d="M4.5 17.5V5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v12.5"></path>
+  </svg>
+);
+
 const IconPlay = ({ size = 16 }: { size?: number }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="currentColor"
-    stroke="none"
-  >
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" stroke="none">
     <polygon points="5 3 19 12 5 21 5 3"></polygon>
   </svg>
 );
 
-const IconPause = ({ size = 16 }: { size?: number }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="currentColor"
-    stroke="none"
-  >
-    <rect x="6" y="4" width="4" height="16"></rect>
-    <rect x="14" y="4" width="4" height="16"></rect>
-  </svg>
-);
-
-const IconSkipForward = ({ size = 16 }: { size?: number }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="currentColor"
-    stroke="none"
-  >
-    <polygon points="5 4 15 12 5 20 5 4"></polygon>
-    <line
-      x1="19"
-      y1="5"
-      x2="19"
-      y2="19"
-      stroke="currentColor"
-      strokeWidth="2"
-    ></line>
-  </svg>
-);
-
-const IconX = ({ size = 16 }: { size?: number }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <line x1="18" y1="6" x2="6" y2="18"></line>
-    <line x1="6" y1="6" x2="18" y2="18"></line>
-  </svg>
-);
-
-const IconTrendingUp = ({ size = 16 }: { size?: number }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
-    <polyline points="17 6 23 6 23 12"></polyline>
-  </svg>
-);
-
-const IconUsers = ({ size = 16 }: { size?: number }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-    <circle cx="9" cy="7" r="4"></circle>
-    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-  </svg>
-);
-
-const IconUser = ({ size = 16 }: { size?: number }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-    <circle cx="12" cy="7" r="4"></circle>
-  </svg>
-);
-
-const IconLibrary = ({ size = 16 }: { size?: number }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-  </svg>
-);
-
-// Truncated text with tooltip on click/tap
-const TruncatedText = ({
-  text,
-  maxLength,
-  style,
-}: {
-  text: string;
-  maxLength: number;
-  style?: React.CSSProperties;
-}) => {
-  const [showTooltip, setShowTooltip] = useState(false);
-  const needsTruncation = text.length > maxLength;
-  const displayText = needsTruncation
-    ? text.slice(0, maxLength).trim() + "..."
-    : text;
-
-  if (!needsTruncation) {
-    return <span style={style}>{text}</span>;
-  }
-
-  return (
-    <span
-      style={{ position: "relative", cursor: "pointer", ...style }}
-      onClick={e => {
-        e.stopPropagation();
-        setShowTooltip(!showTooltip);
-      }}
-      onMouseEnter={() => setShowTooltip(true)}
-      onMouseLeave={() => setShowTooltip(false)}
-    >
-      {displayText}
-      {showTooltip && (
-        <span
-          style={{
-            position: "absolute",
-            bottom: "100%",
-            left: 0,
-            right: 0,
-            marginBottom: 8,
-            padding: "8px 12px",
-            background: "#333",
-            border: "1px solid #555",
-            borderRadius: 8,
-            fontSize: "0.85rem",
-            color: "#fff",
-            whiteSpace: "normal",
-            wordBreak: "break-word",
-            zIndex: 100,
-            boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
-            minWidth: 200,
-            maxWidth: 280,
-          }}
-          onClick={e => e.stopPropagation()}
-        >
-          {text}
-        </span>
-      )}
-    </span>
-  );
-};
-
 export default function RoomMobile() {
-  const { t } = useTranslation();
   const { code } = useParams<{ code: string }>();
   const navigate = useNavigate();
-  const { user, loading: authLoading } = useAuth();
+  const { t } = useTranslation();
+  const { user } = useAuth();
+
   const [state, setState] = useState<RoomState | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [participants, setParticipants] = useState<ParticipantInfo[]>([]);
   const [tab, setTab] = useState<Tab>("queue");
   const [rankingView, setRankingView] = useState<RankingView>("solo");
+  
+  // States for song adding
+  const [showAddSong, setShowAddSong] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<YouTubeSearchResult[]>([]);
   const [searching, setSearching] = useState(false);
-  const [searchError, setSearchError] = useState<string | null>(null);
-  const [customTitle, setCustomTitle] = useState(""); // For when pasting a link
-  const [adding, setAdding] = useState<string | null>(null); // videoId being added
+  const [adding, setAdding] = useState<string | null>(null);
+  
+  // Selection / Modal states
+  const [addSongModal, setAddSongModal] = useState<YouTubeSearchResult | null>(null);
+  const [modalPartner, setModalPartner] = useState("");
+  const [previewVideo, setPreviewVideo] = useState<YouTubeSearchResult | null>(null);
+  
+  // Library
   const [songLibrary, setSongLibrary] = useState<SavedSong[]>([]);
-  const [savedFilter, setSavedFilter] = useState("");
-  const [previewVideo, setPreviewVideo] = useState<YouTubeSearchResult | null>(
-    null
-  );
   const [showAllQueue, setShowAllQueue] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(true); // Assume playing when song starts
-  const [participants, setParticipants] = useState<ParticipantInfo[]>([]);
-  const [topSongs, setTopSongs] = useState<TopSong[]>([]);
-  const [showNameModal, setShowNameModal] = useState(false);
-  const [nameInput, setNameInput] = useState("");
-  const [nameError, setNameError] = useState<string | null>(null);
-  const [nickname, setNickname] = useState<string>(""); // Apelido na sala (pode ser diferente do nome cadastrado)
-  const [toast, setToast] = useState<string | null>(null); // Temporary notification
-  // Modal para adicionar música (escolher solo/dueto)
-  const [addSongModal, setAddSongModal] = useState<{
-    videoId: string;
-    title: string;
-    source: "search" | "library" | "top";
-  } | null>(null);
-  const [modalPartner, setModalPartner] = useState<string>(""); // Partner ID selected in modal
-  const [cooldownRemaining, setCooldownRemaining] = useState<number>(0);
-  const [reconnectKey, setReconnectKey] = useState(0); // Para forçar reconexão do WS
-  const wsRef = useRef<WebSocket | null>(null);
-  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const searchAbortRef = useRef<AbortController | null>(null);
+  
+  // Other UI states
+  const [toast, setToast] = useState<string | null>(null);
+  const [cooldownRemaining, setCooldownRemaining] = useState(0);
+  const [myUserId, setMyUserId] = useState<string>("");
 
-  // Dynamic loading text steps
-  const [loadingStep, setLoadingStep] = useState(0);
-  const loadingMessages = [
-    t("mobile.searchingYouTube", "Searching YouTube..."),
-    t("mobile.analyzingResults", "Analyzing results..."),
-    t("mobile.almostReady", "Almost ready..."),
-  ];
+  const wsRef = useRef<WebSocket | null>(null);
+  const searchAbortRef = useRef<AbortController | null>(null);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    if (!searching) {
-      setLoadingStep(0);
-      return;
-    }
-    const interval = setInterval(() => {
-      setLoadingStep((prev) => (prev + 1) % loadingMessages.length);
-    }, 1500);
-    return () => clearInterval(interval);
-  }, [searching, loadingMessages.length]);
+    getDeviceFingerprint().then(setMyUserId);
+  }, []);
 
-  const sendReaction = (emoji: string) => {
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      wsRef.current.send(
-        JSON.stringify({
-          type: "REACTION",
-          reaction: emoji,
-          name: nickname || user?.name || "Anônimo",
-        })
-      );
-    }
+  const isHost = state?.ownerId === myUserId || (user?.canHost && state?.ownerId === user.id);
+
+  // Notification helper
+  const notify = (msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 3000);
   };
 
-  // Check auth on mount
+  // Cooldown timer logic
   useEffect(() => {
-    if (!authLoading && !user && code) {
-      // Redirect to guest register with this room code
-      navigate(`/guest-register?redirect=${code}`);
-    }
-  }, [authLoading, user, code, navigate]);
-
-  // Initialize nickname from user name (will be updated by server if duplicate)
-  useEffect(() => {
-    if (user?.name && !nickname) {
-      setNickname(user.name);
-    }
-  }, [user?.name, nickname]);
-
-  const myUserId = user?.id || "";
-  const isHost = state?.ownerId === myUserId;
-
-  // Cooldown effect
-  useEffect(() => {
-    if (!state || isHost) {
-      setCooldownRemaining(0);
-      return;
-    }
-
+    if (!state || !state.lastEnqueueAt || !myUserId) return;
     const last = state.lastEnqueueAt[myUserId] || 0;
     const now = Date.now();
-    const diff = now - last;
-    const THREE_MINUTES = 3 * 60 * 1000;
-
-    if (diff < THREE_MINUTES) {
-      setCooldownRemaining(Math.ceil((THREE_MINUTES - diff) / 1000));
-      const timer = setInterval(() => {
-        setCooldownRemaining(prev => Math.max(0, prev - 1));
+    const wait = 2 * 60 * 1000; // 2 minutes
+    const passed = now - last;
+    
+    if (passed < wait) {
+      setCooldownRemaining(Math.ceil((wait - passed) / 1000));
+      const interval = setInterval(() => {
+        setCooldownRemaining(prev => {
+          if (prev <= 1) {
+            clearInterval(interval);
+            return 0;
+          }
+          return prev - 1;
+        });
       }, 1000);
-      return () => clearInterval(timer);
+      return () => clearInterval(interval);
     } else {
       setCooldownRemaining(0);
     }
-  }, [state, myUserId, isHost]);
+  }, [state?.lastEnqueueAt, myUserId]);
 
-  const handleSaveName = async () => {
-    const trimmed = nameInput.trim();
-    if (trimmed && code) {
-      try {
-        const result = await updateUserName(code, myUserId, trimmed);
-        if (result.error === "duplicate_name") {
-          setNameError(result.message || t("mobile.nameAlreadyUsed", "This name is already used."));
-          return;
-        }
-        // Update local nickname
-        setNickname(trimmed);
-        setShowNameModal(false);
-        setNameError(null);
-
-        // Reconnect WebSocket with new name
-        if (wsRef.current) {
-          wsRef.current.close();
-        }
-      } catch (e) {
-        console.error("Failed to update name on server", e);
-      }
-    }
-  };
-
-  // Load song library and top songs on mount
-  useEffect(() => {
-    getSongLibrary()
-      .then(setSongLibrary)
-      .catch(() => { });
-    getTopSongs(10)
-      .then(setTopSongs)
-      .catch(() => { });
-  }, []);
-
-  // Salvar última sala visitada
-  useEffect(() => {
-    if (code) {
-      localStorage.setItem("karaokefactory_last_room", code);
-    }
-  }, [code]);
-
-  useEffect(() => {
-    if (!code || !user) return;
-
-    const token = getToken();
-
-    // Fallback: fetch state via HTTP in case WS is slow
-    const refreshState = async () => {
-      try {
-        const s = await getState(code);
-        if (s && s.error === "room_not_found") {
-          setError(t("home.roomNotFound", "Room not found. Check the code."));
-        } else if (s && !s.error) {
-          setState(s);
-        }
-      } catch (e) {
-        console.error("Failed to refresh state", e);
-      }
-    };
-
-    refreshState();
-
-    const ws = connectWS(
-      code,
-      "mobile",
-      nickname || user?.name || "",
-      (msg: unknown) => {
-        const m = msg as {
-          type: string;
-          state?: RoomState;
-          error?: string;
-          message?: string;
-          participants?: ParticipantInfo[];
-          nickname?: string;
-          originalName?: string;
-          wasModified?: boolean;
-        };
-        if (m.type === "STATE" && m.state) {
-          setState(prev => {
-            // Reset isPlaying when a new song starts
-            if (m.state!.nowPlaying?.id !== prev?.nowPlaying?.id) {
-              setIsPlaying(true);
-            }
-            return m.state!;
-          });
-        } else if (m.type === "PARTICIPANTS" && m.participants) {
-          setParticipants(m.participants);
-        } else if (m.type === "NICKNAME_ASSIGNED" && m.nickname) {
-          setNickname(m.nickname);
-          if (m.wasModified) {
-            // Show a brief toast notification that name was changed
-            setToast(
-              t("mobile.nicknameAssigned", { nickname: m.nickname })
-            );
-            // Clear the toast after 5 seconds
-            setTimeout(() => setToast(null), 5000);
-          }
-        } else if (m.type === "ERROR" && m.error === "room_not_found") {
-          setError(t("home.roomNotFound", "Room not found. Check the code."));
-        } else if (m.type === "ERROR" && m.error === "duplicate_name") {
-          setError(
-            m.message || t("mobile.nameAlreadyUsed", "This name is already used. Choose another.")
-          );
-        }
-        // FINALIZED is now only handled by TV - mobile ignores it
-      },
-      token
-    );
-    wsRef.current = ws;
-
-    // Polling fallback: if WS is dead, keep state updated via HTTP
-    const pollInterval = setInterval(() => {
-      if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
-        getState(code)
-          .then(s => {
-            if (s && !s.error) setState(s);
-          })
-          .catch(() => { });
-        
-        getParticipants(code)
-          .then(data => {
-            if (data.participants) setParticipants(data.participants);
-          })
-          .catch(() => { });
-      }
-    }, 10000); // 10s fallback
-
-    return () => {
-      ws.close();
-      clearInterval(pollInterval);
-    };
-  }, [code, user, nickname, reconnectKey]);
-
-  // Handle visibility change to refresh state and reconnect WS if needed
-  useEffect(() => {
-    const handleSync = () => {
-      if (document.visibilityState === "visible" && code) {
-        console.log("[Visibility] Page visible/focused, refreshing state...");
-        // Re-fetch everything immediately
-        getState(code).then(s => { if (s && !s.error) setState(s); }).catch(() => { });
-        getParticipants(code).then(d => { if (d.participants) setParticipants(d.participants); }).catch(() => { });
-        
-        // Se o WS estiver morto, oReconnectKey força o efeito acima a rodar e reconectar
-        if (!wsRef.current || wsRef.current.readyState === WebSocket.CLOSED || wsRef.current.readyState === WebSocket.CLOSING) {
-          setReconnectKey(prev => prev + 1);
-        }
-      }
-    };
-
-    window.addEventListener("focus", handleSync);
-    document.addEventListener("visibilitychange", handleSync);
-    return () => {
-      window.removeEventListener("focus", handleSync);
-      document.removeEventListener("visibilitychange", handleSync);
-    };
-  }, [code]);
-
-  // Fetch participants once on mount (WebSocket will keep it updated)
+  // Load participants periodically
   useEffect(() => {
     if (!code) return;
-    getParticipants(code)
-      .then(data => {
-        if (data.participants) {
-          setParticipants(data.participants);
-        }
-      })
-      .catch(() => { });
+    const interval = setInterval(() => {
+      getParticipants(code).then(data => setParticipants(data.participants)).catch(() => {});
+    }, 5000);
+    getParticipants(code).then(data => setParticipants(data.participants)).catch(() => {});
+    return () => clearInterval(interval);
   }, [code]);
 
-  // Refresh song library when tab changes to saved
+  // Load library when needed
   useEffect(() => {
     if (tab === "saved") {
-      getSongLibrary()
-        .then(setSongLibrary)
-        .catch(() => { });
+      getSongLibrary().then(setSongLibrary).catch(() => {});
     }
   }, [tab]);
 
-  // Extract video ID from YouTube URL or return null
-  const extractVideoId = (input: string): string | null => {
-    const patterns = [
-      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
-      /^([a-zA-Z0-9_-]{11})$/, // Just the ID
-    ];
-    for (const p of patterns) {
-      const m = input.trim().match(p);
-      if (m) return m[1];
-    }
-    return null;
-  };
+  // WebSocket Connection
+  useEffect(() => {
+    if (!code) return;
 
-  // Check if current input looks like a YouTube link
-  const isLinkMode = extractVideoId(searchQuery) !== null;
+    getState(code).then(s => {
+      if (s && !s.error) setState(s);
+    }).catch(() => {});
 
-  // Filter library songs that match query
-  const matchingLibrarySongs = searchQuery.trim()
-    ? songLibrary.filter(song =>
-      song.title.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-    : [];
-
-  const handleSearch = useCallback(async (query: string, abortSignal: AbortSignal) => {
-    query = query.trim();
-    if (!query) return;
-
-    setSearchError(null);
-    setSearching(true);
-
-    // Check if it's a YouTube link
-    const videoId = extractVideoId(query);
-    if (videoId) {
-      // It's a link - fetch video info from YouTube
-      try {
-        const info = await getVideoInfo(videoId, abortSignal);
-        if (abortSignal.aborted) return;
-        setSearchResults([
-          {
-            videoId,
-            title: info.title || `YouTube Video (${videoId})`,
-            thumbnail: info.thumbnail,
-            channelTitle: info.channelTitle || "Link colado",
-          },
-        ]);
-        // Pre-fill custom title if we got one
-        if (info.title && !customTitle) {
-          setCustomTitle(info.title);
-        }
-      } catch {
-        if (abortSignal.aborted) return;
-        // Fallback if API fails
-        setSearchResults([
-          {
-            videoId,
-            title: `YouTube Video (${videoId})`,
-            thumbnail: `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`,
-            channelTitle: "Link colado",
-          },
-        ]);
+    const ws = connectWS(code, "mobile", t("common.guest", "Convidado"), (msg: any) => {
+      if (msg.type === "STATE" && msg.state) {
+        setState(msg.state);
       }
-      setSearching(false);
-      return;
-    }
+    });
+    wsRef.current = ws;
 
-    // If there are matching library songs, don't search YouTube yet
-    // User can click "Buscar no YouTube" if they want more results
-    const libMatches = songLibrary.filter(song =>
-      song.title.toLowerCase().includes(query.toLowerCase())
-    );
-    if (libMatches.length > 0) {
-      setSearchResults([]);
-      setSearching(false);
-      return;
-    }
+    return () => ws.close();
+  }, [code, t]);
 
-    // No saved songs match - search YouTube
-    setSearchResults([]);
-    try {
-      const results = await searchYouTube(query, abortSignal);
-      if (abortSignal.aborted) return;
-      if (results.length === 0) {
-        setSearchError(
-          t("mobile.noSongFound", "No song found. Try another term or paste YouTube link.")
-        );
-      }
-      setSearchResults(results);
-    } catch (err) {
-      if (abortSignal.aborted) return;
-      console.error("Search error:", err);
-      setSearchError(
-        t("mobile.searchError", "Search error. Try again or paste YouTube link.")
-      );
-    }
-    setSearching(false);
-  }, [customTitle, songLibrary, t]);
-
-  const triggerDebouncedSearch = useCallback((query: string) => {
-    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-    if (searchAbortRef.current) searchAbortRef.current.abort();
-
-    debounceTimerRef.current = setTimeout(() => {
-      searchAbortRef.current = new AbortController();
-      handleSearch(query, searchAbortRef.current.signal);
-    }, 400); // 400ms debounce
-  }, [handleSearch]);
-
-  const handleManualSearch = useCallback(() => {
-    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-    if (searchAbortRef.current) searchAbortRef.current.abort();
-    
-    searchAbortRef.current = new AbortController();
-    handleSearch(searchQuery, searchAbortRef.current.signal);
-  }, [searchQuery, handleSearch]);
-
-  const handleSearchYouTube = async () => {
-    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-    if (searchAbortRef.current) searchAbortRef.current.abort();
-
-    const query = searchQuery.trim();
-    if (!query) return;
-
-    setSearchError(null);
-    setSearching(true);
-    setSearchResults([]);
-
-    searchAbortRef.current = new AbortController();
-    try {
-      const results = await searchYouTube(query, searchAbortRef.current.signal);
-      if (results.length === 0) {
-        setSearchError(t("mobile.noSongFound", "No song found on YouTube."));
-      }
-      setSearchResults(results);
-    } catch (err: any) {
-      if (err.name === 'AbortError') return;
-      setSearchError(t("mobile.searchError", "Search error. Try again."));
-    }
-    setSearching(false);
-  };
-
-  // Opens modal to choose solo/duet for search result
+  // Song management functions
   const handleAddFromSearch = (result: YouTubeSearchResult) => {
-    if (cooldownRemaining > 0) return;
-    const title =
-      isLinkMode && customTitle.trim() ? customTitle.trim() : result.title;
-    openAddSongModal(result.videoId, title, "search");
-  };
-
-  const handleDeleteSaved = async (songId: string) => {
-    await deleteSong(songId);
-    setSongLibrary(prev => prev.filter(s => s.id !== songId));
-  };
-
-  // Abre o modal para escolher solo/dueto
-  const openAddSongModal = (
-    videoId: string,
-    title: string,
-    source: "search" | "library" | "top"
-  ) => {
-    setAddSongModal({ videoId, title, source });
-    setModalPartner(""); // Reset partner selection
-  };
-
-  // Confirma a adição da música do modal
-  const handleConfirmAddSong = async () => {
-    if (!code || !addSongModal) return;
-
-    const partner = participants.find(p => p.id === modalPartner);
-    const deviceFP = await getDeviceFingerprint();
-
-    setAdding(addSongModal.videoId);
-    await enqueue(
-      code,
-      addSongModal.videoId,
-      addSongModal.title,
-      nickname,
-      partner?.name || undefined,
-      myUserId,
-      partner?.id || undefined,
-      deviceFP
-    );
-    setAdding(null);
-    setAddSongModal(null);
+    setAddSongModal(result);
     setModalPartner("");
+  };
 
-    // Clear search field and results after adding any song
-    setSearchResults([]);
-    setSearchQuery("");
-    setCustomTitle("");
-    setSearchError(null);
-    setSavedFilter(""); // Also clear library filter
+  const handleAddFromSaved = (song: SavedSong) => {
+    setAddSongModal({
+      videoId: song.videoId,
+      title: song.title,
+      thumbnail: `https://i.ytimg.com/vi/${song.videoId}/mqdefault.jpg`,
+      channelTitle: "Biblioteca"
+    });
+    setModalPartner("");
+  };
 
-    // Refresh library
-    getSongLibrary()
-      .then(setSongLibrary)
-      .catch(() => { });
+  const handleConfirmAddSong = async () => {
+    if (!addSongModal || !code) return;
+    setAdding(addSongModal.videoId);
+    try {
+      const myName = t("common.me", "Eu");
+      const partnerObj = modalPartner ? participants.find(x => x.id === modalPartner) : null;
+      
+      const res = await enqueue(
+        code, 
+        addSongModal.videoId, 
+        addSongModal.title, 
+        myName, 
+        partnerObj?.name, 
+        myUserId, 
+        partnerObj?.id, 
+        myUserId
+      );
+      
+      if (res.success) {
+        notify(t("mobile.songAdded", "Música adicionada à fila!"));
+        setAddSongModal(null);
+        setShowAddSong(false);
+      } else {
+        notify(res.error || t("mobile.addError", "Erro ao adicionar música."));
+      }
+    } catch (e) {
+      console.error(e);
+      notify(t("mobile.addError", "Erro ao adicionar música."));
+    } finally {
+      setAdding(null);
+    }
+  };
+
+  const handleDeleteSaved = async (id: string) => {
+    if (!window.confirm(t("mobile.confirmDeleteSaved", "Deseja remover esta música da biblioteca?"))) return;
+    try {
+      const res = await deleteSong(id);
+      if (res.success) {
+        setSongLibrary(prev => prev.filter(s => s.id !== id));
+      }
+    } catch (e) { console.error(e); }
   };
 
   const handleQueueRemove = async (itemId: string) => {
     if (!code) return;
     try {
       await removeQueueItem(code, itemId, myUserId);
-    } catch (err) {
-      console.error("Error removing song", err);
+    } catch(e) { console.error(e); }
+  };
+
+  const sendReaction = (emoji: string) => {
+    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return;
+    wsRef.current.send(JSON.stringify({ type: "REACTION", reaction: emoji }));
+  };
+
+  // Searching logic
+  const triggerDebouncedSearch = (query: string) => {
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    debounceTimerRef.current = setTimeout(() => {
+      handleManualSearch(query);
+    }, 700);
+  };
+
+  const handleManualSearch = async (queryOverride?: string) => {
+    const q = queryOverride || searchQuery;
+    if (!q || q.trim().length < 2) return;
+    
+    setSearching(true);
+    
+    if (searchAbortRef.current) searchAbortRef.current.abort();
+    searchAbortRef.current = new AbortController();
+    
+    try {
+       const isLink = q.includes("youtube.com") || q.includes("youtu.be");
+       if (isLink) {
+         const info = await getVideoInfo(q);
+         if (info && info.videoId) {
+           setSearchResults([{
+             videoId: info.videoId,
+             title: info.title,
+             thumbnail: info.thumbnail,
+             channelTitle: info.channelTitle || ""
+           }]);
+         }
+       } else {
+         const results = await searchYouTube(q);
+         setSearchResults(results);
+       }
+    } catch (e: any) {
+    } finally {
+      setSearching(false);
     }
   };
 
-  // Legacy function - now opens modal
-  const handleAddFromSaved = (song: SavedSong) => {
-    openAddSongModal(song.videoId, song.title, "library");
-  };
-
-  // Show name modal if no name (before other screens)
-  // This can happen if we want to let user change their name
-  if (showNameModal) {
-    return (
-      <div
-        className="container"
-        style={{
-          paddingTop: 60,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          minHeight: "80vh",
-        }}
-      >
-        <div
-          style={{
-            background: "#1e1e1e",
-            borderRadius: 16,
-            padding: 24,
-            width: "100%",
-            maxWidth: 320,
-          }}
-        >
-          <h3 style={{ margin: "0 0 8px", textAlign: "center" }}>
-            <span
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 8,
-              }}
-            >
-              <IconMic size={24} /> {t("mobile.changeNameTitle", "Change Name")}
-            </span>
-          </h3>
-          <p
-            style={{
-              color: "#888",
-              textAlign: "center",
-              margin: "0 0 16px",
-              fontSize: 14,
-            }}
-          >
-            {t("mobile.enterNewName", "Enter your new name")}
-          </p>
-          {nameError && (
-            <div
-              style={{
-                background: "#ff4444",
-                color: "#fff",
-                padding: 12,
-                borderRadius: 8,
-                marginBottom: 16,
-                fontSize: 14,
-                textAlign: "center",
-              }}
-            >
-              {nameError}
-            </div>
-          )}
-          <input
-            type="text"
-            value={nameInput}
-            onChange={e => {
-              setNameInput(e.target.value);
-              if (nameError) setNameError(null);
-            }}
-            onKeyDown={e => e.key === "Enter" && handleSaveName()}
-            placeholder={t("guest.yourName", "Seu nome")}
-            autoFocus
-            style={{
-              width: "100%",
-              padding: 12,
-              fontSize: 16,
-              background: "#2a2a2a",
-              border: nameError ? "1px solid #ff4444" : "1px solid #444",
-              borderRadius: 8,
-              color: "#fff",
-              marginBottom: 16,
-              boxSizing: "border-box",
-            }}
-          />
-          <button
-            onClick={handleSaveName}
-            disabled={!nameInput.trim()}
-            style={{
-              width: "100%",
-              padding: 12,
-              background: nameInput.trim() ? "#7c4dff" : "#444",
-              border: "none",
-              borderRadius: 8,
-              color: "#fff",
-              fontSize: 16,
-              fontWeight: 600,
-              cursor: nameInput.trim() ? "pointer" : "not-allowed",
-            }}
-          >
-            {t("mobile.updateName", "Update Name")}
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // Loading state while checking auth
-  if (authLoading || !user) {
-    return (
-      <div
-        className="container"
-        style={{ paddingTop: 60, textAlign: "center" }}
-      >
-        <h2>{t("home.loading", "Carregando...")}</h2>
-      </div>
-    );
-  }
-
-  // Show error screen for room_not_found
-  if (error) {
-    return (
-      <div
-        className="container"
-        style={{ paddingTop: 60, textAlign: "center" }}
-      >
-        <h2
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 8,
-          }}
-        >
-          <IconX size={24} /> {error}
-        </h2>
-        <p style={{ color: "#888", marginTop: 16 }}>
-          {t("mobile.invalidCode", "Go back and enter a valid code.")}
-        </p>
-        <a
-          href="/"
-          style={{ color: "#3498db", marginTop: 20, display: "inline-block" }}
-        >
-          {t("common.backToHome", "← Back to home")}
-        </a>
-      </div>
-    );
-  }
-
   if (!state) {
     return (
-      <div
-        className="container"
-        style={{ paddingTop: 60, textAlign: "center" }}
-      >
-        <h2>{t("mobile.connecting", { code })}</h2>
+      <div style={{ background: "#0a0a0a", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <LiquidBackground />
+        <div style={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
+          <Logo width={220} />
+          <h2 style={{ color: "rgba(255,255,255,0.6)", marginTop: 32, fontSize: '1.2rem', fontWeight: 800 }}>{t("mobile.connecting", { code })}...</h2>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container" style={{ paddingBottom: 120 }}>
-      {/* Toast notification */}
-      {toast && (
-        <div
-          style={{
-            position: "fixed",
-            top: 20,
-            left: "50%",
-            transform: "translateX(-50%)",
-            background: "#4CAF50",
-            color: "#fff",
-            padding: "12px 20px",
-            borderRadius: 8,
-            fontSize: 14,
-            fontWeight: 500,
-            zIndex: 2000,
-            boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
-            animation: "fadeIn 0.3s ease",
-          }}
-        >
-          {toast}
-        </div>
-      )}
-
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 12,
-        }}
-      >
-        <button
-          onClick={() => navigate("/")}
-          style={{
-            background: "transparent",
-            border: "1px solid #666",
-            borderRadius: 8,
-            padding: "6px 12px",
-            color: "#fff",
-            fontSize: 14,
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            gap: 4,
-          }}
-        >
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M15 18l-6-6 6-6" />
-          </svg>
-          {t("mobile.leaveRoom", "Leave room")}
-        </button>
-        <h2
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            margin: 0,
-            fontSize: "1.2rem",
-          }}
-        >
-          <IconMic size={20} /> {code}
-        </h2>
-        <button
-          onClick={() => {
-            setNameInput(nickname);
-            setShowNameModal(true);
-          }}
-          style={{
-            background: "transparent",
-            border: "1px solid #444",
-            borderRadius: 8,
-            padding: "6px 12px",
-            color: "#fff",
-            fontSize: 14,
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
-            cursor: "pointer",
-          }}
-        >
-          {nickname || t("common.guest", "Guest")} <IconEdit size={14} />
-        </button>
-      </div>
-
-      {/* Modal para mudar nome */}
-      {showNameModal && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,0.8)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 1000,
-            padding: 20,
-          }}
-        >
-          <div
-            style={{
-              background: "#1e1e1e",
-              borderRadius: 16,
-              padding: 24,
-              width: "100%",
-              maxWidth: 320,
-            }}
-          >
-            <h3 style={{ margin: "0 0 16px", textAlign: "center" }}>
-              {t("mobile.changeNickname", "Change nickname")}
-            </h3>
-            {nameError && (
-              <div
-                style={{
-                  background: "#ff4444",
-                  color: "#fff",
-                  padding: 12,
-                  borderRadius: 8,
-                  marginBottom: 16,
-                  fontSize: 14,
-                  textAlign: "center",
-                }}
-              >
-                {nameError}
-              </div>
-            )}
-            <input
-              type="text"
-              value={nameInput}
-              onChange={e => {
-                setNameInput(e.target.value);
-                if (nameError) setNameError(null);
-              }}
-              onKeyDown={e => e.key === "Enter" && handleSaveName()}
-              placeholder={t("mobile.typeNickname", "Digite seu apelido")}
-              autoFocus
-              style={{
-                width: "100%",
-                padding: 12,
-                fontSize: 16,
-                background: "#2a2a2a",
-                border: nameError ? "1px solid #ff4444" : "1px solid #444",
-                borderRadius: 8,
-                color: "#fff",
-                marginBottom: 16,
-                boxSizing: "border-box",
-              }}
-            />
-            <div style={{ display: "flex", gap: 12 }}>
-              <button
-                onClick={() => {
-                  setShowNameModal(false);
-                  setNameError(null);
-                }}
-                style={{
-                  flex: 1,
-                  padding: 12,
-                  background: "#333",
-                  border: "none",
-                  borderRadius: 8,
-                  color: "#fff",
-                  fontSize: 16,
-                  cursor: "pointer",
-                }}
-              >
-                {t("common.cancel", "Cancel")}
-              </button>
-              <button
-                onClick={handleSaveName}
-                disabled={!nameInput.trim()}
-                style={{
-                  flex: 1,
-                  padding: 12,
-                  background: nameInput.trim() ? "#7c4dff" : "#444",
-                  border: "none",
-                  borderRadius: 8,
-                  color: "#fff",
-                  fontSize: 16,
-                  fontWeight: 600,
-                  cursor: nameInput.trim() ? "pointer" : "not-allowed",
-                }}
-              >
-                {t("common.save", "Save")}
-              </button>
-            </div>
+    <div style={{ background: "transparent", minHeight: "100vh", position: "relative", overflow: "hidden", fontFamily: "'Inter', sans-serif" }}>
+      <LiquidBackground />
+      
+      <div style={{ padding: "24px 16px 140px", position: "relative", zIndex: 1 }}>
+        {toast && (
+          <div style={{
+            position: "fixed", top: 20, left: "50%", transform: "translateX(-50%)",
+            background: "var(--primary)", color: "#fff", padding: "14px 28px",
+            borderRadius: 999, zIndex: 3000, boxShadow: "0 10px 40px var(--primary-glow)",
+            fontSize: "0.95rem", fontWeight: 800, whiteSpace: "nowrap",
+            animation: "fadeInUp 0.3s cubic-bezier(0.23, 1, 0.32, 1)"
+          }}>
+            {toast}
           </div>
-        </div>
-      )}
+        )}
 
-      <div className="tabs">
-        <button
-          className={tab === "queue" ? "active" : ""}
-          onClick={() => setTab("queue")}
-        >
-          {t("mobile.queue", "Queue")}
-        </button>
-        <button
-          className={tab === "ranking" ? "active" : ""}
-          onClick={() => setTab("ranking")}
-        >
-          {t("tv.ranking", "Ranking")}
-        </button>
-        <button
-          className={tab === "saved" ? "active" : ""}
-          onClick={() => setTab("saved")}
-        >
-          {t("mobile.songs", "Songs")}
-        </button>
-      </div>
-
-      {tab === "queue" && (
-        <div className="card">
-          <h3>{t("mobile.queue", "Queue")} ({state.queue.length})</h3>
-
-          {/* Música tocando agora */}
-          {state.nowPlaying ? (
-            <div
-              style={{
-                background: "linear-gradient(135deg, #7c4dff 0%, #ff4081 100%)",
-                margin: "-10px -10px 16px",
-                padding: 16,
-                borderRadius: "8px 8px 0 0",
-              }}
-            >
-              <div
-                style={{
-                  fontSize: "0.8rem",
-                  opacity: 0.8,
-                  marginBottom: 4,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                }}
-              >
-                <IconMusic size={14} /> {t("mobile.nowPlaying", "Now playing")}
-              </div>
-              <div
-                style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: 4 }}
-              >
-                <TruncatedText text={state.nowPlaying.title} maxLength={50} />
-              </div>
-              <div style={{ color: "#888", fontSize: "0.9rem", display: "flex", alignItems: "center", gap: 6, marginBottom: isHost ? 12 : 0 }}>
-                <IconMic size={14} />
-                {state.nowPlaying.singers
-                  ?.map(s => (typeof s === "string" ? s : s.name))
-                  .join(" e ") || state.nowPlaying.requestedBy}
-              </div>
-              {isHost && (
-                <div style={{ display: "flex", gap: 8 }}>
-                  <button
-                    onClick={() => {
-                      if (code) {
-                        sendPlayerCommand(code, isPlaying ? "pause" : "play", myUserId);
-                        setIsPlaying(!isPlaying);
-                      }
-                    }}
-                    style={{
-                      flex: 1,
-                      background: isPlaying ? "#e67e22" : "#2ecc71",
-                      padding: "10px 16px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 6,
-                    }}
-                  >
-                    {isPlaying ? (
-                      <>
-                        <IconPause size={16} /> {t("common.pause", "Pause")}
-                      </>
-                    ) : (
-                      <>
-                        <IconPlay size={16} /> {t("common.continue", "Continue")}
-                      </>
-                    )}
-                  </button>
-                  <button
-                    onClick={() => code && finalizeSong(code, nickname, myUserId)}
-                    style={{
-                      flex: 1,
-                      background: "#e74c3c",
-                      padding: "10px 16px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 6,
-                    }}
-                  >
-                    <IconSkipForward size={16} /> {t("common.skip", "Skip")}
-                  </button>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div
-              style={{
-                background: "#2a2a2a",
-                margin: "-10px -10px 16px",
-                padding: 16,
-                borderRadius: "8px 8px 0 0",
-                textAlign: "center",
-              }}
-            >
-              {state.showingScore ? (
-                <>
-                  <div
-                    style={{
-                      color: "#f1c40f",
-                      marginBottom: 8,
-                      fontSize: "1.1rem",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 8,
-                    }}
-                  >
-                    <IconTrophy size={20} /> {t("mobile.calculatingScore", "Calculating score...")}
-                  </div>
-                  <p style={{ color: "#888", margin: 0 }}>
-                    {t("mobile.waitTV", "Wait for TV to show result")}
-                  </p>
-                </>
-              ) : state.queue.length > 0 ? (
-                <>
-                  <div
-                    style={{
-                      color: "#fff",
-                      marginBottom: 8,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 6,
-                    }}
-                  >
-                    <IconMusic size={16} /> {t("mobile.upNext", "Up next")}:{" "}
-                    <strong>{state.queue[0].title}</strong>
-                  </div>
-                  <div
-                    style={{
-                      color: "#888",
-                      fontSize: "0.9rem",
-                      marginBottom: 12,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 6,
-                    }}
-                  >
-                    <IconMic size={14} />
-                    {state.queue[0].singers
-                      ?.map(s => (typeof s === "string" ? s : s.name))
-                      .join(" e ") || state.queue[0].requestedBy}
-                  </div>
-                  <button
-                    onClick={() => code && isHost && nextSong(code, myUserId)}
-                    style={{
-                      background: isHost ? "#2ecc71" : "#444",
-                      width: "100%",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 8,
-                      cursor: isHost ? "pointer" : "not-allowed",
-                      opacity: isHost ? 1 : 0.7,
-                    }}
-                  >
-                    <IconPlay size={18} /> {isHost ? t("mobile.start", "Start!") : t("mobile.waitingHost", "Waiting for Host...")}
-                  </button>
-                </>
-              ) : (
-                <span style={{ color: "#888" }}>{t("mobile.noSongInQueue", "Nenhuma música na fila")}</span>
-              )}
-            </div>
-          )}
-
-          {/* Próximas na fila */}
-          {state.queue.length === 0 ? (
-            <p style={{ color: "#888" }}>
-              {t("mobile.queueEmptySearch", "Queue is empty - search for a song below!")}
-            </p>
-          ) : (
-            <>
-              <div
-                style={{ fontSize: "0.85rem", color: "#888", marginBottom: 8 }}
-              >
-                {t("mobile.upNext", "Up next")}:
-              </div>
-              {(showAllQueue ? state.queue : state.queue.slice(0, 5)).map(
-                (item, i) => {
-                  // Format singers display - singers can be objects with id/name or strings
-                  const singers = item.singers || [];
-                  const singerNames = singers.map(s =>
-                    typeof s === "string" ? s : s.name
-                  );
-                  const singersDisplay =
-                    singerNames.length > 1
-                      ? singerNames.join(" e ")
-                      : singerNames[0] || item.requestedBy;
-                  return (
-                    <div
-                      key={item.id}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 12,
-                        background: "#1e1e1e",
-                        borderRadius: 12,
-                        padding: "12px 16px",
-                        marginBottom: 10,
-                        border: "1px solid rgba(255,255,255,0.05)",
-                      }}
-                    >
-                      <div
-                        style={{
-                          fontSize: "1rem",
-                          fontWeight: 700,
-                          color: "#888",
-                          minWidth: 24,
-                        }}
-                      >
-                        {i + 1}
-                      </div>
-                      <div
-                        style={{
-                          flex: 1,
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: 4,
-                          minWidth: 0, /* Ensures truncation works */
-                        }}
-                      >
-                        <div
-                          style={{
-                            fontSize: "1rem",
-                            fontWeight: 600,
-                            color: "#fff",
-                            whiteSpace: "nowrap",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                          }}
-                        >
-                          {item.title}
-                        </div>
-                        <div
-                          style={{
-                            fontSize: "0.85rem",
-                            color: "#aaa",
-                            whiteSpace: "nowrap",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                          }}
-                        >
-                          {t("mobile.requestedBy", "Requested by")}: <span style={{ color: "#ec4899", fontWeight: 500 }}>{singersDisplay}</span>
-                        </div>
-                      </div>
-
-                      {(isHost || item.requesterId === myUserId) && (
-                        <button
-                          onClick={() => handleQueueRemove(item.id)}
-                          style={{
-                            padding: 10,
-                            background: "rgba(231, 76, 60, 0.15)",
-                            color: "#ff5252",
-                            border: "1px solid rgba(231, 76, 60, 0.2)",
-                            borderRadius: 8,
-                            cursor: "pointer",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            flexShrink: 0,
-                          }}
-                        >
-                          <IconTrash size={16} />
-                        </button>
-                      )}
-                    </div>
-                  );
-                }
-              )}
-              {state.queue.length > 5 && (
-                <button
-                  onClick={() => setShowAllQueue(!showAllQueue)}
-                  style={{
-                    width: "100%",
-                    background: "transparent",
-                    border: "1px solid #444",
-                    marginTop: 8,
-                    padding: "8px",
-                    fontSize: "0.85rem",
-                  }}
-                >
-                  {showAllQueue
-                    ? t("mobile.showLess", "▲ Show less")
-                    : t("mobile.showMore", { count: state.queue.length - 5 })}
-                </button>
-              )}
-            </>
-          )}
-
-          {/* Buscar música */}
-          <div
-            style={{
-              marginTop: 20,
-              paddingTop: 16,
-              borderTop: "1px solid #444",
-            }}
-          >
-            <h4
-              style={{
-                margin: "0 0 12px",
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-              }}
-            >
-              <IconSearch size={16} /> {t("mobile.addSong", "Add song")}
-            </h4>
-
-            <p style={{ color: "#888", fontSize: "0.8rem", marginBottom: 8 }}>
-              {t("mobile.pasteLink", "Paste a YouTube link or type song name")}
-            </p>
-            <div
-              style={{
-                display: "flex",
-                gap: 8,
-                marginBottom: isLinkMode ? 8 : 12,
-              }}
-            >
-              <input
-                placeholder={t("mobile.linkOrNamePlaceholder", "Link or song name...")}
-                value={searchQuery}
-                onChange={e => {
-                  const val = e.target.value;
-                  setSearchQuery(val);
-                  if (val.trim() === "") {
-                    setSearchResults([]);
-                    setSearchError(null);
-                    if (searchAbortRef.current) searchAbortRef.current.abort();
-                    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-                  } else {
-                    triggerDebouncedSearch(val);
-                  }
-                }}
-                onKeyDown={e => e.key === "Enter" && handleManualSearch()}
-                style={{ flex: 1, margin: 0 }}
-              />
-              <button
-                onClick={handleManualSearch}
-                disabled={searching || !searchQuery.trim() || cooldownRemaining > 0}
-                style={{
-                  flex: 0,
-                  whiteSpace: "nowrap",
-                  background: cooldownRemaining > 0 ? "#444" : undefined,
-                  cursor: cooldownRemaining > 0 ? "not-allowed" : "pointer",
-                }}
-              >
-                {searching ? (
-                  "..."
-                ) : cooldownRemaining > 0 ? (
-                  `${Math.floor(cooldownRemaining / 60)}:${(cooldownRemaining % 60)
-                    .toString()
-                    .padStart(2, "0")}`
-                ) : isLinkMode ? (
-                  "OK"
-                ) : (
-                  t("mobile.search", "Search")
-                )}
-              </button>
-            </div>
-
-            {/* Campo de título quando é link */}
-            {isLinkMode && (
-              <input
-                placeholder={t("mobile.optionalNamePlaceholder", "Nome da música (opcional)")}
-                value={customTitle}
-                onChange={e => setCustomTitle(e.target.value)}
-                style={{ marginBottom: 12 }}
-              />
-            )}
-
-            {/* Músicas da biblioteca que batem com a busca */}
-            {!isLinkMode && matchingLibrarySongs.length > 0 && (
-              <>
-                <div
-                  style={{
-                    fontSize: "0.85rem",
-                    color: "#888",
-                    marginBottom: 8,
-                  }}
-                >
-                  <IconLibrary size={14} /> {t("mobile.inLibrary", "In library:")}
-                </div>
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 8,
-                    marginBottom: 12,
-                  }}
-                >
-                  {matchingLibrarySongs.slice(0, 5).map(song => (
-                    <div
-                      key={song.id}
-                      style={{
-                        background: "#2a4a2a",
-                        borderRadius: 8,
-                        padding: 10,
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 8,
-                      }}
-                    >
-                      <img
-                        src={`https://i.ytimg.com/vi/${song.videoId}/default.jpg`}
-                        alt=""
-                        style={{
-                          width: 50,
-                          height: 38,
-                          objectFit: "cover",
-                          borderRadius: 4,
-                        }}
-                      />
-                      <span style={{ flex: 1, fontSize: "0.85rem" }}>
-                        {song.title}
-                      </span>
-                      <button
-                        onClick={() => handleAddFromSaved(song)}
-                        disabled={adding === song.videoId || cooldownRemaining > 0}
-                        style={{
-                          padding: "8px 12px",
-                          fontSize: "0.85rem",
-                          background: cooldownRemaining > 0 ? "#444" : "#2ecc71",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          cursor: cooldownRemaining > 0 ? "not-allowed" : "pointer",
-                        }}
-                      >
-                        {adding === song.videoId ? (
-                          "..."
-                        ) : cooldownRemaining > 0 ? (
-                          t("common.wait", "Wait")
-                        ) : (
-                          <IconPlus size={16} />
-                        )}
-                      </button>
-                    </div>
-                  ))}
-                </div>
-                {searchResults.length === 0 && !searching && (
-                  <button
-                    onClick={handleSearchYouTube}
-                    className="btn-neon-border"
-                    style={{
-                      width: "100%",
-                      marginBottom: 12,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 8,
-                      height: 48, // Fixed height for better border alignment
-                    }}
-                  >
-                    <IconSearch size={16} /> {t("mobile.searchYouTubeToo", "Search YouTube too")}
-                  </button>
-                )}
-              </>
-            )}
-
-            {/* Resultados da busca */}
-            {searching && (
-              <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 8 }}>
-                <p className="pulse-text" style={{ color: "var(--accent)", textAlign: "center", marginBottom: 8, fontWeight: 500 }}>
-                  {loadingMessages[loadingStep]}
-                </p>
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="shimmer" style={{ height: 80, width: "100%" }} />
-                ))}
-              </div>
-            )}
-            {searchError && (
-              <p
-                style={{
-                  color: "#e74c3c",
-                  textAlign: "center",
-                  fontSize: "0.9rem",
-                }}
-              >
-                {searchError}
-              </p>
-            )}
-            {searchResults.length > 0 && (
-              <>
-                {matchingLibrarySongs.length > 0 && (
-                  <div
-                    style={{
-                      fontSize: "0.85rem",
-                      color: "#888",
-                      marginBottom: 8,
-                    }}
-                  >
-                    {t("mobile.youtubeResults", "YouTube results:")}
-                  </div>
-                )}
-                <div
-                  style={{ display: "flex", flexDirection: "column", gap: 12 }}
-                >
-                  {searchResults.map(result => (
-                    <div
-                      key={result.videoId}
-                      style={{
-                        background: "#2a2a2a",
-                        borderRadius: 8,
-                        overflow: "hidden",
-                      }}
-                    >
-                      <div style={{ position: "relative" }}>
-                        <img
-                          src={result.thumbnail}
-                          alt={result.title}
-                          style={{
-                            width: "100%",
-                            display: "block",
-                            cursor: "pointer",
-                          }}
-                          onClick={() => setPreviewVideo(result)}
-                        />
-                        <div
-                          style={{
-                            position: "absolute",
-                            top: "50%",
-                            left: "50%",
-                            transform: "translate(-50%, -50%)",
-                            background: "rgba(0,0,0,0.7)",
-                            borderRadius: "50%",
-                            width: 48,
-                            height: 48,
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            cursor: "pointer",
-                            pointerEvents: "none",
-                          }}
-                        >
-                          <IconPlay size={24} />
-                        </div>
-                      </div>
-                      <div style={{ padding: 12 }}>
-                        <div
-                          style={{
-                            fontSize: "0.9rem",
-                            fontWeight: 600,
-                            marginBottom: 4,
-                          }}
-                        >
-                          {result.title}
-                        </div>
-                        <div
-                          style={{
-                            fontSize: "0.8rem",
-                            color: "#888",
-                            marginBottom: 8,
-                          }}
-                        >
-                          {result.channelTitle}
-                        </div>
-                        <button
-                          onClick={() => handleAddFromSearch(result)}
-                          disabled={adding === result.videoId || cooldownRemaining > 0}
-                          style={{
-                            width: "100%",
-                            background: cooldownRemaining > 0 ? "#444" : "#2ecc71",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            gap: 8,
-                            cursor: cooldownRemaining > 0 ? "not-allowed" : "pointer",
-                          }}
-                        >
-                          {adding === result.videoId ? (
-                            "Adicionando..."
-                          ) : cooldownRemaining > 0 ? (
-                            t("common.waitAction", "Aguarde")
-                          ) : (
-                            <>
-                              <IconPlus size={16} /> {t("mobile.addToQueue", "Add to queue")}
-                            </>
-                          )}
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      )}
-
-      {tab === "ranking" && (
-        <div className="card">
-          <h3
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              marginBottom: 16,
-            }}
-          >
-            <IconTrophy size={20} /> {t("tv.ranking", "Ranking")}
-          </h3>
-
-          {/* Toggle Solo/Duplas */}
-          <div
-            style={{
-              display: "flex",
-              gap: 8,
-              marginBottom: 16,
-              background: "#222",
-              borderRadius: 8,
-              padding: 4,
-            }}
-          >
-            <button
-              onClick={() => setRankingView("solo")}
-              style={{
-                flex: 1,
-                padding: "8px 12px",
-                background: rankingView === "solo" ? "#ff4081" : "transparent",
-                border: "none",
-                borderRadius: 6,
-                color: "#fff",
-                fontWeight: 600,
-                fontSize: "0.85rem",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 6,
-                cursor: "pointer",
-              }}
-            >
-              <IconUser size={14} /> {t("tv.solo", "Solo")}
-            </button>
-            <button
-              onClick={() => setRankingView("duet")}
-              style={{
-                flex: 1,
-                padding: "8px 12px",
-                background: rankingView === "duet" ? "#ff4081" : "transparent",
-                border: "none",
-                borderRadius: 6,
-                color: "#fff",
-                fontWeight: 600,
-                fontSize: "0.85rem",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 6,
-                cursor: "pointer",
-              }}
-            >
-              <IconUsers size={14} /> {t("tv.duets", "Duets")}
-            </button>
-          </div>
-
-          {rankingView === "solo" ? (
-            // Solo ranking
-            Object.keys(state.ranking).length === 0 ? (
-              <p style={{ color: "#888" }}>{t("tv.nobodyScored", "Ninguém pontuou ainda")}</p>
-            ) : (
-              Object.entries(state.ranking)
-                .sort(([, a], [, b]) => b.score - a.score)
-                .map(([odUserId, entry], i) => (
-                  <div key={odUserId} className="ranking-item">
-                    <span
-                      style={{ display: "flex", alignItems: "center", gap: 8 }}
-                    >
-                      <span
-                        style={{
-                          width: 24,
-                          height: 24,
-                          borderRadius: "50%",
-                          background:
-                            i === 0
-                              ? "#f1c40f"
-                              : i === 1
-                                ? "#bdc3c7"
-                                : i === 2
-                                  ? "#cd6133"
-                                  : "#555",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          fontSize: "0.75rem",
-                          fontWeight: 700,
-                        }}
-                      >
-                        {i + 1}
-                      </span>
-                      {entry.name}
-                    </span>
-                    <span style={{ fontWeight: 700 }}>{entry.score} pts</span>
-                  </div>
-                ))
-            )
-          ) : // Duet ranking
-            !state.duetRanking || state.duetRanking.length === 0 ? (
-              <p style={{ color: "#888" }}>{t("tv.noDuetScored", "Nenhuma dupla pontuou ainda")}</p>
-            ) : (
-              [...state.duetRanking]
-                .sort((a, b) => b.score - a.score)
-                .map((duet, i) => (
-                  <div key={duet.names.join("-")} className="ranking-item">
-                    <span
-                      style={{ display: "flex", alignItems: "center", gap: 8 }}
-                    >
-                      <span
-                        style={{
-                          width: 24,
-                          height: 24,
-                          borderRadius: "50%",
-                          background:
-                            i === 0
-                              ? "#f1c40f"
-                              : i === 1
-                                ? "#bdc3c7"
-                                : i === 2
-                                  ? "#cd6133"
-                                  : "#555",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          fontSize: "0.75rem",
-                          fontWeight: 700,
-                        }}
-                      >
-                        {i + 1}
-                      </span>
-                      <span>
-                        {duet.names[0]} & {duet.names[1]}
-                      </span>
-                    </span>
-                    <span
-                      style={{
-                        fontWeight: 700,
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "flex-end",
-                      }}
-                    >
-                      <span>{duet.score} pts</span>
-                      <span style={{ fontSize: "0.7rem", color: "#888" }}>
-                        {duet.count} {duet.count > 1 ? t("mobile.songs", "songs") : t("mobile.song", "song")}
-                      </span>
-                    </span>
-                  </div>
-                ))
-            )}
-        </div>
-      )}
-
-      {tab === "saved" && (
-        <div className="card">
-          {/* Top Songs Section */}
-          {topSongs.length > 0 && (
-            <div style={{ marginBottom: 24 }}>
-              <h3 style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <IconTrendingUp size={20} /> {t("mobile.mostPlayed", "Most Played")}
-              </h3>
-              <p
-                style={{ color: "#888", fontSize: "0.85rem", marginBottom: 12 }}
-              >
-                {t("mobile.mostPopular", "The most popular songs in all parties.")}
-              </p>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                {topSongs.slice(0, 5).map((song, i) => (
-                  <div
-                    key={song.videoId}
-                    style={{
-                      background:
-                        "linear-gradient(135deg, #2a2a2a 0%, #3a3a3a 100%)",
-                      borderRadius: 8,
-                      padding: 10,
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 8,
-                    }}
-                  >
-                    <span
-                      style={{
-                        width: 24,
-                        height: 24,
-                        borderRadius: "50%",
-                        background:
-                          i === 0
-                            ? "#f1c40f"
-                            : i === 1
-                              ? "#bdc3c7"
-                              : i === 2
-                                ? "#cd6133"
-                                : "#555",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: "0.75rem",
-                        fontWeight: 700,
-                      }}
-                    >
-                      {i + 1}
-                    </span>
-                    <img
-                      src={`https://i.ytimg.com/vi/${song.videoId}/default.jpg`}
-                      alt=""
-                      style={{
-                        width: 50,
-                        height: 38,
-                        objectFit: "cover",
-                        borderRadius: 4,
-                      }}
-                    />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div
-                        style={{
-                          fontSize: "0.85rem",
-                        }}
-                      >
-                        <TruncatedText text={song.title} maxLength={35} />
-                      </div>
-                      <div style={{ fontSize: "0.7rem", color: "#888" }}>
-                        {song.playCount}{" "}
-                        {song.playCount === 1 ? t("mobile.playTime", "play") : t("mobile.playTimes", "plays")}
-                      </div>
-                    </div>
-                    <button
-                      onClick={() =>
-                        openAddSongModal(song.videoId, song.title, "top")
-                      }
-                      disabled={adding === song.videoId || cooldownRemaining > 0}
-                      style={{
-                        padding: "8px 12px",
-                        fontSize: "0.8rem",
-                        background: cooldownRemaining > 0 ? "#444" : "#2ecc71",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        cursor: cooldownRemaining > 0 ? "not-allowed" : "pointer",
-                      }}
-                    >
-                      <IconPlus size={16} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Library Section */}
-          <h3 style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <IconLibrary size={20} /> {t("mobile.songLibrary", "Song Library")}
-          </h3>
-          <p style={{ color: "#888", fontSize: "0.85rem", marginBottom: 12 }}>
-            {t("mobile.libraryDesc", "Added songs stay saved here for everyone.")}
-          </p>
-          {songLibrary.length === 0 ? (
-            <p style={{ color: "#888" }}>
-              {t("mobile.libraryEmpty", "The library is empty.")}
-              <br />
-              {t("mobile.searchToAddLibrary", "Search and add a song in the Queue tab!")}
-            </p>
-          ) : (
-            <>
-              <input
-                placeholder={t("mobile.filterSongs", "Filter songs...")}
-                value={savedFilter}
-                onChange={e => setSavedFilter(e.target.value)}
-                style={{ marginBottom: 12 }}
-              />
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                {songLibrary
-                  .filter(song =>
-                    song.title.toLowerCase().includes(savedFilter.toLowerCase())
-                  )
-                  .map(song => (
-                    <div
-                      key={song.id}
-                      style={{
-                        background: "#2a2a2a",
-                        borderRadius: 8,
-                        padding: 12,
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 8,
-                      }}
-                    >
-                      <img
-                        src={`https://i.ytimg.com/vi/${song.videoId}/default.jpg`}
-                        alt=""
-                        style={{
-                          width: 60,
-                          height: 45,
-                          objectFit: "cover",
-                          borderRadius: 4,
-                        }}
-                      />
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: "0.9rem" }}>
-                          <TruncatedText text={song.title} maxLength={40} />
-                        </div>
-                        <div style={{ fontSize: "0.75rem", color: "#888" }}>
-                        {t("mobile.addedBy", "by")} {song.addedBy}
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => handleAddFromSaved(song)}
-                        disabled={adding === song.videoId || cooldownRemaining > 0}
-                        style={{
-                          padding: "8px 12px",
-                          fontSize: "0.85rem",
-                          background: cooldownRemaining > 0 ? "#444" : "#2ecc71",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          cursor: cooldownRemaining > 0 ? "not-allowed" : "pointer",
-                        }}
-                      >
-                        {adding === song.videoId ? (
-                          "..."
-                        ) : cooldownRemaining > 0 ? (
-                          t("common.waitAction", "Wait")
-                        ) : (
-                          <IconPlus size={16} />
-                        )}
-                      </button>
-                      {isHost && (
-                        <button
-                          onClick={() => handleDeleteSaved(song.id)}
-                          style={{
-                            padding: "8px 12px",
-                            fontSize: "0.85rem",
-                            background: "#c0392b",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                          }}
-                        >
-                          <IconTrash size={16} />
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                {songLibrary.filter(song =>
-                  song.title.toLowerCase().includes(savedFilter.toLowerCase())
-                ).length === 0 && (
-                    <p style={{ color: "#888", textAlign: "center" }}>
-                      {t("mobile.noSongFound", "No song found")}
-                    </p>
-                  )}
-              </div>
-            </>
-          )}
-        </div>
-      )}
-
-      {/* Modal de Preview */}
-      {previewVideo && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: "rgba(0,0,0,0.9)",
-            zIndex: 1000,
-            display: "flex",
-            flexDirection: "column",
-            padding: 16,
-          }}
-          onClick={() => setPreviewVideo(null)}
-        >
-          <div style={{ textAlign: "right", marginBottom: 8 }}>
-            <button
-              onClick={() => setPreviewVideo(null)}
-              style={{
-                background: "transparent",
-                color: "#fff",
-                fontSize: "1.5rem",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <IconX size={24} />
-            </button>
-          </div>
-          <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-            <div
-              style={{
-                position: "relative",
-                paddingBottom: "56.25%",
-                height: 0,
-              }}
-            >
-              <iframe
-                src={`https://www.youtube.com/embed/${previewVideo.videoId}?autoplay=1`}
-                style={{
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  width: "100%",
-                  height: "100%",
-                  border: "none",
-                }}
-                allow="autoplay; encrypted-media"
-                allowFullScreen
-                onClick={e => e.stopPropagation()}
-              />
-            </div>
-            <div style={{ marginTop: 16, color: "#fff" }}>
-              <div style={{ fontWeight: 600, marginBottom: 4 }}>
-                {previewVideo.title}
-              </div>
-              <div
-                style={{ color: "#888", fontSize: "0.9rem", marginBottom: 16 }}
-              >
-                {previewVideo.channelTitle}
-              </div>
-              <button
-                onClick={e => {
-                  e.stopPropagation();
-                  handleAddFromSearch(previewVideo);
-                  setPreviewVideo(null);
-                }}
-                disabled={adding === previewVideo.videoId || cooldownRemaining > 0}
-                style={{
-                  width: "100%",
-                  background: cooldownRemaining > 0 ? "#444" : "#2ecc71",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 8,
-                  cursor: cooldownRemaining > 0 ? "not-allowed" : "pointer",
-                }}
-              >
-                {adding === previewVideo.videoId ? (
-                  t("mobile.adding", "Adding...")
-                ) : cooldownRemaining > 0 ? (
-                  t("mobile.waitCooldown", "Wait for Cooldown")
-                ) : (
-                  <>
-                    <IconPlus size={16} /> {t("mobile.addToQueue", "Add to queue")}
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal de Adicionar Música - Escolher Solo/Dueto */}
-      {addSongModal && (
-        <div
-          onClick={() => setAddSongModal(null)}
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: "rgba(0,0,0,0.85)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 1000,
-            padding: 20,
-          }}
-        >
-          <div
-            onClick={e => e.stopPropagation()}
-            style={{
-              background: "#1a1a1a",
-              borderRadius: 16,
-              padding: 24,
-              maxWidth: 350,
-              width: "100%",
-              border: "1px solid #333",
-            }}
-          >
-            <div style={{ marginBottom: 16 }}>
-              <div
-                style={{ fontSize: "0.85rem", color: "#888", marginBottom: 4 }}
-              >
-                🎵 {t("mobile.addToQueue", "Add to queue")}
-              </div>
-              <div style={{ fontSize: "1.1rem", fontWeight: 600 }}>
-                {addSongModal.title}
-              </div>
-            </div>
-
-            <div style={{ marginBottom: 20 }}>
-              <label
-                style={{
-                  fontSize: "0.9rem",
-                  color: "#ccc",
-                  display: "block",
-                  marginBottom: 8,
-                }}
-              >
-                {t("mobile.whoWillSing", "Who will sing?")}
-              </label>
-
-              <select
-                value={modalPartner}
-                onChange={e => setModalPartner(e.target.value)}
-                style={{
-                  width: "100%",
-                  padding: "14px 12px",
-                  background: "#2a2a2a",
-                  border: "1px solid #444",
-                  borderRadius: 8,
-                  color: "#fff",
-                  fontSize: "1rem",
-                  fontWeight: 500,
-                  cursor: "pointer",
-                  appearance: "none",
-                  WebkitAppearance: "none",
-                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
-                  backgroundRepeat: "no-repeat",
-                  backgroundPosition: "right 12px center",
-                  backgroundSize: "20px",
-                  paddingRight: "40px",
-                }}
-              >
-                <option
-                  value=""
-                  style={{ background: "#1a1a1a", color: "#fff" }}
-                >
-                  {t("mobile.alone", "Solo")}
-                </option>
-                {participants
-                  .filter(p => p.id !== myUserId)
-                  .map(p => (
-                    <option
-                      key={p.id}
-                      value={p.id}
-                      style={{ background: "#1a1a1a", color: "#fff" }}
-                    >
-                      {p.name}
-                    </option>
-                  ))}
-              </select>
-            </div>
-
-            <div style={{ display: "flex", gap: 10 }}>
-              <button
-                onClick={() => setAddSongModal(null)}
-                style={{
-                  flex: 1,
-                  padding: "12px",
-                  background: "#444",
-                  border: "none",
-                  borderRadius: 8,
-                  color: "#fff",
-                  fontWeight: 600,
-                  cursor: "pointer",
-                }}
-              >
-                {t("common.cancel", "Cancel")}
-              </button>
-              <button
-                onClick={handleConfirmAddSong}
-                disabled={adding === addSongModal.videoId || cooldownRemaining > 0}
-                style={{
-                  flex: 1,
-                  padding: "12px",
-                  background: cooldownRemaining > 0 ? "#444" : "#2ecc71",
-                  border: "none",
-                  borderRadius: 8,
-                  color: "#fff",
-                  fontWeight: 600,
-                  cursor: cooldownRemaining > 0 ? "not-allowed" : "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 6,
-                }}
-              >
-                {adding === addSongModal.videoId ? (
-                  t("mobile.adding", "Adding...")
-                ) : cooldownRemaining > 0 ? (
-                  t("mobile.cooldown", "Cooldown")
-                ) : (
-                  <>
-                    <IconPlus size={16} /> {t("common.add", "Add")}
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Reaction Buttons */}
-      <div
-        style={{
-          position: "fixed",
-          bottom: 24,
-          left: "50%",
-          transform: "translateX(-50%)",
-          display: "flex",
-          flexDirection: "row",
-          gap: 16,
-          zIndex: 100,
-          background: "rgba(0, 0, 0, 0.4)",
-          backdropFilter: "blur(12px)",
-          WebkitBackdropFilter: "blur(12px)",
-          padding: "8px 20px",
-          borderRadius: "40px",
-          border: "1px solid rgba(255, 255, 255, 0.1)",
-          boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
-        }}
-      >
-        {["👏", "🎤", "🔥", "😂"].map(emoji => (
+        <header style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 32 }}>
           <button
-            key={emoji}
-            onClick={() => sendReaction(emoji)}
+            onClick={() => navigate("/")}
             style={{
-              width: 52,
-              height: 52,
-              borderRadius: "50%",
-              fontSize: "26px",
-              background: "rgba(255, 255, 255, 0.1)",
-              border: "1px solid rgba(255, 255, 255, 0.1)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              padding: 0,
-              margin: 0,
-              transition: "transform 0.1s ease, background 0.2s ease",
+              background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.1)",
+              borderRadius: 18, padding: "10px 16px", color: "#fff", fontSize: "0.8rem", fontWeight: 800,
+              cursor: "pointer", display: "flex", alignItems: "center", gap: 8, backdropFilter: "blur(20px)"
             }}
-            onPointerDown={e => (e.currentTarget.style.transform = "scale(0.8)")}
-            onPointerUp={e => (e.currentTarget.style.transform = "scale(1.1)")}
-            onPointerLeave={e => (e.currentTarget.style.transform = "scale(1)")}
+            className="tap-effect"
           >
-            {emoji}
+            <IconX size={18} />
+            <span style={{ textTransform: 'uppercase', letterSpacing: 1 }}>{t("mobile.leaveRoom", "Sair")}</span>
           </button>
-        ))}
+          
+          <div style={{ textAlign: "right" }}>
+            <div style={{ fontSize: "0.65rem", color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: 2, fontWeight: 900, marginBottom: 4 }}>
+              {t("mobile.room", "SALA")}
+            </div>
+            <div style={{ fontSize: "2rem", fontWeight: 900, color: "var(--primary)", lineHeight: 1, textShadow: '0 0 20px var(--primary-glow)' }}>
+              {code}
+            </div>
+          </div>
+        </header>
+
+        <GlassContainer intensity={20} style={{ 
+          background: "rgba(255,255,255,0.03)", borderRadius: 32, padding: "24px", marginBottom: 32,
+          border: "1px solid rgba(255,255,255,0.1)", boxShadow: '0 20px 50px rgba(0,0,0,0.3)'
+        }}>
+          <div style={{ fontSize: "0.65rem", color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: 2, fontWeight: 900, marginBottom: 16 }}>
+             {t("tv.nowPlaying", "TOCANDO AGORA")}
+          </div>
+          {state.nowPlaying ? (
+            <div style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
+               <div style={{ position: 'relative', width: 90, height: 68, flexShrink: 0 }}>
+                  <img src={`https://i.ytimg.com/vi/${state.nowPlaying.videoId}/mqdefault.jpg`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 16, boxShadow: '0 5px 15px rgba(0,0,0,0.2)' }} />
+                  <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.4), transparent)', borderRadius: 16 }} />
+               </div>
+               <div style={{ overflow: 'hidden' }}>
+                  <div style={{ fontSize: "1.1rem", fontWeight: 900, color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", marginBottom: 4 }}>
+                    {state.nowPlaying.title}
+                  </div>
+                  <div style={{ color: "var(--primary)", fontSize: "0.9rem", fontWeight: 800, display: "flex", alignItems: "center", gap: 8 }}>
+                    <IconMic size={14} />
+                    {state.nowPlaying.singers?.map(s => s.name).join(" & ") || state.nowPlaying.requestedBy}
+                  </div>
+               </div>
+            </div>
+          ) : (
+            <div style={{ display: "flex", alignItems: "center", gap: 16, opacity: 0.5 }}>
+              <div style={{ width: 44, height: 44, borderRadius: 14, background: "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <IconMusic size={22} />
+              </div>
+              <div style={{ fontSize: "0.9rem", fontWeight: 700 }}>{t("tv.preparingNext", "Ninguém cantando ainda...")}</div>
+            </div>
+          )}
+        </GlassContainer>
+
+        <div style={{ 
+          display: "flex", background: "rgba(0,0,0,0.2)", padding: 6, borderRadius: 24, marginBottom: 32,
+          border: '1px solid rgba(255,255,255,0.05)', backdropFilter: 'blur(20px)'
+        }}>
+          {(["queue", "ranking", "saved"] as Tab[]).map(tName => (
+            <button
+              key={tName}
+              onClick={() => { setTab(tName); if(tName === "queue") setShowAddSong(false); }}
+              style={{
+                flex: 1, padding: "14px", border: "none", borderRadius: 18, fontWeight: 900, fontSize: "0.8rem",
+                background: tab === tName ? "var(--primary)" : "transparent",
+                color: tab === tName ? "#fff" : "rgba(255,255,255,0.3)",
+                boxShadow: tab === tName ? "0 8px 20px var(--primary-glow)" : "none",
+                transition: "all 0.3s cubic-bezier(0.23, 1, 0.32, 1)",
+                textTransform: 'uppercase', letterSpacing: 1
+              }}
+              className="tap-effect"
+            >
+              {tName === "queue" ? t("tv.queue", "Fila") : tName === "ranking" ? t("tv.ranking", "Placar") : t("mobile.songLibrary", "Vips")}
+            </button>
+          ))}
+        </div>
+
+        {tab === "queue" && (
+          <div style={{ animation: "fadeInUp 0.6s cubic-bezier(0.23, 1, 0.32, 1)" }}>
+            {!showAddSong && (
+              <>
+                <h3 style={{ fontSize: "1.2rem", fontWeight: 900, marginBottom: 20, display: "flex", alignItems: "center", gap: 12 }}>
+                   {t("tv.queue", "Fila de Reprodução")}
+                   <span style={{ fontSize: '0.8rem', background: 'rgba(255,255,255,1)', color: '#000', padding: '2px 10px', borderRadius: 99, fontWeight: 900 }}>{state.queue.length}</span>
+                </h3>
+
+                <GlassContainer intensity={15} style={{ background: "rgba(255,255,255,0.03)", borderRadius: 32, padding: "24px" }}>
+                  {state.queue.length === 0 ? (
+                    <div style={{ textAlign: "center", padding: "40px 0" }}>
+                      <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(255,255,255,0.03)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+                         <IconMusic size={32} style={{ opacity: 0.2 }} />
+                      </div>
+                      <p style={{ color: "rgba(255,255,255,0.3)", fontWeight: 700 }}>{t("tv.emptyQueue", "A fila está vazia!")}</p>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                      {(showAllQueue ? state.queue : state.queue.slice(0, 5)).map((item, idx) => (
+                        <div key={item.id} style={{ 
+                          display: "flex", alignItems: "center", gap: 16, padding: 16, 
+                          background: "rgba(255,255,255,0.02)", borderRadius: 20, 
+                          border: "1px solid rgba(255,255,255,0.05)"
+                        }}>
+                          <div style={{ width: 44, height: 44, borderRadius: 14, background: "rgba(255,255,255,0.03)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.1rem", fontWeight: 900, color: "var(--primary)" }}>
+                            {idx + 1}
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: "0.95rem", fontWeight: 800, color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{item.title}</div>
+                            <div style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.4)", fontWeight: 600 }}>{item.singers?.map(s => s.name).join(" & ") || item.requestedBy}</div>
+                          </div>
+                          {(isHost || item.requesterId === myUserId) && (
+                            <button onClick={() => handleQueueRemove(item.id)} style={{ padding: 10, borderRadius: 12, background: 'rgba(255,68,68,0.1)', border: 'none', color: '#ff4444' }}><IconTrash size={18} /></button>
+                          )}
+                        </div>
+                      ))}
+                      {!showAllQueue && state.queue.length > 5 && (
+                        <button onClick={() => setShowAllQueue(true)} style={{ marginTop: 8, padding: 12, borderRadius: 16, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem', fontWeight: 900 }} className="tap-effect">
+                           + {state.queue.length - 5} {t("mobile.moreSongs", "músicas")}
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </GlassContainer>
+
+                <button 
+                  onClick={() => setShowAddSong(true)}
+                  disabled={cooldownRemaining > 0}
+                  style={{ 
+                    marginTop: 32, width: '100%', padding: '24px', borderRadius: 28, 
+                    background: cooldownRemaining > 0 ? "rgba(255,255,255,0.05)" : 'var(--primary)',
+                    color: cooldownRemaining > 0 ? "rgba(255,255,255,0.2)" : '#fff', 
+                    fontSize: '1.2rem', fontWeight: 900, border: 'none',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12,
+                    boxShadow: cooldownRemaining > 0 ? "none" : '0 15px 40px var(--primary-glow)',
+                    cursor: cooldownRemaining > 0 ? "not-allowed" : "pointer"
+                  }}
+                  className={cooldownRemaining > 0 ? "" : "tap-effect"}
+                >
+                   {cooldownRemaining > 0 ? (
+                     <span>{Math.floor(cooldownRemaining / 60)}:{(cooldownRemaining % 60).toString().padStart(2, '0')}</span>
+                  ) : (
+                    <><IconPlus size={28} /> {t("mobile.addSong", "Cantar Agora!")}</>
+                  )}
+                </button>
+              </>
+            )}
+
+            {showAddSong && (
+              <GlassContainer intensity={10} style={{ padding: 24, background: "rgba(255,255,255,0.03)", borderRadius: 32 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+                  <h4 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: 12 }}><IconSearch size={22} color="var(--primary)" /> {t("mobile.search", "Buscar")}</h4>
+                  <button onClick={() => setShowAddSong(false)} style={{ background: 'rgba(255,255,255,0.05)', border: 'none', padding: 8, borderRadius: 12, color: 'rgba(255,255,255,0.4)' }}><IconX size={20} /></button>
+                </div>
+                
+                <div style={{ position: 'relative', marginBottom: 24 }}>
+                  <input
+                    placeholder={t("mobile.linkOrNamePlaceholder", "Link ou nome da música...")}
+                    value={searchQuery}
+                    onChange={e => {
+                      setSearchQuery(e.target.value);
+                      if (e.target.value.trim() !== "") triggerDebouncedSearch(e.target.value);
+                    }}
+                    onKeyDown={e => e.key === "Enter" && handleManualSearch()}
+                    style={{ width: '100%', padding: '18px 20px', borderRadius: 20, background: 'rgba(0,0,0,0.2)', color: '#fff', border: '1px solid rgba(255,255,255,0.1)', fontWeight: 600 }}
+                  />
+                </div>
+
+                {searching && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    {[1, 2, 3].map(i => <div key={i} className="shimmer" style={{ height: 80, borderRadius: 20 }} />)}
+                  </div>
+                )}
+
+                {searchResults.length > 0 && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    {searchResults.map(res => (
+                      <GlassContainer key={res.videoId} style={{ display: 'flex', gap: 16, alignItems: 'center', padding: 12, borderRadius: 24, background: 'rgba(255,255,255,0.03)' }}>
+                        <div style={{ position: 'relative', width: 70, height: 52, flexShrink: 0 }}>
+                          <img src={res.thumbnail} alt="" style={{ width: '100%', height: '100%', borderRadius: 12, objectFit: 'cover' }} />
+                          <div onClick={() => setPreviewVideo(res)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><IconPlay size={20} /></div>
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: '0.9rem', fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{res.title}</div>
+                          <div style={{ fontSize: '0.7rem', opacity: 0.4 }}>{res.channelTitle}</div>
+                        </div>
+                        <button onClick={() => handleAddFromSearch(res)} style={{ width: 44, height: 44, borderRadius: 14, background: 'var(--primary)', color: '#fff', border: 'none' }}>
+                          {adding === res.videoId ? "..." : <IconPlus size={20} />}
+                        </button>
+                      </GlassContainer>
+                    ))}
+                  </div>
+                )}
+              </GlassContainer>
+            )}
+          </div>
+        )}
+
+        {tab === "ranking" && (
+           <div style={{ animation: "fadeInUp 0.6s ease" }}>
+            <h3 style={{ fontSize: "1.2rem", fontWeight: 900, marginBottom: 20, display: "flex", alignItems: "center", gap: 12 }}>
+              <IconTrophy size={24} color="#f1c40f" /> {t("tv.ranking", "Placar Geral")}
+            </h3>
+            
+            <div style={{ display: "flex", gap: 6, background: "rgba(0,0,0,0.2)", padding: 6, borderRadius: 20, marginBottom: 24 }}>
+              <button onClick={() => setRankingView("solo")} style={{ flex: 1, padding: 10, borderRadius: 14, border: 'none', background: rankingView === "solo" ? "var(--primary)" : "transparent", color: "#fff", fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                <IconUser size={16} /> Solo
+              </button>
+              <button onClick={() => setRankingView("duet")} style={{ flex: 1, padding: 10, borderRadius: 14, border: 'none', background: rankingView === "duet" ? "var(--primary)" : "transparent", color: "#fff", fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                <IconUsers size={16} /> Duplas
+              </button>
+            </div>
+
+            <GlassContainer intensity={15} style={{ padding: 20, borderRadius: 32, background: 'rgba(255,255,255,0.03)' }}>
+              {rankingView === "solo" ? (
+                Object.keys(state.ranking).length === 0 ? <p style={{ textAlign: 'center', opacity: 0.3 }}>{t("tv.nobodyScored", "Vazio")}</p> :
+                Object.entries(state.ranking).sort(([,a],[,b]) => b.score - a.score).map(([id, entry], i) => (
+                  <div key={id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 16, marginBottom: 8, background: 'rgba(255,255,255,0.02)', borderRadius: 18 }}>
+                    <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                      <div style={{ width: 28, height: 28, borderRadius: 8, background: i === 0 ? '#f1c40f' : '#333', color: i===0 ? '#000':'#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900 }}>{i+1}</div>
+                      <span style={{ fontWeight: 800 }}>{entry.name}</span>
+                    </div>
+                    <span style={{ fontWeight: 900, color: i===0 ? '#f1c40f' : 'var(--primary)' }}>{entry.score} pts</span>
+                  </div>
+                ))
+              ) : (
+                state.duetRanking.length === 0 ? <p style={{ textAlign: 'center', opacity: 0.3 }}>{t("tv.noDuetScored", "Vazio")}</p> :
+                state.duetRanking.sort((a,b) => b.score - a.score).map((duet, i) => (
+                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 16, marginBottom: 8, background: 'rgba(255,255,255,0.02)', borderRadius: 18 }}>
+                    <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                      <div style={{ width: 28, height: 28, borderRadius: 8, background: i === 0 ? '#f1c40f' : '#333', color: i===0 ? '#000':'#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900 }}>{i+1}</div>
+                      <span style={{ fontWeight: 800 }}>{duet.names[0]} & {duet.names[1]}</span>
+                    </div>
+                    <span style={{ fontWeight: 900, color: 'var(--primary)' }}>{duet.score} pts</span>
+                  </div>
+                ))
+              )}
+            </GlassContainer>
+           </div>
+        )}
+
+        {tab === "saved" && (
+          <div style={{ animation: "fadeInUp 0.6s ease" }}>
+            <h3 style={{ fontSize: "1.2rem", fontWeight: 900, marginBottom: 20, display: "flex", alignItems: "center", gap: 12 }}>
+              <IconLibrary size={24} color="var(--primary)" /> {t("mobile.songLibrary", "Vips da Sala")}
+            </h3>
+            
+            <GlassContainer intensity={15} style={{ padding: 20, borderRadius: 32, background: 'rgba(255,255,255,0.03)' }}>
+              {songLibrary.length === 0 ? <p style={{ textAlign: 'center', opacity: 0.3 }}>Vazia</p> : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {songLibrary.map(song => (
+                    <div key={song.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 12, background: 'rgba(255,255,255,0.02)', borderRadius: 20 }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{song.title}</div>
+                        <div style={{ fontSize: '0.7rem', opacity: 0.3 }}>{t("mobile.addedBy", "Por")} {song.addedBy}</div>
+                      </div>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <button onClick={() => handleAddFromSaved(song)} style={{ padding: 10, borderRadius: 12, background: 'var(--primary)', border: 'none', color: '#fff' }}><IconPlus size={18} /></button>
+                        {isHost && (
+                          <button onClick={() => handleDeleteSaved(song.id)} style={{ padding: 10, borderRadius: 12, background: 'rgba(255,255,255,0.05)', border: 'none', color: 'rgba(255,255,255,0.2)' }}><IconTrash size={18} /></button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </GlassContainer>
+          </div>
+        )}
+
+        <div style={{
+          position: "fixed", bottom: 32, left: "50%", transform: "translateX(-50%)",
+          display: "flex", gap: 12, zIndex: 100, background: "rgba(255,255,255,0.05)",
+          backdropFilter: "blur(24px)", padding: "10px 16px", borderRadius: "40px",
+          border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 15px 45px rgba(0,0,0,0.5)"
+        }}>
+          {["👏", "🎤", "🔥", "😂"].map(emoji => (
+            <button key={emoji} onClick={() => sendReaction(emoji)} style={{ width: 54, height: 54, borderRadius: "50%", fontSize: 24, background: "transparent", border: "none", cursor: "pointer" }} className="tap-effect">
+              {emoji}
+            </button>
+          ))}
+        </div>
+
+        {previewVideo && (
+           <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.9)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }} onClick={() => setPreviewVideo(null)}>
+              <GlassContainer style={{ width: '100%', maxWidth: 400, padding: 20, borderRadius: 32 }} onClick={e => e.stopPropagation()}>
+                 <div style={{ position: 'relative', width: '100%', paddingBottom: '75%', borderRadius: 20, overflow: 'hidden' }}>
+                    <iframe src={`https://www.youtube.com/embed/${previewVideo.videoId}?autoplay=1`} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 'none' }} allow="autoplay" />
+                 </div>
+                 <button onClick={() => { handleAddFromSearch(previewVideo); setPreviewVideo(null); }} style={{ marginTop: 20, width: '100%', padding: 20, borderRadius: 20, background: 'var(--primary)', color: '#fff', fontWeight: 900, border: 'none' }}>
+                    {t("mobile.addToQueue", "ADICIONAR")}
+                 </button>
+              </GlassContainer>
+           </div>
+        )}
+
+        {addSongModal && (
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }} onClick={() => setAddSongModal(null)}>
+            <GlassContainer style={{ width: '100%', maxWidth: 400, padding: 32, borderRadius: 40 }} onClick={e => e.stopPropagation()}>
+              <h4 style={{ margin: '0 0 16px', fontWeight: 900 }}>{t("mobile.whoWillSing", "Cantando com:")}</h4>
+              <select value={modalPartner} onChange={e => setModalPartner(e.target.value)} style={{ width: '100%', padding: 18, borderRadius: 18, background: 'rgba(255,255,255,0.05)', color: '#fff', border: '1px solid rgba(255,255,255,0.1)', marginBottom: 24 }}>
+                <option value="">{t("mobile.alone", "Sozinho")}</option>
+                {participants.filter(p => p.id !== myUserId).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+              </select>
+              <button onClick={handleConfirmAddSong} style={{ width: '100%', padding: 20, borderRadius: 20, background: 'var(--primary)', color: '#fff', fontWeight: 900, border: 'none' }}>
+                {adding ? "..." : t("common.add", "CONFIRMAR")}
+              </button>
+            </GlassContainer>
+          </div>
+        )}
+
       </div>
     </div>
   );

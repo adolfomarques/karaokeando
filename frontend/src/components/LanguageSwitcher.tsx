@@ -37,10 +37,7 @@ export default function LanguageSwitcher() {
     <div
       ref={dropdownRef}
       style={{
-        position: "absolute",
-        top: 20,
-        right: 20,
-        zIndex: 9999,
+        position: "relative",
       }}
     >
       <button

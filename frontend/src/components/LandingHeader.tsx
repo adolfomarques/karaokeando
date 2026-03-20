@@ -17,57 +17,79 @@ export default function LandingHeader() {
       borderBottom: "1px solid rgba(255, 255, 255, 0.05)",
       zIndex: 1000,
     }}>
-      {/* Use the same .container class as the page content for perfect alignment */}
       <div className="container" style={{
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        padding: "14px 16px",
+        padding: "12px 16px",
+        maxWidth: "100%",
+        gap: "12px",
       }}>
         {/* Logo Section */}
-        <Link to="/" style={{ display: "flex", alignItems: "center", gap: "10px", textDecoration: "none", flexShrink: 0 }}>
+        <Link to="/" style={{ 
+          display: "flex", 
+          alignItems: "center", 
+          gap: "10px", 
+          textDecoration: "none", 
+          flexShrink: 0 
+        }}>
           <img
             src="/am-logo.png"
             alt="Logo AM"
             style={{
-              width: "36px",
-              height: "36px",
+              width: "32px",
+              height: "32px",
               borderRadius: "50%",
               objectFit: "cover",
               border: "1px solid rgba(255, 255, 255, 0.15)"
             }}
           />
-          <span style={{
-            color: "#fff",
-            fontWeight: "700",
-            fontSize: "1rem",
-            letterSpacing: "-0.3px",
-            whiteSpace: "nowrap"
-          }}>
+          <span 
+            className="header-brand"
+            style={{
+              color: "#fff",
+              fontWeight: "700",
+              fontSize: "0.95rem",
+              letterSpacing: "-0.3px",
+              whiteSpace: "nowrap"
+            }}
+          >
             Adolfo Marques
           </span>
         </Link>
 
-        {/* Right Section: Terms + Language side by side */}
-        <div style={{ display: "flex", alignItems: "center", gap: "16px", flexShrink: 0 }}>
+        {/* Right Section: Terms + Language */}
+        <div style={{ 
+          display: "flex", 
+          alignItems: "center", 
+          gap: "12px", 
+          flexShrink: 0 
+        }}>
           <Link
             to="/terms"
             style={{
-              color: "#666",
+              color: "#888",
               textDecoration: "none",
-              fontSize: "0.85rem",
+              fontSize: "0.8rem",
               fontWeight: "500",
               transition: "color 0.2s",
               whiteSpace: "nowrap"
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = "#ccc")}
-            onMouseLeave={(e) => (e.currentTarget.style.color = "#666")}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "#fff")}
+            onMouseLeave={(e) => (e.currentTarget.style.color = "#888")}
           >
             {t("landing.terms.title", "Terms")}
           </Link>
           <LanguageSwitcher />
         </div>
       </div>
+      <style>{`
+        @media (max-width: 400px) {
+          .header-brand {
+            display: none !important;
+          }
+        }
+      `}</style>
     </header>
   );
 }

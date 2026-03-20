@@ -41,11 +41,14 @@ const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "YOUR_GOOGLE_C
 
 import Terms from "./pages/Terms";
 
+import { LiquidBackground } from "./components/ui/LiquidGlassLayout";
+
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
       <AuthProvider>
         <BrowserRouter>
+          <LiquidBackground />
           <Suspense fallback={<PageLoader />}>
             <Routes>
               <Route path="/" element={<Home />} />

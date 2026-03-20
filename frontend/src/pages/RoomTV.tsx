@@ -9,11 +9,11 @@ import {
   nextSong,
   queueItemToTop,
   removeQueueItem,
-  scoreDone,
 } from "../api";
 import ScoreOverlay from "../components/ScoreOverlay";
 import Logo from "../components/Logo";
 import toast, { Toaster } from "react-hot-toast";
+import { GlassContainer, LiquidBackground } from "../components/ui/LiquidGlassLayout";
 
 // Declare global YouTube IFrame API types
 declare global {
@@ -88,129 +88,50 @@ interface Reaction {
   x: number;
 }
 
-// Icon components
-const IconChevronUp = () => (
-  <svg
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2.5"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
+// Icon components (Minimalist)
+const IconChevronUp = ({ size = 16, color }: { size?: number, color?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color || "currentColor"} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
     <polyline points="18 15 12 9 6 15"></polyline>
   </svg>
 );
 
-const IconChevronDown = () => (
-  <svg
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2.5"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
+const IconChevronDown = ({ size = 16, color }: { size?: number, color?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color || "currentColor"} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
     <polyline points="6 9 12 15 18 9"></polyline>
   </svg>
 );
 
-const IconChevronsUp = () => (
-  <svg
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2.5"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
+const IconChevronsUp = ({ size = 16, color }: { size?: number, color?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color || "currentColor"} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
     <polyline points="17 11 12 6 7 11"></polyline>
     <polyline points="17 18 12 13 7 18"></polyline>
   </svg>
 );
 
-const IconSkipForward = ({ size = 16 }: { size?: number }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
+const IconSkipForward = ({ size = 16, color }: { size?: number, color?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color || "currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <polygon points="5 4 15 12 5 20 5 4"></polygon>
     <line x1="19" y1="5" x2="19" y2="19"></line>
   </svg>
 );
 
-const IconSkipBack = ({ size = 16 }: { size?: number }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <polygon points="19 20 9 12 19 4 19 20"></polygon>
-    <line x1="5" y1="19" x2="5" y2="5"></line>
-  </svg>
-);
-
-const IconTrash = ({ size = 16 }: { size?: number }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
+const IconTrash = ({ size = 16, color }: { size?: number, color?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color || "currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <polyline points="3 6 5 6 21 6"></polyline>
     <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
   </svg>
 );
 
-const IconMusic = ({ size = 16 }: { size?: number }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
+const IconMusic = ({ size = 16, color }: { size?: number, color?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color || "currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M9 18V5l12-2v13"></path>
     <circle cx="6" cy="18" r="3"></circle>
     <circle cx="18" cy="16" r="3"></circle>
   </svg>
 );
 
-const IconMic = ({ size = 16 }: { size?: number }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
+const IconMic = ({ size = 16, color }: { size?: number, color?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color || "currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
     <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
     <line x1="12" y1="19" x2="12" y2="23"></line>
@@ -218,33 +139,15 @@ const IconMic = ({ size = 16 }: { size?: number }) => (
   </svg>
 );
 
-const IconX = ({ size = 16 }: { size?: number }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
+const IconX = ({ size = 16, color }: { size?: number, color?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color || "currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <line x1="18" y1="6" x2="6" y2="18"></line>
     <line x1="6" y1="6" x2="18" y2="18"></line>
   </svg>
 );
 
-const IconTrophy = ({ size = 16 }: { size?: number }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
+const IconTrophy = ({ size = 16, color }: { size?: number, color?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color || "currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
     <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
     <path d="M4 22h16"></path>
@@ -254,37 +157,21 @@ const IconTrophy = ({ size = 16 }: { size?: number }) => (
   </svg>
 );
 
-const IconUsers = ({ size = 16 }: { size?: number }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-    <circle cx="9" cy="7" r="4"></circle>
-    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+const IconPlay = ({ size = 16, color }: { size?: number, color?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill={color || "currentColor"} stroke="none">
+    <polygon points="5 3 19 12 5 21 5 3"></polygon>
   </svg>
 );
 
-const IconUser = ({ size = 16 }: { size?: number }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-    <circle cx="12" cy="7" r="4"></circle>
+const IconMaximize = ({ size = 16, color }: { size?: number, color?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color || "currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
+  </svg>
+);
+
+const IconMinimize = ({ size = 16, color }: { size?: number, color?: string }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color || "currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3" />
   </svg>
 );
 
@@ -349,47 +236,7 @@ const ReactionDisplay = ({ reactions }: { reactions: Reaction[] }) => {
   );
 };
 
-const IconPlay = ({ size = 16 }: { size?: number }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="currentColor"
-    stroke="none"
-  >
-    <polygon points="5 3 19 12 5 21 5 3"></polygon>
-  </svg>
-);
 
-const IconMaximize = ({ size = 16 }: { size?: number }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
-  </svg>
-);
-
-const IconMinimize = ({ size = 16 }: { size?: number }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3" />
-  </svg>
-);
 
 export default function RoomTV() {
   const { t } = useTranslation();
@@ -457,13 +304,13 @@ export default function RoomTV() {
             width: '40px',
             height: '40px',
             borderRadius: '50%',
-            background: 'linear-gradient(135deg, #06b6d4, #0d9488)',
+            background: 'linear-gradient(135deg, #ff007f, #ff66cc)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             fontSize: '1.2rem',
             flexShrink: 0,
-            boxShadow: '0 4px 10px rgba(236, 72, 153, 0.3)'
+            boxShadow: '0 4px 15px rgba(255, 0, 127, 0.4)'
           }}>
             🎵
           </div>
@@ -492,14 +339,13 @@ export default function RoomTV() {
     });
 
     prevQueueRef.current = state.queue;
-  }, [state?.queue]);
+  }, [state?.queue, t]);
 
   // Check for tvToken on mount
   useEffect(() => {
     if (!code) return;
     const token = localStorage.getItem(`tvToken_${code}`);
     if (!token) {
-      // Redirect to TV login page
       navigate(`/room/${code}/tv/login`);
     } else {
       setTvToken(token);
@@ -570,7 +416,7 @@ export default function RoomTV() {
     }
   }, []);
 
-  // Listen to fullscreenchange events to sync state (e.g., if user exits via Esc key)
+  // Listen to fullscreenchange events to sync state
   useEffect(() => {
     const handleFullscreenChange = () => {
       setIsFullscreen(!!document.fullscreenElement);
@@ -642,7 +488,6 @@ export default function RoomTV() {
 
   // Auto-play next song countdown
   useEffect(() => {
-    // Only start countdown if there's a queue, nothing is playing, and no score is showing
     if (!state || state.nowPlaying || showScore || state.queue.length === 0 || isTransitioning) {
       setAutoPlayCountdown(null);
       return;
@@ -659,10 +504,6 @@ export default function RoomTV() {
       }, 1000);
       return () => clearTimeout(timer);
     } else if (autoPlayCountdown === 0 && code && !isTransitioningRef.current) {
-      // Countdown finished, play next song
-      console.log("[TV] Countdown finished, advancing queue...");
-
-      // Defensivamente: setar flags e limpar contador ANTES da chamada assíncrona
       isTransitioningRef.current = true;
       setIsTransitioning(true);
       setAutoPlayCountdown(null);
@@ -710,7 +551,6 @@ export default function RoomTV() {
 
     const tvToken = localStorage.getItem(`tvToken_${code}`);
 
-    // Fallback: fetch state via HTTP in case WS is slow
     getState(code)
       .then(s => {
         if (s && s.error === "room_not_found") {
@@ -737,20 +577,15 @@ export default function RoomTV() {
           error?: string;
           action?: string;
           participants?: { id: string; name: string }[];
+          reaction?: string;
+          name?: string;
         };
         if (m.type === "STATE" && m.state) {
           const newState = m.state;
-
-          // Update state if not showing score (to prevent jumpy UI during scoring)
-          // or if we're in the middle of a transition (to get the nowPlaying data)
           if (!finalized || isTransitioningRef.current) {
             setState(newState);
           }
-
-          // Reset transitioning flag ONLY IF we have a new song playing
-          // OR if the queue is empty (meaning the transition is technically over/failed)
           if (newState.nowPlaying || newState.queue.length === 0) {
-            console.log("[TV] Transition complete or queue empty, resetting flag");
             isTransitioningRef.current = false;
             setIsTransitioning(false);
           }
@@ -769,16 +604,13 @@ export default function RoomTV() {
             }
           }
         } else if (m.type === "REACTION") {
-          console.log("[TV] Reaction received:", m);
-          const mReaction = m as unknown as { reaction: string; name: string };
           const newReaction = {
             id: Math.random().toString(36).substring(2, 9),
-            emoji: mReaction.reaction,
-            name: mReaction.name || "Convidado",
-            x: Math.random() * 80 + 10, // 10% a 90%
+            emoji: m.reaction!,
+            name: m.name || "Convidado",
+            x: Math.random() * 80 + 10,
           };
           setReactions(prev => [...prev, newReaction]);
-          // Remove after animation finishes
           setTimeout(() => {
             setReactions(prev => prev.filter(r => r.id !== newReaction.id));
           }, 4500);
@@ -788,7 +620,6 @@ export default function RoomTV() {
     );
     wsRef.current = ws;
 
-    // Polling fallback to maintain state if WebSocket fails
     const pollInterval = setInterval(() => {
       if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
         getState(code)
@@ -809,13 +640,12 @@ export default function RoomTV() {
       ws.close();
       clearInterval(pollInterval);
     };
-  }, [code, authChecked, finalized, reconnectKey]);
+  }, [code, authChecked, finalized, reconnectKey, t, tvToken]);
 
-  // Handle visibility change to refresh state and reconnect WS if needed
+  // Handle visibility change to refresh state
   useEffect(() => {
     const handleSync = () => {
       if (document.visibilityState === "visible" && code) {
-        console.log("[Visibility] TV Page visible/focused, refreshing state...");
         getState(code).then(s => {
           if (s && !s.error && !finalized) {
             setState(s);
@@ -836,31 +666,25 @@ export default function RoomTV() {
     document.addEventListener("visibilitychange", handleSync);
     return () => {
       window.removeEventListener("focus", handleSync);
-      document.removeEventListener("visibilitychange", handleSync);
+      window.removeEventListener("visibilitychange", handleSync);
     };
   }, [code, finalized]);
 
   // Create / destroy YouTube player
   useEffect(() => {
-    // Cleanup old player when videoId changes or score shown
     if (playerRef.current) {
       playerRef.current.destroy();
       playerRef.current = null;
     }
 
-    // Wait for user interaction before creating player (browser autoplay policy)
     if (!ytReady || !videoId || showScore || !hasInteracted) {
       return;
     }
 
-    // Wait for the container to be rendered
     const timeoutId = setTimeout(() => {
       const container = playerContainerRef.current;
-      if (!container) {
-        return;
-      }
+      if (!container) return;
 
-      // Clear container
       container.innerHTML = "";
       const div = document.createElement("div");
       div.id = "yt-player-" + videoId;
@@ -877,7 +701,7 @@ export default function RoomTV() {
           start: 0,
           playsinline: 1,
           enablejsapi: 1,
-          fs: 0, // Disable native YouTube fullscreen to use our custom wrapper
+          fs: 0,
         },
         events: {
           onReady: e => {
@@ -890,7 +714,7 @@ export default function RoomTV() {
           },
         },
       });
-    }, 300); // Increased delay to ensure DOM is ready
+    }, 300);
 
     return () => {
       clearTimeout(timeoutId);
@@ -901,835 +725,347 @@ export default function RoomTV() {
     };
   }, [ytReady, videoId, showScore, hasInteracted, handleVideoEnd]);
 
-  // ─────────────────────────────────────────────────────────────
-  // Render
-  // ─────────────────────────────────────────────────────────────
-
-  // Wait for auth check
   if (!authChecked) {
     return (
-      <div
-        style={{
-          minHeight: "100vh",
-          background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          color: "#fff",
-        }}
-      >
-        <p>{t("tv.verifyingAccess", "Verificando acesso...")}</p>
+      <div style={{ minHeight: "100vh", position: "relative", display: "flex", alignItems: "center", justifyContent: "center", background: "#0a0a0a" }}>
+        <LiquidBackground />
+        <p style={{ color: "#fff", position: "relative", zIndex: 1 }}>{t("tv.verifyingAccess", "Verificando acesso...")}</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div
-        className="container"
-        style={{ paddingTop: 60, textAlign: "center" }}
-      >
-        <h2
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 8,
-          }}
-        >
-          <IconX size={24} /> {error}
-        </h2>
-        <p style={{ color: "#888", marginTop: 16 }}>
-          {t("tv.noRoomFound", "Go back and create a new room.")}
-        </p>
-        <a
-          href="/"
-          style={{ color: "#3498db", marginTop: 20, display: "inline-block" }}
-        >
-          {t("common.backToHome", "← Back to home")}
-        </a>
+      <div style={{ background: "#0a0a0a", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <LiquidBackground />
+        <GlassContainer style={{ textAlign: "center", maxWidth: 400 }}>
+          <h2 style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, fontSize: '2rem' }}>
+            <IconX size={32} /> {error}
+          </h2>
+          <p style={{ color: "rgba(255,255,255,0.5)", marginTop: 16 }}>
+            {t("tv.noRoomFound", "Go back and create a new room.")}
+          </p>
+          <button
+            onClick={() => navigate("/")}
+            className="tap-effect"
+            style={{
+              background: "var(--primary)",
+              color: "#fff",
+              border: "none",
+              padding: "16px 32px",
+              borderRadius: 20,
+              fontSize: "1.1rem",
+              fontWeight: 900,
+              marginTop: 32,
+              cursor: "pointer",
+              boxShadow: "0 10px 30px var(--primary-glow)"
+            }}
+          >
+            {t("common.backToHome", "← Back to home")}
+          </button>
+        </GlassContainer>
       </div>
     );
   }
 
   if (!state) {
     return (
-      <div
-        style={{
-          minHeight: "100vh",
-          background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          color: "#fff",
-        }}
-      >
-        <div
-          style={{
-            fontSize: 48,
-            marginBottom: 24,
-            animation: "pulse 1.5s ease-in-out infinite",
-          }}
-        >
-          <IconMic size={64} />
+      <div style={{ background: "#0a0a0a", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <LiquidBackground />
+        <div style={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
+          <Logo width={400} />
+          <h2 style={{ color: "#fff", marginTop: 40, fontSize: '2.5rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: 4 }}>
+            {t("mobile.connecting", { code })}...
+          </h2>
         </div>
-        <h2 style={{ margin: 0, fontSize: "1.5rem", fontWeight: 500 }}>
-          {t("mobile.connecting", { code })}
-        </h2>
-        <style>{`
-          @keyframes pulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(0.95); }
-          }
-        `}</style>
       </div>
     );
   }
 
   return (
-    <div
-      ref={fullScreenWrapperRef}
-      style={{
-        position: "relative",
-        width: "100vw",
-        height: "100vh",
-        overflow: "hidden",
-        backgroundColor: "#000",
-      }}
-    >
-      {/* Overlay inicial para interação (Browsers bloqueiam autoplay) */}
-      {!hasInteracted && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,0.9)",
-            zIndex: 9999,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            color: "#fff",
-          }}
-          onClick={() => setHasInteracted(true)}
-        >
-          <div style={{ padding: 40, textAlign: "center", background: "#222", borderRadius: 16 }}>
-            <IconPlay size={64} />
-            <h2 style={{ fontSize: "2rem", margin: "20px 0 10px" }}>{t("tv.clickToActivate", "Clique para Ativar a TV")}</h2>
-            <p style={{ color: "#aaa", fontSize: "1.1rem", maxWidth: 400 }}>
-              {t("tv.autoplayWarning", "Browsers block autoplay videos. Click anywhere on this screen once for autoplay karaoke.")}
-            </p>
-            <button
-              style={{
-                marginTop: 24,
-                background: "#ff4081",
-                color: "#fff",
-                border: "none",
-                padding: "16px 32px",
-                fontSize: "1.2rem",
-                fontWeight: "bold",
-                borderRadius: 8,
-                cursor: "pointer",
-              }}
-            >
-              {t("common.continue", "Continue")}
-            </button>
-          </div>
-        </div>
-      )}
-
-      {(state.nowPlaying || isTransitioning) && !showScore && (
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            background: "#000",
-            display: "flex",
-            flexDirection: "column",
-          }}
-        >
-          {/* Barra superior com info da música */}
+    <div style={{ background: "transparent", minHeight: "100vh", position: "relative", overflow: "hidden", fontFamily: "'Inter', sans-serif" }}>
+      <LiquidBackground />
+      
+      <div 
+        ref={fullScreenWrapperRef}
+        style={{ 
+          height: "100vh", 
+          position: 'relative',
+          zIndex: 1
+        }}
+      >
+        <Toaster />
+        
+        {/* Interaction Overlay */}
+        {!hasInteracted && (
           <div
             style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              padding: "20px 40px",
-              background: "linear-gradient(to bottom, rgba(0,0,0,0.9), transparent)",
-              backdropFilter: "blur(4px)",
-              zIndex: 10,
+              position: "fixed",
+              inset: 0,
+              background: "rgba(0,0,0,0.8)",
+              backdropFilter: "blur(40px)",
+              zIndex: 9999,
               display: "flex",
-              justifyContent: "space-between",
-              alignItems: "flex-start",
-            }}
-          >
-            <div style={{ animation: "slideIn 0.5s ease-out" }}>
-              {state.nowPlaying ? (
-                <>
-                  <div style={{ 
-                      fontSize: "1.8rem", 
-                      fontWeight: 900, 
-                      color: "#fff", 
-                      textShadow: "0 2px 10px rgba(0,0,0,0.5)",
-                      marginBottom: 4
-                  }}>
-                    <TruncatedText text={state.nowPlaying.title} maxLength={50} />
-                  </div>
-                  <div
-                    style={{
-                      color: "#00e5ff",
-                      fontSize: "1.2rem",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 10,
-                      fontWeight: 600,
-                      textShadow: "0 0 10px rgba(0,229,255,0.4)"
-                    }}
-                  >
-                    <IconMic size={20} />
-                    {state.nowPlaying.singers
-                      ?.map(s => (typeof s === "string" ? s : s.name))
-                      .join(" e ") || state.nowPlaying.requestedBy}
-                  </div>
-                </>
-              ) : (
-                <div style={{ fontSize: "1.4rem", fontWeight: 700, color: "#fff", opacity: 0.8 }}>
-                  {t("tv.preparingNext", "Preparing next song...")}
-                </div>
-              )}
-            </div>
-            <div
-              style={{ textAlign: "right", animation: "slideIn 0.5s ease-out" }}
-            >
-              <div style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "10px",
-                background: "rgba(0, 0, 0, 0.4)",
-                backdropFilter: "blur(12px)",
-                border: "1px solid rgba(255, 255, 255, 0.1)",
-                borderRadius: "30px",
-                padding: "8px 20px",
-                color: "#fff",
-                fontSize: "1rem",
-                fontWeight: 700,
-                boxShadow: "0 4px 15px rgba(0,0,0,0.5)",
-                marginBottom: "12px"
-              }}>
-                <div style={{
-                  width: "10px",
-                  height: "10px",
-                  borderRadius: "50%",
-                  backgroundColor: "#2ecc71",
-                  boxShadow: "0 0 12px #2ecc71"
-                }} />
-                {participantsCount} {t("tv.participants", "Participantes")}
-              </div>
-              {state.queue.length > 0 && (
-                <div style={{ 
-                    color: "rgba(255,255,255,0.6)", 
-                    fontSize: "0.95rem", 
-                    fontWeight: 600,
-                    textTransform: "uppercase",
-                    letterSpacing: "1px"
-                }}>
-                  <span style={{ color: "#ff6600" }}>{t("tv.nextSong", "Next song")}:</span>{" "}
-                  {state.queue[0].singers
-                    ?.map(s => (typeof s === "string" ? s : s.name))
-                    .join(" e ") || state.queue[0].requestedBy}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Player YouTube em tela cheia */}
-          <div
-            ref={playerContainerRef}
-            style={{
-              flex: 1,
-              width: "100%",
-              height: "100%",
-            }}
-          />
-
-          {/* Botão de pular discreto no canto */}
-          <button
-            onClick={() => code && finalizeSong(code, "Host", undefined, tvToken)}
-            style={{
-              position: "absolute",
-              bottom: 20,
-              right: 20,
-              background: "rgba(255,255,255,0.1)",
-              border: "1px solid rgba(255,255,255,0.2)",
-              padding: "8px 16px",
-              fontSize: "0.85rem",
-              opacity: 0.5,
-              transition: "opacity 0.2s",
-              zIndex: 10,
-            }}
-            onMouseEnter={e => (e.currentTarget.style.opacity = "1")}
-            onMouseLeave={e => (e.currentTarget.style.opacity = "0.5")}
-          >
-            <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              {t("common.skip", "Skip")} <IconSkipForward size={16} />
-            </span>
-          </button>
-
-          {/* Botão Tela Cheia Customizado */}
-          <button
-            onClick={toggleFullscreen}
-            style={{
-              position: "absolute",
-              bottom: 20,
-              right: 120, // Posição ao lado do botão Pular
-              background: "rgba(255,255,255,0.1)",
-              border: "1px solid rgba(255,255,255,0.2)",
-              padding: "8px 16px",
-              fontSize: "0.85rem",
-              opacity: 0.5,
-              transition: "opacity 0.2s",
-              zIndex: 10,
-              color: "#fff",
-              cursor: "pointer",
-            }}
-            onMouseEnter={e => (e.currentTarget.style.opacity = "1")}
-            onMouseLeave={e => (e.currentTarget.style.opacity = "0.5")}
-          >
-            <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              {isFullscreen ? (
-                <>{t("tv.exitScreen", "Exit Screen")} <IconMinimize size={16} /></>
-              ) : (
-                <>{t("tv.fullScreen", "Full Screen")} <IconMaximize size={16} /></>
-              )}
-            </span>
-          </button>
-
-          {/* QR Code discreto no canto inferior esquerdo */}
-          <div
-            style={{
-              position: "absolute",
-              bottom: 16,
-              left: 16,
-              background: "rgba(255,255,255,0.95)",
-              padding: 8,
-              borderRadius: 8,
-              display: "flex",
-              flexDirection: "column",
               alignItems: "center",
-              opacity: 0.7,
-              transition: "opacity 0.2s",
-              zIndex: 10,
+              justifyContent: "center",
             }}
-            onMouseEnter={e => (e.currentTarget.style.opacity = "1")}
-            onMouseLeave={e => (e.currentTarget.style.opacity = "0.7")}
+            onClick={() => setHasInteracted(true)}
           >
-            <img
-              src={`https://api.qrserver.com/v1/create-qr-code/?size=104x104&data=${encodeURIComponent(
-                window.location.origin + "/join/" + code
-              )}`}
-              alt="QR Code"
-              loading="lazy"
-              style={{ width: 104, height: 104, display: "block" }}
-            />
-            <div
-              style={{
-                color: "#000",
-                fontSize: "0.65rem",
-                fontWeight: 600,
-                marginTop: 4,
-              }}
-            >
-              {code}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ─────────────────────────────────────────────────────────────
-          MODO 2: LOBBY - Entre músicas (fila, ranking, QR code)
-          ───────────────────────────────────────────────────────────── */}
-      {!state.nowPlaying && !showScore && !isTransitioning && (
-        <div
-          style={{
-            height: "100vh",
-            overflow: "hidden", // Disable scrolling to force it to fit
-            padding: "2vw 3vw",
-            background: "#0d0d0d", // Dark background
-            display: "flex",
-            flexDirection: "column",
-          }}
-        >
-          <style>{`
-            @keyframes slideIn {
-                from { opacity: 0; transform: translateY(20px); }
-                to { opacity: 1; transform: translateY(0); }
-            }
-            .tv-vip-ticket {
-              position: relative;
-              background: #0d0d0d;
-              border-radius: 16px;
-              border: 2px solid #ff6600;
-              box-shadow: 0 0 25px rgba(255, 102, 0, 0.3), inset 0 0 30px rgba(255, 102, 0, 0.05);
-              overflow: hidden;
-              animation: slideIn 0.8s ease-out forwards;
-            }
-            .tv-vip-header {
-              padding: 2.5vh;
-              border-bottom: 2px dashed rgba(255, 102, 0, 0.4);
-              background: repeating-linear-gradient(
-                45deg,
-                rgba(255, 102, 0, 0.03),
-                rgba(255, 102, 0, 0.03) 15px,
-                transparent 15px,
-                transparent 30px
-              );
-            }
-            .tv-vip-title {
-              font-family: 'Inter', sans-serif;
-              color: transparent;
-              -webkit-text-stroke: 1.5px #ff6600;
-              text-shadow: 0 0 15px rgba(255, 102, 0, 0.7);
-              font-size: 2.5rem;
-              font-weight: 900;
-              letter-spacing: 6px;
-              text-transform: uppercase;
-              margin: 0;
-            }
-            .tv-vip-body {
-              padding: 3vh;
-              background: linear-gradient(to bottom, rgba(0,0,0,0), rgba(0, 229, 255, 0.03));
-            }
-            .tv-vip-btn-cyan {
-              background: transparent;
-              border: 1px solid rgba(0, 229, 255, 0.5);
-              color: #00e5ff;
-              padding: 10px 20px;
-              border-radius: 8px;
-              font-size: 1rem;
-              font-weight: 700;
-              cursor: pointer;
-              text-transform: uppercase;
-              transition: all 0.3s ease;
-              box-shadow: inset 0 0 10px rgba(0, 229, 255, 0.05);
-              display: flex;
-              align-items: center;
-              gap: 8px;
-            }
-            .tv-vip-btn-cyan:hover, .tv-vip-btn-cyan.active {
-              background: rgba(0, 229, 255, 0.2);
-              border-color: #00e5ff;
-              box-shadow: inset 0 0 15px rgba(0, 229, 255, 0.3), 0 0 20px rgba(0, 229, 255, 0.4);
-              color: #fff;
-              transform: translateY(-2px);
-            }
-            .tv-vip-box {
-              background: rgba(20, 20, 20, 0.6);
-              backdrop-filter: blur(10px);
-              border: 1px solid rgba(255, 255, 255, 0.08);
-              border-radius: 12px;
-              padding: 2vh;
-              transition: all 0.3s ease;
-            }
-            .tv-vip-box:hover {
-                border-color: rgba(0, 229, 255, 0.3);
-                background: rgba(30, 30, 30, 0.8);
-            }
-            .tv-neon-text {
-                color: #00e5ff;
-                text-shadow: 0 0 10px rgba(0, 229, 255, 0.8), 0 0 20px rgba(0, 229, 255, 0.4);
-                font-weight: 900;
-            }
-            .tv-gradient-bg {
-                background: radial-gradient(circle at top right, rgba(255, 102, 0, 0.1), transparent 40%),
-                            radial-gradient(circle at bottom left, rgba(0, 229, 255, 0.05), transparent 40%);
-            }
-          `}</style>
-          
-          {/* Header */}
-          <header className="w-full flex justify-between items-center gap-4 mb-6 px-2 md:px-4 shrink-0">
-            {/* Esquerda: Logout */}
-            <div className="flex-1 flex justify-start">
-                <button
-                    onClick={() => navigate("/")}
-                    style={{
-                    background: "rgba(255, 102, 0, 0.05)",
-                    border: "1px solid rgba(255, 102, 0, 0.4)",
-                    borderRadius: 8,
-                    padding: "8px 12px",
-                    color: "#ff6600",
-                    fontSize: "0.75rem",
-                    fontWeight: 700,
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                    transition: "all 0.3s ease",
-                    textTransform: "uppercase",
-                    letterSpacing: "1px"
-                    }}
-                    onMouseEnter={e => {
-                        e.currentTarget.style.background = "rgba(255, 102, 0, 0.15)";
-                        e.currentTarget.style.borderColor = "#ff6600";
-                        e.currentTarget.style.boxShadow = "0 0 10px rgba(255, 102, 0, 0.3)";
-                    }}
-                    onMouseLeave={e => {
-                        e.currentTarget.style.background = "rgba(255, 102, 0, 0.05)";
-                        e.currentTarget.style.borderColor = "rgba(255, 102, 0, 0.4)";
-                        e.currentTarget.style.boxShadow = "none";
-                    }}
-                >
-                    <IconSkipBack size={14} />
-                    {t("auth.logout", "Sair")}
-                </button>
-            </div>
-
-            {/* Centro: Logo e Room Code */}
-            <div className="flex-1 flex flex-col items-center justify-center gap-1">
-                <div className="w-40 md:w-56"><Logo width="100%" /></div>
-                <div className="flex items-center gap-2 text-lg md:text-2xl text-white tracking-widest mt-0">
-                    <span className="opacity-40 font-light">ROOM:</span>
-                    <span className="tv-neon-text font-black text-xl md:text-3xl">{code}</span>
-                </div>
-            </div>
-            
-            {/* Direita: QR Code Ticket */}
-            <div className="flex-1 flex justify-end">
-              <div className="tv-vip-ticket flex items-stretch h-[80px] md:h-[100px] w-full max-w-[200px] md:max-w-[240px] bg-[#0d0d0d]">
-                <div className="relative flex items-center justify-center border-r-2 border-dashed border-[#ff660066] w-8 md:w-10 overflow-hidden" style={{
-                  background: "repeating-linear-gradient(45deg, rgba(255, 102, 0, 0.05), rgba(255, 102, 0, 0.05) 8px, transparent 8px, transparent 16px)",
-                 }}>
-                  <div className="absolute -rotate-90 origin-center whitespace-nowrap tv-vip-title text-[0.65rem] md:text-xs tracking-[3px]">
-                    TICKET
-                  </div>
-                </div>
-                <div className="flex-1 px-1 py-1 bg-white flex flex-col items-center justify-center overflow-hidden">
-                  <img
-                    src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(
-                      window.location.origin + "/join/" + code
-                    )}&color=000000&bgcolor=ffffff`}
-                    alt="QR Code"
-                    loading="lazy"
-                    className="w-[45px] h-[45px] md:w-[55px] md:h-[55px] mb-1 object-contain"
-                  />
-                  <div className="text-black text-[0.5rem] md:text-[0.6rem] font-black uppercase tracking-wider text-center leading-tight">
-                    {t("tv.scanToJoin", "Escaneie")}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </header>
-
-          {/* Conteúdo principal */}
-          <main className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-8 items-stretch max-w-[1600px] w-full mx-auto min-h-0 overflow-hidden">
-            {/* Próxima música / Fila */}
-            <div className="tv-vip-ticket flex flex-col overflow-hidden">
-              {state.queue.length > 0 ? (
-                <>
-                  <div className="tv-vip-header" style={{ padding: "3vh", textAlign: "center" }}>
-                    <div style={{ fontSize: "1.2rem", color: "#00e5ff", textTransform: "uppercase", letterSpacing: "1px", fontWeight: 700, marginBottom: "2vh", textShadow: "0 0 10px rgba(0,229,255,0.6)" }}>
-                      <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px" }}>
-                        <IconMusic size={20} /> {t("tv.nextSong", "Next song")}
-                      </span>
-                    </div>
-                    <div style={{ fontSize: "2.5vw", fontWeight: 900, color: "#fff", textShadow: "0 0 20px rgba(255,255,255,0.5)", marginBottom: "1vh", lineHeight: 1.1 }}>
-                      {state.queue[0].title}
-                    </div>
-                    <div style={{ fontSize: "1.2vw", color: "#ff6600", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, fontWeight: 600, textShadow: "0 0 10px rgba(255,102,0,0.6)", marginBottom: "3vh" }}>
-                      <IconMic size={24} />
-                      {state.queue[0].singers?.map(s => (typeof s === "string" ? s : s.name)).join(" e ") || state.queue[0].requestedBy}
-                    </div>
-                    <div style={{ display: "flex", gap: 16, justifyContent: "center" }}>
-                      <button
-                        onClick={() => {
-                          setAutoPlayCountdown(null);
-                          if (code) nextSong(code, undefined, tvToken);
-                        }}
-                        style={{
-                          background: "transparent",
-                          color: "#00e5ff",
-                          border: "2px solid #00e5ff",
-                          fontSize: "1.2vw",
-                          padding: "1vh 3vw",
-                          fontWeight: 800,
-                          textTransform: "uppercase",
-                          letterSpacing: "1px",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 8,
-                          boxShadow: "inset 0 0 15px rgba(0,229,255,0.2), 0 0 15px rgba(0,229,255,0.2)",
-                          cursor: "pointer",
-                          transition: "all 0.2s"
-                        }}
-                        onMouseEnter={e => {
-                          e.currentTarget.style.background = "rgba(0,229,255,0.15)";
-                          e.currentTarget.style.boxShadow = "inset 0 0 25px rgba(0,229,255,0.4), 0 0 25px rgba(0,229,255,0.4)";
-                        }}
-                        onMouseLeave={e => {
-                          e.currentTarget.style.background = "transparent";
-                          e.currentTarget.style.boxShadow = "inset 0 0 15px rgba(0,229,255,0.2), 0 0 15px rgba(0,229,255,0.2)";
-                        }}
-                      >
-                        <IconPlay size={24} />
-                        {autoPlayCountdown !== null
-                          ? `${t("mobile.start", "Start!")} (${autoPlayCountdown}s)`
-                          : t("mobile.start", "Start!")}
-                      </button>
-                      <button
-                        onClick={() => handleQueueRemove(state.queue[0].id)}
-                        style={{
-                          background: "rgba(255, 102, 0, 0.1)",
-                          color: "#ff6600",
-                          border: "2px solid #ff6600",
-                          padding: "1vh 2vw",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          cursor: "pointer",
-                          transition: "all 0.2s"
-                        }}
-                        onMouseEnter={e => {
-                          e.currentTarget.style.background = "rgba(255,102,0,0.2)";
-                          e.currentTarget.style.boxShadow = "inset 0 0 15px rgba(255,102,0,0.4), 0 0 15px rgba(255,102,0,0.4)";
-                        }}
-                        onMouseLeave={e => {
-                          e.currentTarget.style.background = "rgba(255,102,0,0.1)";
-                          e.currentTarget.style.boxShadow = "none";
-                        }}
-                        title="Remover da fila"
-                      >
-                        <IconTrash size={32} />
-                      </button>
-                    </div>
-                  </div>
-
-                  {state.queue.length > 1 && (
-                    <div className="tv-vip-body flex-1 overflow-hidden" style={{ padding: "2vh" }}>
-                      <h3 style={{ margin: "0 0 1.5vh", fontSize: "1.1vw", color: "#888", textTransform: "uppercase", letterSpacing: "1px" }}>
-                        Na fila ({state.queue.length - 1} mais)
-                      </h3>
-                      {state.queue.slice(1, 6).map((item) => (
-                        <div
-                          key={item.id}
-                          className="tv-vip-box"
-                          style={{
-                            marginBottom: "16px",
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            gap: 16,
-                            padding: "20px",
-                          }}
-                        >
-                          <div style={{ flex: 1, overflow: "hidden" }}>
-                            <div style={{ fontSize: "1.3rem", fontWeight: 700, color: "#fff", marginBottom: "8px" }}>
-                              <TruncatedText text={item.title} maxLength={35} />
-                            </div>
-                            <div style={{ color: "#00e5ff", fontSize: "1.1rem", display: "flex", alignItems: "center", gap: "8px" }}>
-                              <IconUser size={14} />
-                              {item.singers?.map(s => (typeof s === "string" ? s : s.name)).join(" e ") || item.requestedBy}
-                            </div>
-                          </div>
-                          <div style={{ display: "flex", gap: 12 }}>
-                            <button className="tv-vip-btn-cyan" style={{ padding: "12px" }} onClick={() => handleQueueMove(item.id, "up")} title="Subir"><IconChevronUp /></button>
-                            <button className="tv-vip-btn-cyan" style={{ padding: "12px" }} onClick={() => handleQueueMove(item.id, "down")} title="Descer"><IconChevronDown /></button>
-                            <button className="tv-vip-btn-cyan" style={{ padding: "12px" }} onClick={() => handleQueueToTop(item.id)} title="Mover para o topo"><IconChevronsUp /></button>
-                            <button 
-                              className="tv-vip-btn-cyan" 
-                              style={{ padding: "12px", borderColor: "#ff3333", color: "#ff3333", boxShadow: "inset 0 0 8px rgba(255,51,51,0.1)" }} 
-                              onClick={() => handleQueueRemove(item.id)} 
-                              title="Remover"
-                            >
-                              <IconTrash />
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                      {state.queue.length > 6 && (
-                        <div style={{ color: "#ff6600", marginTop: 20, textAlign: "center", fontWeight: 700, fontSize: "1.2rem", letterSpacing: "1px" }}>
-                          ... e mais {state.queue.length - 6}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </>
-              ) : (
-                <div className="flex-1" style={{ padding: "8vh 2vw", textAlign: "center", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-                  <div style={{ fontSize: "5vw", marginBottom: "2vh", color: "#ff6600", opacity: 0.8, textShadow: "0 0 30px rgba(255,102,0,0.4)", display: "flex", justifyContent: "center" }}>
-                    <IconMusic size={80} />
-                  </div>
-                  <h2 className="tv-vip-title" style={{ fontSize: "2.5vw", marginBottom: "2vh", whiteSpace: "normal" }}>{t("tv.emptyQueue", "Fila vazia")}</h2>
-                  <p style={{ color: "#00e5ff", fontSize: "1.2vw", fontWeight: 600, letterSpacing: "1px" }}>
-                    {t("tv.scanToAdd", "Escaneie o QR code e adicione músicas!")}
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* Ranking */}
-            <div className="tv-vip-ticket flex flex-col overflow-hidden">
-              <div className="tv-vip-header" style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                padding: "2vh 3vh"
+            <GlassContainer style={{ padding: 60, textAlign: "center", maxWidth: 500 }}>
+              <div style={{ 
+                width: 100, height: 100, borderRadius: "50%", background: "var(--primary)", 
+                display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 32px",
+                boxShadow: "0 0 50px var(--primary-glow)"
               }}>
-                <h2 className="tv-vip-title" style={{ fontSize: "1.6vw", display: "flex", alignItems: "center", gap: 12 }}>
-                  <IconTrophy size={32} /> {t("tv.ranking", "Ranking")}
-                </h2>
-                {/* Toggle Solo/Duplas */}
-                <div style={{ display: "flex", gap: 12 }}>
-                  <button className={`tv-vip-btn-cyan ${rankingView === "solo" ? "active" : ""}`} onClick={() => { setRankingView("solo"); setAutoRotate(false); }}>
-                    <span style={{ display: "flex", alignItems: "center", gap: 6 }}><IconUser size={18} /> {t("tv.solo", "Solo")}</span>
-                  </button>
-                  <button className={`tv-vip-btn-cyan ${rankingView === "duet" ? "active" : ""}`} onClick={() => { setRankingView("duet"); setAutoRotate(false); }}>
-                    <span style={{ display: "flex", alignItems: "center", gap: 6 }}><IconUsers size={18} /> {t("tv.duets", "Duplas")}</span>
-                  </button>
-                </div>
+                <IconPlay size={48} />
               </div>
+              <h2 style={{ fontSize: "2.5rem", margin: "0 0 16px", fontWeight: 900 }}>{t("tv.clickToActivate", "Clique para Ativar a TV")}</h2>
+              <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "1.1rem", lineHeight: 1.6 }}>
+                {t("tv.autoplayWarning", "Browsers block autoplay videos. Click anywhere on this screen once for autoplay karaoke.")}
+              </p>
+              <button
+                style={{
+                  marginTop: 40,
+                  background: "var(--primary)",
+                  color: "#fff",
+                  border: "none",
+                  padding: "20px 48px",
+                  fontSize: "1.3rem",
+                  fontWeight: 900,
+                  borderRadius: 24,
+                  cursor: "pointer",
+                  boxShadow: "0 10px 40px var(--primary-glow)"
+                }}
+              >
+                {t("common.continue", "Continuar")}
+              </button>
+            </GlassContainer>
+          </div>
+        )}
 
-              <div className="tv-vip-body flex-1 overflow-hidden" style={{ padding: "2vh 3vh" }}>
-              {rankingView === "solo" ? (
-                // Solo ranking
-                Object.keys(state.ranking).length === 0 ? (
-                  <div style={{ padding: "4vh", textAlign: "center", color: "#888", fontSize: "1.2vw", lineHeight: 1.6 }}>
-                    {t("tv.nobodyScored", "Ninguém pontuou ainda.")}
-                    <br />
-                    <span style={{ color: "#00e5ff" }}>{t("tv.singToAppear", "Cante uma música para aparecer aqui!")}</span>
-                  </div>
+        {/* MODO 1: NOW PLAYING */}
+        {(state.nowPlaying || isTransitioning) && !showScore && (
+          <div style={{ position: "absolute", inset: 0, background: "#000", display: "flex", flexDirection: "column" }}>
+            <div style={{
+              position: "absolute", top: 0, left: 0, right: 0, padding: "40px 60px",
+              background: "linear-gradient(to bottom, rgba(0,0,0,0.95), transparent)",
+              zIndex: 10, display: "flex", justifyContent: "space-between", alignItems: "flex-start",
+            }}>
+              <div>
+                {state.nowPlaying ? (
+                  <>
+                    <h1 style={{ fontSize: "3rem", fontWeight: 900, color: "#fff", textShadow: "0 5px 20px rgba(0,0,0,0.8)", margin: "0 0 8px" }}>
+                      <TruncatedText text={state.nowPlaying.title} maxLength={50} />
+                    </h1>
+                    <div style={{ color: "var(--primary)", fontSize: "1.8rem", display: "flex", alignItems: "center", gap: 15, fontWeight: 800, textShadow: "0 0 20px var(--primary-glow)" }}>
+                      <IconMic size={32} />
+                      {state.nowPlaying.singers?.map(s => (typeof s === "string" ? s : s.name)).join(" & ") || state.nowPlaying.requestedBy}
+                    </div>
+                  </>
                 ) : (
-                  <div style={{ display: "flex", flexDirection: "column", gap: "1.5vh" }}>
-                    {Object.entries(state.ranking)
-                      .sort(([, a], [, b]) => b.score - a.score)
-                      .map(([odUserId, entry], i) => (
-                        <div key={odUserId} className="tv-vip-box" style={{ 
-                          display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1.5vh 2vh",
-                          border: i === 0 ? "1px solid #ffcc00" : i === 1 ? "1px solid #cdcdcd" : i === 2 ? "1px solid #cd7f32" : "1px solid #333",
-                          boxShadow: i === 0 ? "0 0 20px rgba(255,204,0,0.2)" : "none"
-                        }}>
-                          <span style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                            <span style={{
-                              width: 36, height: 36, borderRadius: "50%",
-                              background: i === 0 ? "linear-gradient(45deg, #ffcc00, #ffaa00)" : i === 1 ? "linear-gradient(45deg, #eee, #aaa)" : i === 2 ? "linear-gradient(45deg, #e6a181, #cd7f32)" : "#222",
-                              color: i < 3 ? "#000" : "#fff",
-                              display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.1vw", fontWeight: 800,
-                              boxShadow: i < 3 ? "0 0 15px rgba(0,0,0,0.5)" : "none"
-                            }}>
-                              {i + 1}
-                            </span>
-                            <span style={{ fontSize: "1.3vw", fontWeight: i < 3 ? 800 : 600, color: "#fff" }}>{entry.name}</span>
-                          </span>
-                          <span style={{ fontSize: "1.5vw", fontWeight: 900, color: i === 0 ? "#ffcc00" : i === 1 ? "#ddd" : i === 2 ? "#cd7f32" : "#00e5ff", textShadow: i === 0 ? "0 0 15px rgba(255,204,0,0.5)" : "none" }}>
-                            {entry.score} pts
-                          </span>
-                        </div>
-                      ))}
-                  </div>
-                )
-              ) : // Duet ranking
-                !state.duetRanking || state.duetRanking.length === 0 ? (
-                  <div style={{ padding: "4vh", textAlign: "center", color: "#888", fontSize: "1.2vw", lineHeight: 1.6 }}>
-                    {t("tv.noDuetScored", "Nenhuma dupla pontuou ainda.")}
-                    <br />
-                    <span style={{ color: "#00e5ff" }}>{t("tv.singDuetToAppear", "Cante em dupla para aparecer aqui!")}</span>
-                  </div>
-                ) : (
-                  <div style={{ display: "flex", flexDirection: "column", gap: "1.5vh" }}>
-                    {[...state.duetRanking]
-                      .sort((a, b) => b.score - a.score)
-                      .map((duet, i) => (
-                        <div key={duet.names.join("-")} className="tv-vip-box" style={{ 
-                          display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1.5vh 2vh",
-                          border: i === 0 ? "1px solid #ffcc00" : i === 1 ? "1px solid #cdcdcd" : i === 2 ? "1px solid #cd7f32" : "1px solid #333",
-                          boxShadow: i === 0 ? "0 0 20px rgba(255,204,0,0.2)" : "none"
-                        }}>
-                          <span style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                            <span style={{
-                              width: 36, height: 36, borderRadius: "50%",
-                              background: i === 0 ? "linear-gradient(45deg, #ffcc00, #ffaa00)" : i === 1 ? "linear-gradient(45deg, #eee, #aaa)" : i === 2 ? "linear-gradient(45deg, #e6a181, #cd7f32)" : "#222",
-                              color: i < 3 ? "#000" : "#fff",
-                              display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.1vw", fontWeight: 800,
-                              boxShadow: i < 3 ? "0 0 15px rgba(0,0,0,0.5)" : "none"
-                            }}>
-                              {i + 1}
-                            </span>
-                            <span style={{ fontSize: "1.2vw", fontWeight: i < 3 ? 800 : 600, color: "#fff" }}>{duet.names[0]} & {duet.names[1]}</span>
-                          </span>
-                          <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
-                            <span style={{ fontSize: "1.5vw", fontWeight: 900, color: i === 0 ? "#ffcc00" : i === 1 ? "#ddd" : i === 2 ? "#cd7f32" : "#00e5ff", textShadow: i === 0 ? "0 0 15px rgba(255,204,0,0.5)" : "none" }}>
-                              {duet.score} pts
-                            </span>
-                            <span style={{ fontSize: "0.8vw", color: "#888", marginTop: 2, textTransform: "uppercase", letterSpacing: "1px", fontWeight: 600 }}>
-                              {duet.count} {duet.count > 1 ? "músicas" : "música"}
-                            </span>
-                          </span>
-                        </div>
-                      ))}
+                  <h1 style={{ fontSize: "2rem", fontWeight: 900, color: "#fff", opacity: 0.6 }}>{t("tv.preparingNext", "Preparando próxima música...")}</h1>
+                )}
+              </div>
+              
+              <div style={{ textAlign: "right" }}>
+                <GlassContainer intensity={0} style={{ display: "inline-flex", alignItems: "center", gap: 12, padding: "12px 24px", borderRadius: 30, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)" }}>
+                  <div style={{ width: 12, height: 12, borderRadius: "50%", background: "#2ecc71", boxShadow: "0 0 15px #2ecc71" }} />
+                  <span style={{ fontSize: "1.2rem", fontWeight: 800 }}>{participantsCount} {t("tv.participants", "Participantes")}</span>
+                </GlassContainer>
+                
+                {state.queue.length > 0 && (
+                  <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "1.1rem", fontWeight: 700, marginTop: 16, textTransform: "uppercase", letterSpacing: 1 }}>
+                    <span style={{ color: "var(--primary)" }}>{t("tv.nextSong", "Próxima")}:</span>{" "}
+                    {state.queue[0].singers?.map(s => (typeof s === "string" ? s : s.name)).join(" & ") || state.queue[0].requestedBy}
                   </div>
                 )}
               </div>
             </div>
-          </main>
 
-          {/* Footer Informativo */}
-          <footer style={{ 
-            marginTop: "auto", 
-            padding: "2vh 0", 
-            borderTop: "1px solid rgba(255, 255, 255, 0.05)",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            opacity: 0.6,
-            fontSize: "0.9rem",
-            letterSpacing: "1px",
-            textTransform: "uppercase"
-          }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 15 }}>
-                <div style={{ 
-                    width: 8, height: 8, borderRadius: "50%", background: "#2ecc71", boxShadow: "0 0 10px #2ecc71"
-                }} />
-                <span>{participantsCount} {t("tv.participants", "Participantes")}</span>
+            <div ref={playerContainerRef} style={{ flex: 1, width: "100%", height: "100%" }} />
+
+            {/* Controls */}
+            <div style={{ position: "absolute", bottom: 40, right: 60, display: "flex", gap: 20, zIndex: 10 }}>
+              <button
+                onClick={toggleFullscreen}
+                className="tap-effect"
+                style={{
+                  background: "rgba(255,255,255,0.1)", backdropFilter: "blur(20px)", border: "1px solid rgba(255,255,255,0.2)",
+                  padding: "12px 24px", borderRadius: 16, color: "#fff", fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", gap: 10
+                }}
+              >
+                {isFullscreen ? <><IconMinimize size={20} /> {t("tv.exitScreen", "Sair")}</> : <><IconMaximize size={20} /> {t("tv.fullScreen", "Tela Cheia")}</>}
+              </button>
+              
+              <button
+                onClick={() => code && finalizeSong(code, "Host", undefined, tvToken)}
+                className="tap-effect"
+                style={{
+                  background: "rgba(255,255,255,0.1)", backdropFilter: "blur(20px)", border: "1px solid rgba(255,255,255,0.2)",
+                  padding: "12px 24px", borderRadius: 16, color: "#fff", fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", gap: 10
+                }}
+              >
+                {t("common.skip", "Pular")} <IconSkipForward size={20} />
+              </button>
             </div>
-            <div>{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-            <div style={{ fontWeight: 700 }}>KARAOKE FACTORY &copy; 2025</div>
-          </footer>
-        </div>
-      )}
 
-      {/* Score Overlay (aparece após cada música) */}
-      <ScoreOverlay
-        open={!!finalized}
-        scoreOverride={finalized?.score}
-        singer={finalized?.singer}
-        enableAudio={true}
-        onDone={async () => {
-          setFinalized(null);
-          if (code) {
-            // Fetch latest state since we ignored updates during score
-            try {
-              const s = await getState(code);
-              if (s && !s.error) setState(s);
-            } catch { }
-            scoreDone(code);
-          }
-        }}
-      />
-      <Toaster position="top-right" />
-      {/* Reações Animadas - absolute to wrapper container */}
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          pointerEvents: "none",
-          zIndex: 9999,
-          overflow: "hidden",
-        }}
-      >
-        <ReactionDisplay reactions={reactions} />
+            <div style={{ position: "absolute", bottom: 40, left: 60, background: "#fff", padding: 12, borderRadius: 20, boxShadow: "0 10px 40px rgba(0,0,0,0.5)", zIndex: 10, opacity: 0.8 }}>
+              <img
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(window.location.origin + "/join/" + code)}`}
+                alt="QR Code" style={{ width: 120, height: 120, display: "block" }}
+              />
+              <div style={{ color: "#000", textAlign: "center", fontWeight: 900, marginTop: 8, fontSize: "1.2rem", letterSpacing: 2 }}>{code}</div>
+            </div>
+          </div>
+        )}
+
+        {/* MODO 2: LOBBY */}
+        {!state.nowPlaying && !showScore && !isTransitioning && (
+          <div style={{ height: "100vh", padding: "40px 60px", display: "flex", flexDirection: "column" }}>
+            <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 60 }}>
+              <div style={{ flex: 1 }}>
+                <button onClick={() => navigate("/")} className="tap-effect" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", padding: "12px 24px", borderRadius: 16, color: "#fff", fontWeight: 800, textTransform: "uppercase", letterSpacing: 1 }}>
+                  {t("auth.logout", "Sair")}
+                </button>
+              </div>
+              
+              <div style={{ flex: 1, textAlign: "center" }}>
+                <Logo width={300} />
+                <div style={{ marginTop: 16, fontSize: "1.8rem", fontWeight: 900, letterSpacing: 4 }}>
+                  <span style={{ opacity: 0.3 }}>SALA:</span> <span style={{ color: "var(--primary)" }}>{code}</span>
+                </div>
+              </div>
+
+              <div style={{ flex: 1, display: "flex", justifyContent: "flex-end" }}>
+                <GlassContainer style={{ padding: 16, background: "#fff", borderRadius: 24, display: "flex", alignItems: "center", gap: 20 }}>
+                  <img src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(window.location.origin + "/join/" + code)}`} alt="QR" style={{ width: 80, height: 80 }} />
+                  <div style={{ textAlign: "left" }}>
+                    <div style={{ color: "#000", fontSize: "1rem", fontWeight: 900, textTransform: "uppercase" }}>{t("tv.scanToJoin", "Scan to Sing")}</div>
+                    <div style={{ color: "#888", fontSize: "0.8rem", fontWeight: 700 }}>KARAOKE ONLINE</div>
+                  </div>
+                </GlassContainer>
+              </div>
+            </header>
+
+            <main style={{ flex: 1, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 40, minHeight: 0, overflow: "hidden" }}>
+              {/* Queue */}
+              <GlassContainer intensity={20} style={{ display: "flex", flexDirection: "column", overflow: "hidden", padding: 0 }}>
+                {state.queue.length > 0 ? (
+                  <>
+                    <div style={{ padding: 40, background: "rgba(255,255,255,0.03)", borderBottom: "1px solid rgba(255,255,255,0.05)", textAlign: "center" }}>
+                      <div style={{ color: "var(--primary)", fontSize: "1.2rem", fontWeight: 900, textTransform: "uppercase", letterSpacing: 2, marginBottom: 20 }}>
+                        {t("tv.nextSong", "PRÓXIMA MÚSICA")}
+                      </div>
+                      <h2 style={{ fontSize: "2.5rem", fontWeight: 900, margin: "0 0 16px" }}>{state.queue[0].title}</h2>
+                      <div style={{ fontSize: "1.5rem", color: "rgba(255,255,255,0.6)", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: 12, marginBottom: 40 }}>
+                        <IconMic size={28} />
+                        {state.queue[0].singers?.map(s => (typeof s === "string" ? s : s.name)).join(" & ") || state.queue[0].requestedBy}
+                      </div>
+                      <div style={{ display: "flex", gap: 20, justifyContent: "center" }}>
+                        <button
+                          onClick={() => { setAutoPlayCountdown(null); if (code) nextSong(code, undefined, tvToken); }}
+                          className="tap-effect"
+                          style={{ background: "var(--primary)", color: "#fff", border: "none", padding: "18px 48px", borderRadius: 24, fontSize: "1.4rem", fontWeight: 900, boxShadow: "0 10px 40px var(--primary-glow)", display: "flex", alignItems: "center", gap: 12 }}
+                        >
+                          <IconPlay size={28} />
+                          {autoPlayCountdown !== null ? `${t("common.start", "COMEÇAR")} (${autoPlayCountdown}s)` : t("common.start", "COMEÇAR")}
+                        </button>
+                        <button onClick={() => handleQueueRemove(state.queue[0].id)} className="tap-effect" style={{ background: "rgba(255,68,68,0.1)", border: "1px solid rgba(255,68,68,0.2)", color: "#ff4444", padding: "0 24px", borderRadius: 24 }}><IconTrash size={28} /></button>
+                      </div>
+                    </div>
+                    {state.queue.length > 1 && (
+                      <div style={{ flex: 1, overflowY: "auto", padding: 40 }}>
+                        <h3 style={{ fontSize: "1rem", color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: 2, marginBottom: 24 }}>NA FILA ({state.queue.length - 1})</h3>
+                        {state.queue.slice(1, 6).map(item => (
+                          <div key={item.id} style={{ background: "rgba(255,255,255,0.03)", borderRadius: 20, padding: 24, marginBottom: 16, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                            <div style={{ overflow: "hidden" }}>
+                              <div style={{ fontSize: "1.3rem", fontWeight: 800, marginBottom: 4 }}><TruncatedText text={item.title} maxLength={40} /></div>
+                              <div style={{ color: "var(--primary)", fontSize: "1rem", fontWeight: 700 }}>{item.singers?.map(s => (typeof s === "string" ? s : s.name)).join(" & ") || item.requestedBy}</div>
+                            </div>
+                            <div style={{ display: "flex", gap: 10 }}>
+                              <button onClick={() => handleQueueMove(item.id, "up")} className="tap-effect" style={{ padding: 10, background: "rgba(255,255,255,0.05)", border: "none", borderRadius: 12, color: "#fff" }}><IconChevronUp /></button>
+                              <button onClick={() => handleQueueMove(item.id, "down")} className="tap-effect" style={{ padding: 10, background: "rgba(255,255,255,0.05)", border: "none", borderRadius: 12, color: "#fff" }}><IconChevronDown /></button>
+                              <button onClick={() => handleQueueToTop(item.id)} className="tap-effect" style={{ padding: 10, background: "rgba(255,255,255,0.05)", border: "none", borderRadius: 12, color: "#fff" }}><IconChevronsUp /></button>
+                              <button onClick={() => handleQueueRemove(item.id)} className="tap-effect" style={{ padding: 10, background: "rgba(255,68,68,0.1)", border: "none", borderRadius: 12, color: "#ff4444" }}><IconTrash /></button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 60, textAlign: "center" }}>
+                    <div style={{ width: 120, height: 120, borderRadius: "50%", background: "rgba(255,255,255,0.03)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 32 }}>
+                      <IconMusic size={60} color="var(--primary)" />
+                    </div>
+                    <h2 style={{ fontSize: "2.5rem", fontWeight: 900, marginBottom: 16 }}>{t("tv.emptyQueue", "Fila Vazia")}</h2>
+                    <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "1.2rem", fontWeight: 700 }}>{t("tv.scanToAdd", "Escaneie o QR code acima para adicionar músicas!")}</p>
+                  </div>
+                )}
+              </GlassContainer>
+
+              {/* Ranking */}
+              <GlassContainer intensity={20} style={{ display: "flex", flexDirection: "column", overflow: "hidden", padding: 0 }}>
+                <div style={{ padding: 40, display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                  <h2 style={{ fontSize: "2rem", fontWeight: 900, display: "flex", alignItems: "center", gap: 16 }}><IconTrophy size={40} /> RANKING</h2>
+                  <div style={{ display: "flex", background: "rgba(255,255,255,0.05)", borderRadius: 16, padding: 6 }}>
+                    <button onClick={() => { setRankingView("solo"); setAutoRotate(false); }} style={{ padding: "10px 24px", borderRadius: 12, border: "none", background: rankingView === "solo" ? "var(--primary)" : "transparent", color: "#fff", fontWeight: 800, cursor: "pointer" }}>SOLO</button>
+                    <button onClick={() => { setRankingView("duet"); setAutoRotate(false); }} style={{ padding: "10px 24px", borderRadius: 12, border: "none", background: rankingView === "duet" ? "var(--primary)" : "transparent", color: "#fff", fontWeight: 800, cursor: "pointer" }}>DUPLAS</button>
+                  </div>
+                </div>
+                <div style={{ flex: 1, overflowY: "auto", padding: 40 }}>
+                  {rankingView === "solo" ? (
+                    Object.keys(state.ranking).length === 0 ? (
+                      <div style={{ textAlign: "center", padding: 60, opacity: 0.4 }}>{t("tv.nobodyScored", "Ninguém pontuou ainda.")}</div>
+                    ) : (
+                      Object.entries(state.ranking).sort(([, a], [, b]) => b.score - a.score).map(([id, entry], i) => (
+                        <div key={id} style={{ background: "rgba(255,255,255,0.03)", borderRadius: 20, padding: 24, marginBottom: 16, display: "flex", justifyContent: "space-between", alignItems: "center", border: i === 0 ? "2px solid #ffcc00" : "1px solid rgba(255,255,255,0.05)", boxShadow: i === 0 ? "0 0 30px rgba(255,204,0,0.1)" : "none" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+                            <div style={{ width: 44, height: 44, borderRadius: "50%", background: i === 0 ? "#ffcc00" : i === 1 ? "#ddd" : i === 2 ? "#cd7f32" : "#333", color: i < 3 ? "#000" : "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: "1.4rem" }}>{i + 1}</div>
+                            <span style={{ fontSize: "1.6rem", fontWeight: 800 }}>{entry.name}</span>
+                          </div>
+                          <span style={{ fontSize: "1.8rem", fontWeight: 900, color: i === 0 ? "#ffcc00" : "var(--primary)" }}>{entry.score} pts</span>
+                        </div>
+                      ))
+                    )
+                  ) : (
+                    !state.duetRanking || state.duetRanking.length === 0 ? (
+                      <div style={{ textAlign: "center", padding: 60, opacity: 0.4 }}>{t("tv.noDuetScored", "Nenhuma dupla pontuou ainda.")}</div>
+                    ) : (
+                      [...state.duetRanking].sort((a, b) => b.score - a.score).map((duet, i) => (
+                        <div key={duet.names.join("-")} style={{ background: "rgba(255,255,255,0.03)", borderRadius: 20, padding: 24, marginBottom: 16, display: "flex", justifyContent: "space-between", alignItems: "center", border: i === 0 ? "2px solid #ffcc00" : "1px solid rgba(255,255,255,0.05)" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+                            <div style={{ width: 44, height: 44, borderRadius: "50%", background: i === 0 ? "#ffcc00" : "#333", color: i === 0 ? "#000" : "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: "1.4rem" }}>{i + 1}</div>
+                            <span style={{ fontSize: "1.6rem", fontWeight: 800 }}>{duet.names.join(" & ")}</span>
+                          </div>
+                          <span style={{ fontSize: "1.8rem", fontWeight: 900, color: "var(--primary)" }}>{duet.score} pts</span>
+                        </div>
+                      ))
+                    )
+                  )}
+                </div>
+              </GlassContainer>
+            </main>
+          </div>
+        )}
+
+        {/* Score Overlay */}
+        {showScore && finalized && (
+          <div style={{ position: "fixed", inset: 0, zIndex: 10000 }}>
+            <ScoreOverlay
+              open={showScore}
+              scoreOverride={finalized.score}
+              singer={finalized.singer}
+              enableAudio={true}
+              onDone={() => setFinalized(null)}
+            />
+          </div>
+        )}
+
+        {/* Reactions */}
+        <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 999 }}>
+          <ReactionDisplay reactions={reactions} />
+        </div>
       </div>
     </div>
   );

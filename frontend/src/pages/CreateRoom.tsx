@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth, getToken } from "../context/AuthContext";
 import { API_BASE } from "../api";
+import { GlassContainer, LiquidBackground } from '../components/ui/LiquidGlassLayout';
 
 export default function CreateRoom() {
   const { t } = useTranslation();
@@ -25,12 +26,12 @@ export default function CreateRoom() {
     setError("");
 
     if (tvPassword.length !== 6) {
-      setError(t("createRoom.sixChars", "TV password must be exactly 6 characters"));
+      setError(t("createRoom.sixChars", "Senha da TV deve ter 6 caracteres"));
       return;
     }
 
     if (tvPassword !== confirmPassword) {
-      setError(t("createRoom.passwordsDontMatch", "Passwords do not match"));
+      setError(t("createRoom.passwordsDontMatch", "Senhas não coincidem"));
       return;
     }
 
@@ -68,98 +69,128 @@ export default function CreateRoom() {
         // Navigate to TV view
         navigate(`/room/${data.roomCode}/tv`);
       } else {
-        setError(data.message || t("createRoom.error", "Error creating room"));
+        setError(data.message || t("createRoom.error", "Erro ao criar sala"));
       }
     } catch {
-      setError(t("tvLogin.connError", "Connection error"));
+      setError(t("tvLogin.connError", "Erro de conexão"));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="container" style={{ paddingTop: 60, maxWidth: 400 }}>
-      <Logo width={200} />
-      <p style={{ textAlign: "center", color: "#888", marginBottom: 32 }}>
-        {t("createRoom.desc1", "Set a password for TV mode")}
-      </p>
+    <div style={{ 
+      background: "transparent", minHeight: "100vh", position: "relative", overflow: "hidden", 
+      fontFamily: "'Inter', sans-serif", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 20px"
+    }}>
+      <LiquidBackground />
+      
+      <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: 440, animation: 'fadeInUp 0.8s ease-out' }}>
+        <div style={{ textAlign: 'center', marginBottom: 40 }}>
+           <Logo width={280} style={{ marginBottom: 24 }} />
+           <p style={{ color: "rgba(255,255,255,0.4)", fontWeight: 600, fontSize: '1.1rem' }}>
+            {t("createRoom.desc1", "Defina a senha para o MODO TV")}
+          </p>
+        </div>
 
-      <div className="card">
-        <form onSubmit={handleSubmit}>
-          {error && (
-            <div
-              style={{
-                background: "#ff4444",
-                color: "white",
-                padding: "12px 16px",
-                borderRadius: 8,
-                marginBottom: 16,
-                fontSize: "0.9rem",
-              }}
-            >
-              {error}
+        <GlassContainer intensity={30} style={{ 
+          position: "relative", overflow: "hidden", borderRadius: 48, padding: 40,
+          background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)',
+          boxShadow: '0 30px 100px rgba(0,0,0,0.5)'
+        }}>
+          <form onSubmit={handleSubmit}>
+            {error && (
+              <div style={{ background: "rgba(255,68,68,0.1)", border: '1px solid rgba(255,68,68,0.2)', color: "#ff4444", padding: "14px 20px", borderRadius: 16, marginBottom: 24, fontSize: "0.9rem", fontWeight: 700, textAlign: 'center' }}>
+                {error}
+              </div>
+            )}
+
+            <div style={{ 
+              background: "rgba(var(--primary-rgb), 0.1)", 
+              padding: "20px", 
+              borderRadius: 24, 
+              marginBottom: 32, 
+              border: '1px solid rgba(var(--primary-rgb), 0.2)',
+              fontSize: "0.9rem", 
+              color: 'rgba(255,255,255,0.7)',
+              lineHeight: 1.5
+            }}>
+              <p style={{ margin: 0 }}>
+                💡 {t("createRoom.desc2", "Esta senha será usada para acessar o")} <strong style={{ color: 'var(--primary)' }}>{t("createRoom.tvMode", "MODO TV")}</strong>{" "}
+                {t("createRoom.desc3", "desta sala. Compartilhe apenas com quem deve controlar a TV.")}
+              </p>
             </div>
-          )}
 
-          <div
-            style={{
-              background: "#333",
-              padding: "12px 16px",
-              borderRadius: 8,
-              marginBottom: 20,
-              fontSize: "0.9rem",
-            }}
-          >
-            <p style={{ margin: 0 }}>
-              💡 {t("createRoom.desc2", "This password will be used to access")} <strong>{t("createRoom.tvMode", "TV mode")}</strong>{" "}
-              {t("createRoom.desc3", "of the room. Share only with those who should control the TV.")}
-            </p>
-          </div>
+            <div style={{ marginBottom: 24 }}>
+              <label style={{ display: "block", marginBottom: 12, fontWeight: 700, fontSize: '0.85rem', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: 2 }}>
+                {t("createRoom.tvPassword", "Senha da TV (6 digitos)")}
+              </label>
+              <input
+                type="text"
+                value={tvPassword}
+                onChange={e => setTvPassword(e.target.value.slice(0, 6))}
+                placeholder="Ex: stage1"
+                required
+                maxLength={6}
+                style={{
+                  width: '100%',
+                  padding: "20px",
+                  borderRadius: 20,
+                  background: 'rgba(0,0,0,0.2)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  color: "#fff",
+                  fontSize: "1.5rem",
+                  fontWeight: 900,
+                  textAlign: "center",
+                  letterSpacing: "0.3em",
+                  outline: 'none'
+                }}
+              />
+            </div>
 
-          <label style={{ display: "block", marginBottom: 4, fontWeight: 500 }}>
-            {t("createRoom.tvPassword", "TV Password (6 chars)")}
-          </label>
-          <input
-            type="text"
-            value={tvPassword}
-            onChange={e => setTvPassword(e.target.value.slice(0, 6))}
-            placeholder={t("createRoom.placeholderTV", "Ex: abc123")}
-            required
-            maxLength={6}
-            style={{
-              marginBottom: 16,
-              letterSpacing: "0.2em",
-              textAlign: "center",
-              fontSize: "1.2rem",
-            }}
-          />
+            <div style={{ marginBottom: 32 }}>
+              <label style={{ display: "block", marginBottom: 12, fontWeight: 700, fontSize: '0.85rem', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: 2 }}>
+                {t("createRoom.confirmPassword", "Confirmar Senha")}
+              </label>
+              <input
+                type="text"
+                value={confirmPassword}
+                onChange={e => setConfirmPassword(e.target.value.slice(0, 6))}
+                placeholder="Dígite novamente"
+                required
+                maxLength={6}
+                style={{
+                  width: '100%',
+                  padding: "20px",
+                  borderRadius: 20,
+                  background: 'rgba(0,0,0,0.2)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  color: "#fff",
+                  fontSize: "1.5rem",
+                  fontWeight: 900,
+                  textAlign: "center",
+                  letterSpacing: "0.3em",
+                  outline: 'none'
+                }}
+              />
+            </div>
 
-          <label style={{ display: "block", marginBottom: 4, fontWeight: 500 }}>
-            {t("createRoom.confirmPassword", "Confirm Password")}
-          </label>
-          <input
-            type="text"
-            value={confirmPassword}
-            onChange={e => setConfirmPassword(e.target.value.slice(0, 6))}
-            placeholder={t("createRoom.placeholderConfirm", "Type again")}
-            required
-            maxLength={6}
-            style={{
-              marginBottom: 24,
-              letterSpacing: "0.2em",
-              textAlign: "center",
-              fontSize: "1.2rem",
-            }}
-          />
-
-          <button
-            type="submit"
-            disabled={loading || tvPassword.length !== 6}
-            style={{ width: "100%" }}
-          >
-            {loading ? t("createRoom.creating", "Creating...") : t("createRoom.btn", "Create Room")}
-          </button>
-        </form>
+            <button
+              type="submit"
+              disabled={loading || tvPassword.length !== 6}
+              style={{ 
+                width: "100%", padding: 22, borderRadius: 28, 
+                background: 'var(--primary)', color: '#fff', border: 'none',
+                fontSize: '1.2rem', fontWeight: 900, cursor: 'pointer',
+                boxShadow: '0 15px 40px var(--primary-glow)',
+                transition: 'all 0.3s ease'
+              }}
+              className="tap-effect"
+            >
+              {loading ? t("createRoom.creating", "Criando...") : t("createRoom.btn", "CRIAR SALA")}
+            </button>
+          </form>
+        </GlassContainer>
       </div>
     </div>
   );

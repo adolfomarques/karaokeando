@@ -6,6 +6,7 @@ import { getState, API_BASE, deleteRoom } from "../api";
 import { useTranslation } from "react-i18next";
 import LandingHeader from "../components/LandingHeader";
 import { Toaster } from "react-hot-toast";
+import { GlassContainer, LiquidBackground } from "../components/ui/LiquidGlassLayout";
 
 interface MyRoom {
   code: string;
@@ -164,9 +165,11 @@ export default function Home() {
   }
 
   return (
-    <div style={{ background: "#0a0a0a", minHeight: "100vh", fontFamily: "Inter, sans-serif" }}>
-      <LandingHeader />
-      <Toaster position="top-right" />
+    <div style={{ background: "transparent", minHeight: "100vh", position: "relative", overflow: "hidden", fontFamily: "'Inter', sans-serif" }}>
+      <LiquidBackground />
+      <div style={{ position: 'relative', zIndex: 1, minHeight: "100vh" }}>
+        <LandingHeader />
+        <Toaster position="top-right" />
 
       {/* Hero / Main Action Section */}
       <section style={{
@@ -180,26 +183,15 @@ export default function Home() {
         <div className="container" style={{ animation: "fadeInUp 0.8s ease-out" }}>
           <Logo width={320} style={{ marginBottom: "36px" }} />
           
-          {/* Main Content Area (Cyber-HUD style) */}
-          <div style={{
-            background: "rgba(255, 255, 255, 0.03)",
-            backdropFilter: "blur(20px)",
-            borderRadius: "24px",
-            padding: "40px",
-            width: "100%",
-            color: "#fff",
-            border: "1px solid rgba(255, 255, 255, 0.08)",
-            boxShadow: "0 40px 80px rgba(0,0,0,0.6)",
-            marginBottom: "40px",
-            textAlign: "left"
-          }}>
+          {/* Main Content Area (Liquid Glass HUD) */}
+          <GlassContainer intensity={25} className="text-left w-full mb-10">
             {user ? (
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "30px", borderBottom: "1px solid rgba(255,255,255,0.05)", paddingBottom: "20px" }}>
                 <div>
                   <h2 style={{ margin: 0, fontSize: "1.5rem", fontWeight: "800", color: "#fff" }}>{t("common.welcome", "Olá")}, {user.name}</h2>
-                  <p style={{ margin: "4px 0 0", color: "#888" }}>{user.email}</p>
+                  <p style={{ margin: "4px 0 0", color: "var(--text-secondary)" }}>{user.email}</p>
                 </div>
-                <button onClick={logout} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", color: "#888", padding: "8px 16px" }}>
+                <button onClick={logout} className="tv-vip-btn-outline" style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", color: "#888", padding: "8px 16px" }}>
                   {t("auth.logout", "Sair")}
                 </button>
               </div>
@@ -214,28 +206,16 @@ export default function Home() {
                   value={joinCode}
                   onChange={e => setJoinCode(e.target.value.toUpperCase())}
                   onKeyDown={e => e.key === "Enter" && joinRoom()}
-                  style={{
-                    background: "rgba(255,255,255,0.05)",
-                    border: "1px solid rgba(255,255,255,0.1)",
-                    color: "#fff",
-                    padding: "16px",
-                    fontSize: "1.2rem",
-                    fontWeight: "700",
-                    marginBottom: "20px",
-                    borderRadius: "12px"
-                  }}
+                  className="mb-5"
                 />
                 <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
                   <button
                     onClick={() => setJoinMode("participant")}
                     style={{
                       flex: 1,
-                      background: joinMode === "participant" ? "#ff007f" : "rgba(255,255,255,0.05)",
+                      background: joinMode === "participant" ? "var(--primary)" : "rgba(255,255,255,0.05)",
                       color: joinMode === "participant" ? "#fff" : "#888",
-                      border: "none",
-                      borderRadius: "12px",
-                      padding: "12px",
-                      transition: "all 0.2s"
+                      boxShadow: joinMode === "participant" ? "0 0 20px var(--primary-glow)" : "none",
                     }}
                   >
                    🎤 {t("home.modeSinger", "Cantar")}
@@ -244,12 +224,9 @@ export default function Home() {
                     onClick={() => setJoinMode("tv")}
                     style={{
                       flex: 1,
-                      background: joinMode === "tv" ? "#ff007f" : "rgba(255,255,255,0.05)",
+                      background: joinMode === "tv" ? "var(--primary)" : "rgba(255,255,255,0.05)",
                       color: joinMode === "tv" ? "#fff" : "#888",
-                      border: "none",
-                      borderRadius: "12px",
-                      padding: "12px",
-                      transition: "all 0.2s"
+                      boxShadow: joinMode === "tv" ? "0 0 20px var(--primary-glow)" : "none",
                     }}
                   >
                     🖥️ {t("home.modeTV", "TV")}
@@ -259,15 +236,10 @@ export default function Home() {
                 <button
                   onClick={joinRoom}
                   disabled={joining || !joinCode}
-                  style={{ 
-                    width: "100%", 
-                    background: "#fff", 
-                    color: "#000", 
-                    borderRadius: "12px", 
-                    padding: "16px", 
-                    fontSize: "1.1rem",
-                    fontWeight: "800",
-                    boxShadow: "0 10px 20px rgba(0,0,0,0.2)"
+                  className="w-full py-4 text-lg font-black"
+                  style={{
+                    background: "linear-gradient(135deg, var(--primary), #FF4D6D)",
+                    boxShadow: "0 10px 30px var(--primary-glow)"
                   }}
                 >
                   {joining ? t("common.wait", "Aguarde...") : t("common.enter", "Entrar")}
@@ -287,7 +259,7 @@ export default function Home() {
                           <div key={r.code} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px", background: "rgba(255,255,255,0.03)", borderRadius: "12px", marginBottom: "8px", border: "1px solid rgba(255,255,255,0.05)" }}>
                             <strong style={{ fontSize: "1.1rem", color: "#fff" }}>{r.code}</strong>
                             <div style={{ display: "flex", gap: "8px" }}>
-                              <button onClick={() => navigate(`/room/${r.code}`)} style={{ padding: "6px 12px", fontSize: "0.8rem", background: "#ff007f" }}>{t("home.singBtn", "Cantar")}</button>
+                              <button onClick={() => navigate(`/room/${r.code}`)} style={{ padding: "6px 12px", fontSize: "0.8rem", background: "var(--primary)" }}>{t("home.singBtn", "Cantar")}</button>
                               <button onClick={() => openMyRoomAsTV(r.code)} style={{ padding: "6px 12px", fontSize: "0.8rem", background: "#000" }}>{t("home.showOnTV", "TV")}</button>
                               <button
                                 onClick={() => handleDeleteRoom(r.code)}
@@ -308,7 +280,7 @@ export default function Home() {
                     </div>
                     <button
                       onClick={() => navigate("/create-room")}
-                      style={{ width: "100%", background: "transparent", border: "2px solid #ff007f", color: "#ff007f", borderRadius: "12px", fontWeight: "700" }}
+                      style={{ width: "100%", background: "transparent", border: "2px solid var(--primary)", color: "var(--primary)", borderRadius: "16px", fontWeight: "700" }}
                     >
                       + {t("home.createRoom", "Criar Sala")}
                     </button>
@@ -316,58 +288,48 @@ export default function Home() {
                 ) : (
                   <div style={{ textAlign: "center", paddingTop: "10px" }}>
                     <h3 style={{ marginBottom: "16px", color: "#fff" }}>{t("home.createYourRoom", "Crie sua própria festa!")}</h3>
-                    <p style={{ color: "#888", marginBottom: "24px" }}>{t("home.loginToCreate", "Junte seus amigos e comece a festa agora.")}</p>
+                    <p style={{ color: "var(--text-secondary)", marginBottom: "24px" }}>{t("home.loginToCreate", "Junte seus amigos e comece a festa agora.")}</p>
                     <button
                       onClick={() => navigate(user ? "/complete-profile" : "/login")}
-                      style={{ width: "100%", background: "#ff007f", borderRadius: "12px", fontWeight: "700" }}
+                      style={{ width: "100%", borderRadius: "16px" }}
                     >
                       {user ? t("home.completeRegistration", "Be Host") : t("auth.login", "Login")}
                     </button>
                     {!user && (
                       <p style={{ marginTop: "16px", fontSize: "0.9rem", color: "#666" }}>
-                        {t("home.noAccount", "Don't have an account?")} <span onClick={() => navigate("/register")} style={{ color: "#ff007f", cursor: "pointer", fontWeight: "700" }}>{t("auth.createAccount", "Register")}</span>
+                        {t("home.noAccount", "Don't have an account?")} <span onClick={() => navigate("/register")} style={{ color: "var(--primary)", cursor: "pointer", fontWeight: "700" }}>{t("auth.createAccount", "Register")}</span>
                       </p>
                     )}
                   </div>
                 )}
               </div>
             </div>
-          </div>
+          </GlassContainer>
         </div>
       </section>
 
       {/* How it Works Section */}
-      <section style={{ padding: "60px 20px", background: "#0a0a0a", textAlign: "center" }}>
+      <section style={{ padding: "60px 20px", background: "transparent", textAlign: "center" }}>
         <div className="container">
           <h2 style={{ fontSize: "2.5rem", fontWeight: "900", color: "#fff", marginBottom: "12px" }}>
             {t("landing.howItWorks.title", "How it works")}
           </h2>
-          <p style={{ color: "#888", marginBottom: "60px", fontSize: "1.1rem" }}>
+          <p style={{ color: "var(--text-secondary)", marginBottom: "60px", fontSize: "1.1rem" }}>
             {t("landing.howItWorks.subtitle", "Three simple steps to start singing with your friends")}
           </p>
 
           <div style={{
             display: "grid",
             gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-            gap: "32px"
+            gap: "32px",
+            perspective: "1000px"
           }}>
             {[
               { id: 1, icon: "➕", title: t("landing.howItWorks.step1Title"), desc: t("landing.howItWorks.step1Desc"), color: "#ff007f" },
-              { id: 2, icon: "↪️", title: t("landing.howItWorks.step2Title"), desc: t("landing.howItWorks.step2Desc"), color: "#00d1ff" },
-              { id: 3, icon: "🎤", title: t("landing.howItWorks.step3Title"), desc: t("landing.howItWorks.step3Desc"), color: "#7c4dff" }
+              { id: 2, icon: "↪️", title: t("landing.howItWorks.step2Title"), desc: t("landing.howItWorks.step2Desc"), color: "#7928CA" },
+              { id: 3, icon: "🎤", title: t("landing.howItWorks.step3Title"), desc: t("landing.howItWorks.step3Desc"), color: "#ff007f" }
             ].map(step => (
-              <div key={step.id} style={{
-                background: "rgba(255,255,255,0.03)",
-                padding: "48px 32px",
-                borderRadius: "32px",
-                border: "1px solid rgba(255,255,255,0.05)",
-                textAlign: "left",
-                transition: "transform 0.3s ease",
-                cursor: "default"
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.transform = "translateY(-10px)"}
-              onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}
-              >
+              <GlassContainer key={step.id} intensity={10} className="text-left py-12 px-8">
                 <div style={{
                   width: "56px",
                   height: "56px",
@@ -378,13 +340,14 @@ export default function Home() {
                   justifyContent: "center",
                   fontSize: "1.5rem",
                   marginBottom: "32px",
-                  color: step.color
+                  color: step.color,
+                  boxShadow: `0 0 20px ${step.color}40`
                 }}>
                   {step.icon}
                 </div>
                 <h3 style={{ fontSize: "1.5rem", color: "#fff", marginBottom: "16px", fontWeight: "800" }}>{step.title}</h3>
-                <p style={{ color: "#888", lineHeight: "1.6", fontSize: "1.05rem" }}>{step.desc}</p>
-              </div>
+                <p style={{ color: "var(--text-secondary)", lineHeight: "1.6", fontSize: "1.05rem" }}>{step.desc}</p>
+              </GlassContainer>
             ))}
           </div>
         </div>
@@ -392,27 +355,31 @@ export default function Home() {
 
       {/* Stats Bar */}
       <section style={{ padding: "40px 0" }}>
-        <div className="container" style={{
-          background: "linear-gradient(90deg, #1b1b1b, #0d0d0d)",
-          borderRadius: "32px",
-          padding: "40px",
-          display: "flex",
-          flexWrap: "wrap",
-          justifyContent: "space-around",
-          gap: "40px",
-          border: "1px solid rgba(255,255,255,0.05)"
-        }}>
-          {[
-            { value: "100%", label: t("landing.stats.free"), icon: "💎" },
-            { value: "∞", label: t("landing.stats.songs"), icon: "🎵" },
-            { value: "QR", label: t("landing.stats.qr"), icon: "📱" },
-            { value: "⚡", label: t("landing.stats.realtime"), icon: "🎤" }
-          ].map((stat, i) => (
-            <div key={i} style={{ textAlign: "center", minWidth: "120px" }}>
-              <div style={{ fontSize: "2rem", fontWeight: "900", color: "#fff", marginBottom: "8px" }}>{stat.value}</div>
-              <div style={{ fontSize: "0.8rem", color: "#666", letterSpacing: "2px", fontWeight: "800" }}>{stat.label}</div>
-            </div>
-          ))}
+        <div className="container">
+          <div style={{
+            background: "var(--glass-bg)",
+            backdropFilter: "var(--glass-blur)",
+            borderRadius: "32px",
+            padding: "40px",
+            display: "flex",
+            flexWrap: "wrap",
+            justifyContent: "space-around",
+            gap: "40px",
+            border: "var(--glass-border)",
+            boxShadow: "var(--glass-shadow)"
+          }}>
+            {[
+              { value: "100%", label: t("landing.stats.free"), icon: "💎" },
+              { value: "∞", label: t("landing.stats.songs"), icon: "🎵" },
+              { value: "QR", label: t("landing.stats.qr"), icon: "📱" },
+              { value: "⚡", label: t("landing.stats.realtime"), icon: "🎤" }
+            ].map((stat, i) => (
+              <div key={i} style={{ textAlign: "center", minWidth: "120px" }}>
+                <div style={{ fontSize: "2rem", fontWeight: "900", color: "#fff", marginBottom: "8px" }}>{stat.value}</div>
+                <div style={{ fontSize: "0.8rem", color: "var(--text-secondary)", letterSpacing: "2px", fontWeight: "800" }}>{stat.label}</div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -429,22 +396,15 @@ export default function Home() {
           }}
           dangerouslySetInnerHTML={{ __html: t("landing.cta.ready", "Ready to <span>sing</span>?") }}
           />
-          <p style={{ color: "#888", marginBottom: "48px", fontSize: "1.2rem" }}>
+          <p style={{ color: "var(--text-secondary)", marginBottom: "48px", fontSize: "1.2rem" }}>
             {t("landing.cta.subtitle", "Start right now. No registration, no hassle.")}
           </p>
           <button
             onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
             style={{
-              background: "#ff007f",
               padding: "20px 48px",
-              borderRadius: "50px",
-              fontSize: "1.2rem",
-              fontWeight: "800",
-              boxShadow: "0 20px 40px rgba(255, 0, 127, 0.3)",
-              transition: "transform 0.2s"
+              fontSize: "1.2rem"
             }}
-            onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.05)"}
-            onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
           >
             🚀 {t("landing.cta.start", "Create My Party")}
           </button>
@@ -482,15 +442,8 @@ export default function Home() {
       </footer>
 
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&display=swap');
-        
-        @keyframes fadeInUp {
-          from { opacity: 0; transform: translateY(40px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        
         h2 span {
-          color: #ff007f;
+          color: var(--primary);
           position: relative;
           display: inline-block;
         }
@@ -502,15 +455,9 @@ export default function Home() {
           left: 0;
           width: 100%;
           height: 8px;
-          background: #ff007f40;
+          background: rgba(255, 0, 127, 0.25);
           z-index: -1;
           transform: skewX(-15deg);
-        }
-
-        input:focus {
-          outline: none;
-          border-color: #ff007f !important;
-          box-shadow: 0 0 0 4px rgba(255, 0, 127, 0.1);
         }
 
         ::-webkit-scrollbar {
@@ -528,84 +475,103 @@ export default function Home() {
         }
       `}</style>
       
+      </div>
+
       {/* Modals are kept as they were in logic, but re-styled */}
       {showGuestModal && (
         <div className="modal-overlay" onClick={() => setShowGuestModal(false)} style={{
           position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
-          background: "rgba(0,0,0,0.8)", backdropFilter: "blur(10px)",
+          background: "rgba(0,0,0,0.85)", backdropFilter: "blur(40px)",
           display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2000, padding: 20
         }}>
-          <div className="modal-content" onClick={e => e.stopPropagation()} style={{
-            background: "#fff", borderRadius: "32px", padding: "40px", width: "100%", maxWidth: "420px", color: "#000"
-          }}>
+          <GlassContainer intensity={25} style={{
+            padding: "40px", width: "100%", maxWidth: "420px", color: "#fff",
+            background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.1)",
+            boxShadow: "0 25px 60px rgba(0,0,0,0.6)", borderRadius: "40px"
+          }} onClick={e => e.stopPropagation()}>
             {guestNeedsLogin ? (
                <>
-                 <h2 style={{ fontWeight: "900", marginBottom: "16px" }}>{t("guest.alreadyHaveAccount")}</h2>
-                 <p style={{ color: "#666", marginBottom: "32px" }}>{t("guest.emailAlreadyRegistered1")} <strong>{guestEmail}</strong> {t("guest.emailAlreadyRegistered2")}</p>
-                 <button onClick={() => navigate("/login", { state: { returnTo: `/room/${pendingRoomCode}` } })} style={{ width: "100%", background: "#ff007f", borderRadius: "16px", padding: "16px" }}>{t("auth.login")}</button>
+                 <h2 style={{ fontWeight: "900", marginBottom: "16px", fontSize: "1.8rem" }}>{t("guest.alreadyHaveAccount")}</h2>
+                 <p style={{ color: "rgba(255,255,255,0.5)", marginBottom: "32px", lineHeight: 1.6 }}>{t("guest.emailAlreadyRegistered1")} <strong>{guestEmail}</strong> {t("guest.emailAlreadyRegistered2")}</p>
+                 <button onClick={() => navigate("/login", { state: { returnTo: `/room/${pendingRoomCode}` } })} style={{ width: "100%", background: "var(--primary)", color: "#fff", borderRadius: "20px", padding: "18px", fontWeight: 900, border: "none", boxShadow: "0 10px 30px var(--primary-glow)" }}>{t("auth.login")}</button>
                </>
             ) : (
               <>
-                <h2 style={{ fontWeight: "900", marginBottom: "8px" }}>{t("guest.enterRoom")} {pendingRoomCode}</h2>
-                <p style={{ color: "#666", marginBottom: "30px" }}>{t("guest.identifyYourself")}</p>
-                {guestError && <p style={{ color: "#ff4444", marginBottom: "16px" }}>{guestError}</p>}
-                <input
-                  type="text"
-                  value={guestName}
-                  onChange={e => setGuestName(e.target.value)}
-                  placeholder={t("guest.yourName")}
-                  style={{ background: "#f5f5f5", border: "1px solid #eee", color: "#000", marginBottom: "16px", borderRadius: "12px" }}
-                />
-                <input
-                  type="email"
-                  value={guestEmail}
-                  onChange={e => setGuestEmail(e.target.value)}
-                  placeholder={t("guest.yourEmail")}
-                  style={{ background: "#f5f5f5", border: "1px solid #eee", color: "#000", marginBottom: "16px", borderRadius: "12px" }}
-                />
-                <input
-                  type="tel"
-                  value={guestPhone}
-                  onChange={e => setGuestPhone(e.target.value)}
-                  placeholder={t("guest.yourPhone")}
-                  style={{ background: "#f5f5f5", border: "1px solid #eee", color: "#000", marginBottom: "30px", borderRadius: "12px" }}
-                />
-                <button onClick={handleGuestSubmit} disabled={guestLoading} style={{ width: "100%", background: "#ff007f", color: "#fff", borderRadius: "16px", padding: "16px" }}>
+                <h2 style={{ fontWeight: "900", marginBottom: "12px", fontSize: "1.8rem" }}>{t("guest.enterRoom")} <span style={{ color: "var(--primary)" }}>{pendingRoomCode}</span></h2>
+                <p style={{ color: "rgba(255,255,255,0.4)", marginBottom: "32px", fontWeight: 600 }}>{t("guest.identifyYourself")}</p>
+                {guestError && <p style={{ color: "#ff4444", marginBottom: "20px", background: "rgba(255,68,68,0.1)", padding: "12px", borderRadius: "12px", textAlign: "center", fontSize: "0.9rem" }}>{guestError}</p>}
+                
+                <div style={{ display: "flex", flexDirection: "column", gap: 16, marginBottom: 32 }}>
+                  <input
+                    type="text"
+                    value={guestName}
+                    onChange={e => setGuestName(e.target.value)}
+                    placeholder={t("guest.yourName")}
+                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", borderRadius: "18px", padding: "16px 20px" }}
+                  />
+                  <input
+                    type="email"
+                    value={guestEmail}
+                    onChange={e => setGuestEmail(e.target.value)}
+                    placeholder={t("guest.yourEmail")}
+                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", borderRadius: "18px", padding: "16px 20px" }}
+                  />
+                  <input
+                    type="tel"
+                    value={guestPhone}
+                    onChange={e => setGuestPhone(e.target.value)}
+                    placeholder={t("guest.yourPhone")}
+                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", borderRadius: "18px", padding: "16px 20px" }}
+                  />
+                </div>
+                
+                <button onClick={handleGuestSubmit} disabled={guestLoading} style={{ 
+                  width: "100%", background: "var(--primary)", color: "#fff", borderRadius: "20px", 
+                  padding: "18px", fontWeight: 900, border: "none", boxShadow: "0 10px 30px var(--primary-glow)",
+                  cursor: guestLoading ? "not-allowed" : "pointer"
+                }}>
                   {guestLoading ? t("guest.entering") : t("guest.enterRoomBtn")}
                 </button>
               </>
             )}
-          </div>
+          </GlassContainer>
         </div>
       )}
 
       {showTvPasswordModal && (
         <div className="modal-overlay" onClick={() => setShowTvPasswordModal(false)} style={{
           position: "fixed", top: 0, left: 0, right: 0, bottom: 0,
-          background: "rgba(0,0,0,0.8)", backdropFilter: "blur(10px)",
+          background: "rgba(0,0,0,0.85)", backdropFilter: "blur(40px)",
           display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2000, padding: 20
         }}>
-          <div className="modal-content" onClick={e => e.stopPropagation()} style={{
-            background: "#fff", borderRadius: "32px", padding: "40px", width: "100%", maxWidth: "420px", color: "#000",
-            textAlign: "center"
-          }}>
-            <h2 style={{ fontWeight: "900", marginBottom: "8px" }}>{t("tv.passwordTitle")}</h2>
-            <p style={{ color: "#666", marginBottom: "30px" }}>{t("tv.passwordInstruction")} <strong>{pendingRoomCode}</strong></p>
-            {tvPasswordError && <p style={{ color: "#ff4444", marginBottom: "16px" }}>{tvPasswordError}</p>}
+          <GlassContainer intensity={25} style={{
+            padding: "40px", width: "100%", maxWidth: "420px", color: "#fff",
+            background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.1)",
+            boxShadow: "0 25px 60px rgba(0,0,0,0.6)", borderRadius: "40px", textAlign: "center"
+          }} onClick={e => e.stopPropagation()}>
+            <h2 style={{ fontWeight: "900", marginBottom: "12px", fontSize: "1.8rem" }}>{t("tv.passwordTitle")}</h2>
+            <p style={{ color: "rgba(255,255,255,0.4)", marginBottom: "32px", fontWeight: 600 }}>{t("tv.passwordInstruction")} <strong style={{color:"#fff"}}>{pendingRoomCode}</strong></p>
+            {tvPasswordError && <p style={{ color: "#ff4444", marginBottom: "20px", background: "rgba(255,68,68,0.1)", padding: "12px", borderRadius: "12px", textAlign: "center", fontSize: "0.9rem" }}>{tvPasswordError}</p>}
             <input
               type="text"
               maxLength={6}
               value={tvPassword}
               onChange={e => setTvPassword(e.target.value.toUpperCase())}
+              placeholder="••••••"
               style={{
-                background: "#f5f5f5", border: "1px solid #eee", color: "#000", marginBottom: "30px", borderRadius: "16px",
-                textAlign: "center", fontSize: "2rem", letterSpacing: "10px", padding: "20px"
+                background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", 
+                marginBottom: "32px", borderRadius: "24px", textAlign: "center", fontSize: "2.5rem", 
+                letterSpacing: "8px", padding: "20px", width: "100%", fontWeight: 900
               }}
             />
-            <button onClick={handleTvPasswordSubmit} disabled={tvPasswordLoading} style={{ width: "100%", background: "#ff007f", color: "#fff", borderRadius: "16px", padding: "16px" }}>
+            <button onClick={handleTvPasswordSubmit} disabled={tvPasswordLoading} style={{ 
+              width: "100%", background: "var(--primary)", color: "#fff", borderRadius: "20px", 
+              padding: "18px", fontWeight: 900, border: "none", boxShadow: "0 10px 30px var(--primary-glow)",
+              cursor: tvPasswordLoading ? "not-allowed" : "pointer"
+            }}>
               {tvPasswordLoading ? t("tv.verifying") : t("common.enter")}
             </button>
-          </div>
+          </GlassContainer>
         </div>
       )}
     </div>
