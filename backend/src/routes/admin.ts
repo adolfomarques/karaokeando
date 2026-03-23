@@ -59,6 +59,42 @@ export default async function adminRoutes(app: FastifyInstance) {
     };
   });
 
+  // --- USERS MANAGEMENT ---
+  app.get("/api/admin/users", { preHandler: [requireAdmin] }, async () => {
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        city: true,
+        birthDate: true,
+        gender: true,
+        canHost: true,
+        isAdmin: true,
+        createdAt: true,
+        _count: {
+          select: { ownedRooms: true }
+        }
+      },
+      orderBy: { createdAt: "desc" }
+    });
+
+    return users.map(user => ({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      city: user.city,
+      birthDate: user.birthDate,
+      gender: user.gender,
+      canHost: user.canHost,
+      isAdmin: user.isAdmin,
+      createdAt: user.createdAt,
+      roomsCreated: user._count.ownedRooms
+    }));
+  });
+
   // --- SONGS MANAGEMENT ---
   app.get("/api/admin/songs", { preHandler: [requireAdmin] }, async () => {
     return prisma.song.findMany({ orderBy: { createdAt: "desc" } });

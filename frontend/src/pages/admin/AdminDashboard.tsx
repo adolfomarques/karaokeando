@@ -1,26 +1,31 @@
 import { useState, useEffect } from "react";
 import AdminLayout from "./AdminLayout";
-import { getAdminStats } from "../../api";
+import { getAdminStats, getAdminUsers, AdminUser } from "../../api";
 import { useTranslation } from "react-i18next";
 
 export default function AdminDashboard() {
   const { t } = useTranslation();
   const [stats, setStats] = useState<any>(null);
+  const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    async function loadStats() {
+    async function loadData() {
       try {
-        const data = await getAdminStats();
-        setStats(data);
+        const [statsData, usersData] = await Promise.all([
+          getAdminStats(),
+          getAdminUsers()
+        ]);
+        setStats(statsData);
+        setUsers(usersData);
       } catch (err: any) {
         setError(t("admin.invalidKey", "Chave inválida ou erro ao carregar dados"));
       } finally {
         setLoading(false);
       }
     }
-    loadStats();
+    loadData();
   }, [t]);
 
   if (loading) return <AdminLayout><div className="text-[#00f5ff] font-mono animate-pulse uppercase tracking-widest text-xs">Loading_System_Metrics...</div></AdminLayout>;
@@ -102,6 +107,71 @@ export default function AdminDashboard() {
                   <tr>
                     <td colSpan={4} className="px-10 py-20 text-center text-gray-600 font-mono text-xs uppercase tracking-widest italic">
                       {t("admin.noData", "--- Sem Dados de Transmissão ---")}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Users Table */}
+        <div className="admin-card border border-white/5 bg-[#0d0d12] mt-8">
+          <div className="px-10 py-6 border-b border-white/5 flex items-center justify-between bg-white/[0.01]">
+            <h2 className="text-sm font-bold uppercase tracking-[0.3em] text-gray-400">{t("admin.allUsers", "Todos os Usuários")}</h2>
+            <div className="text-[10px] font-mono text-gray-600">USER_DB v1.0</div>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="admin-table-header text-gray-500 text-[10px] font-bold uppercase tracking-widest bg-black/50">
+                  <th className="px-6 py-4">{t("admin.user.name", "Nome")}</th>
+                  <th className="px-6 py-4">{t("admin.user.email", "Email")}</th>
+                  <th className="px-6 py-4">{t("admin.user.phone", "Telefone")}</th>
+                  <th className="px-6 py-4">{t("admin.user.city", "Cidade")}</th>
+                  <th className="px-6 py-4">{t("admin.user.birthDate", "Nascimento")}</th>
+                  <th className="px-6 py-4">{t("admin.user.gender", "Gênero")}</th>
+                  <th className="px-6 py-4 text-center">{t("admin.user.canHost", "Anfitrião")}</th>
+                  <th className="px-6 py-4 text-center">{t("admin.user.isAdmin", "Admin")}</th>
+                  <th className="px-6 py-4 text-center">{t("admin.user.rooms", "Salas")}</th>
+                  <th className="px-6 py-4 text-right">{t("admin.user.createdAt", "Criado em")}</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5 text-sm">
+                {users.map((user) => (
+                  <tr key={user.id} className="hover:bg-[#00f5ff]/[0.02] transition-colors group">
+                    <td className="px-6 py-4">
+                      <span className="font-medium text-white">{user.name}</span>
+                    </td>
+                    <td className="px-6 py-4 text-gray-400 font-mono text-xs">{user.email}</td>
+                    <td className="px-6 py-4 text-gray-500 font-mono text-xs">{user.phone || "-"}</td>
+                    <td className="px-6 py-4 text-gray-400">{user.city || "-"}</td>
+                    <td className="px-6 py-4 text-gray-500 font-mono text-xs">
+                      {user.birthDate ? new Date(user.birthDate).toLocaleDateString("pt-BR") : "-"}
+                    </td>
+                    <td className="px-6 py-4 text-gray-400">{user.gender || "-"}</td>
+                    <td className="px-6 py-4 text-center">
+                      <span className={`text-xs px-2 py-1 rounded ${user.canHost ? "bg-[#00f5ff]/20 text-[#00f5ff]" : "bg-white/5 text-gray-600"}`}>
+                        {user.canHost ? "Sim" : "Não"}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <span className={`text-xs px-2 py-1 rounded ${user.isAdmin ? "bg-red-500/20 text-red-400" : "bg-white/5 text-gray-600"}`}>
+                        {user.isAdmin ? "Sim" : "Não"}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <span className="font-mono text-white">{user.roomsCreated}</span>
+                    </td>
+                    <td className="px-6 py-4 text-right text-gray-500 font-mono text-xs">
+                      {new Date(user.createdAt).toLocaleString("pt-BR")}
+                    </td>
+                  </tr>
+                ))}
+                {users.length === 0 && (
+                  <tr>
+                    <td colSpan={10} className="px-10 py-20 text-center text-gray-600 font-mono text-xs uppercase tracking-widest italic">
+                      --- Nenhum usuário encontrado ---
                     </td>
                   </tr>
                 )}

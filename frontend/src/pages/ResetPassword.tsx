@@ -19,12 +19,12 @@ export default function ResetPassword() {
     e.preventDefault();
 
     if (!token) {
-      toast.error(t("resetPassword.tokenMissing", "Recovery token missing."));
+      toast.error(t("resetPassword.tokenMissing", "Token de recuperação ausente."));
       return;
     }
 
     if (password !== confirmPassword) {
-      toast.error(t("resetPassword.passwordsDontMatch", "Passwords do not match."));
+      toast.error(t("resetPassword.passwordsDontMatch", "As senhas não coincidem."));
       return;
     }
 
@@ -40,13 +40,13 @@ export default function ResetPassword() {
       const data = await res.json();
 
       if (res.ok) {
-        toast.success(t("resetPassword.success", "Password updated successfully!"));
+        toast.success(t("resetPassword.success", "Senha atualizada com sucesso!"));
         navigate("/login");
       } else {
-        toast.error(data.message || t("resetPassword.error", "Error resetting password"));
+        toast.error(data.message || t("resetPassword.error", "Erro ao redefinir senha"));
       }
     } catch {
-      toast.error(t("tvLogin.connError", "Connection error"));
+      toast.error(t("tvLogin.connError", "Erro de conexão"));
     } finally {
       setLoading(false);
     }
@@ -54,14 +54,14 @@ export default function ResetPassword() {
 
   if (!token) {
     return (
-      <div className="container" style={{ paddingTop: 60, maxWidth: 400, textAlign: "center" }}>
-        <Logo width={300} />
-        <div className="card" style={{ marginTop: 32 }}>
-          <p style={{ color: "#ff4444", marginBottom: 24 }}>
-            {t("resetPassword.invalidToken", "Invalid or expired recovery link.")}
+      <div style={{ minHeight: "100vh", background: "#0A0A0A", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 20px" }}>
+        <Logo width={220} style={{ marginBottom: "32px" }} />
+        <div className="glass-card" style={{ padding: "40px", maxWidth: "420px", textAlign: "center" }}>
+          <p style={{ color: "#ff6b6b", marginBottom: "24px", fontSize: "1rem", fontWeight: "600" }}>
+            {t("resetPassword.invalidToken", "Link de recuperação inválido ou expirado.")}
           </p>
-          <button onClick={() => navigate("/forgot-password")}>
-            {t("resetPassword.requestNew", "Request new link")}
+          <button onClick={() => navigate("/forgot-password")} style={{ width: "100%" }}>
+            {t("resetPassword.requestNew", "Solicitar novo link")}
           </button>
         </div>
       </div>
@@ -69,45 +69,46 @@ export default function ResetPassword() {
   }
 
   return (
-    <div className="container" style={{ paddingTop: 60, maxWidth: 400 }}>
-      <Logo width={300} />
-      <p style={{ textAlign: "center", color: "#888", marginBottom: 32 }}>
-        {t("resetPassword.title", "Create your new password")}
+    <div style={{ minHeight: "100vh", background: "#0A0A0A", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 20px" }}>
+      <Logo width={220} style={{ marginBottom: "24px" }} />
+      <p style={{ textAlign: "center", color: "rgba(255,255,255,0.45)", marginBottom: "32px", fontSize: "1rem" }}>
+        {t("resetPassword.title", "Crie sua nova senha")}
       </p>
 
-      <div className="card">
+      <div className="glass-card" style={{ padding: "40px 36px", width: "100%", maxWidth: "420px" }}>
         <form onSubmit={handleSubmit}>
-          <label style={{ display: "block", marginBottom: 4, fontWeight: 500 }}>
-            {t("resetPassword.newPasswordLabel", "New Password")}
+          <label style={{ display: "block", marginBottom: "8px", fontWeight: 500, fontSize: "0.9rem", color: "rgba(255,255,255,0.7)" }}>
+            {t("resetPassword.newPasswordLabel", "Nova Senha")}
           </label>
           <input
             type="password"
             value={password}
             onChange={e => setPassword(e.target.value)}
-            placeholder={t("resetPassword.passwordPlaceholder", "At least 6 characters")}
+            placeholder={t("resetPassword.passwordPlaceholder", "Pelo menos 6 caracteres")}
             required
             minLength={6}
-            style={{ marginBottom: 16 }}
+            style={{ marginBottom: "20px" }}
           />
 
-          <label style={{ display: "block", marginBottom: 4, fontWeight: 500 }}>
-            {t("resetPassword.confirmPasswordLabel", "Confirm New Password")}
+          <label style={{ display: "block", marginBottom: "8px", fontWeight: 500, fontSize: "0.9rem", color: "rgba(255,255,255,0.7)" }}>
+            {t("resetPassword.confirmPasswordLabel", "Confirmar Nova Senha")}
           </label>
           <input
             type="password"
             value={confirmPassword}
             onChange={e => setConfirmPassword(e.target.value)}
-            placeholder={t("resetPassword.confirmPlaceholder", "Confirm your password")}
+            placeholder={t("resetPassword.confirmPlaceholder", "Confirme sua senha")}
             required
-            style={{ marginBottom: 24 }}
+            style={{ marginBottom: "32px" }}
           />
 
           <button
             type="submit"
             disabled={loading}
-            style={{ width: "100%" }}
+            className="glow-pulse"
+            style={{ width: "100%", padding: "16px", fontWeight: "800" }}
           >
-            {loading ? t("resetPassword.submitting", "Updating...") : t("resetPassword.submitBtn", "Reset Password")}
+            {loading ? t("resetPassword.submitting", "Atualizando...") : t("resetPassword.submitBtn", "Redefinir Senha")}
           </button>
         </form>
       </div>

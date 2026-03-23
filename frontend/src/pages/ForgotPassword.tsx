@@ -22,7 +22,7 @@ export default function ForgotPassword() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
           email,
-          lng: i18n.language // Envia o idioma atual (pt ou en)
+          lng: i18n.language
         }),
       });
 
@@ -40,62 +40,64 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="container" style={{ paddingTop: 60, maxWidth: 400 }}>
-      <Logo width={300} />
-      <p style={{ textAlign: "center", color: "#888", marginBottom: 32 }}>
-        {t("forgotPassword.desc", "Recover access password")}
+    <div style={{ minHeight: "100vh", background: "#0A0A0A", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 20px" }}>
+      <Logo width={220} style={{ marginBottom: "24px" }} />
+      
+      <p style={{ textAlign: "center", color: "rgba(255,255,255,0.45)", marginBottom: "32px", fontSize: "1rem" }}>
+        {t("forgotPassword.desc", "Recuperar senha de acesso")}
       </p>
 
-      <div className="card">
+      <div className="glass-card" style={{ padding: "40px 36px", width: "100%", maxWidth: "420px" }}>
         {submitted ? (
-          <div style={{ textAlign: "center", padding: "20px 0" }}>
-            <div style={{ fontSize: "3rem", marginBottom: 16 }}>📩</div>
-            <h3 style={{ margin: "0 0 16px", color: "#4CAF50" }}>
-              {t("forgotPassword.successTitle", "Check your email!")}
+          <div style={{ textAlign: "center", padding: "10px 0" }}>
+            <div style={{ fontSize: "3.5rem", marginBottom: 24 }}>📩</div>
+            <h3 style={{ margin: "0 0 16px", color: "#FF0080", fontWeight: "900", fontSize: "1.5rem" }}>
+              {t("forgotPassword.successTitle", "Verifique seu e-mail!")}
             </h3>
-            <p style={{ color: "#aaa", fontSize: "0.95rem", lineHeight: 1.5, marginBottom: 24 }}>
-              {t("forgotPassword.successDesc", "We sent a recovery link to {{email}}. Please check your inbox and also the spam folder.", { email })}
+            <p style={{ color: "rgba(255,255,255,0.6)", fontSize: "0.95rem", lineHeight: 1.6, marginBottom: 32 }}>
+              {t("forgotPassword.successDesc", "Enviamos um link de recuperação para {{email}}. Verifique sua caixa de entrada e também a pasta de spam.", { email })}
             </p>
             <button 
               onClick={() => setSubmitted(false)} 
-              style={{ background: "transparent", border: "1px solid #444", color: "#fff", marginBottom: 16 }}
+              style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", width: "100%" }}
             >
-              {t("forgotPassword.tryAgain", "Try again")}
+              {t("forgotPassword.tryAgain", "Tentar novamente")}
             </button>
           </div>
         ) : (
           <form onSubmit={handleSubmit}>
-            <p style={{ color: "#aaa", fontSize: "0.9rem", marginBottom: 24, lineHeight: 1.5 }}>
-              {t("forgotPassword.instruction", "Enter the email associated with your account. We will send a link to reset your password.")}
+            <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.9rem", marginBottom: 28, lineHeight: 1.6 }}>
+              {t("forgotPassword.instruction", "Informe o e-mail associado à sua conta. Enviaremos um link para redefinir sua senha.")}
             </p>
 
-            <label style={{ display: "block", marginBottom: 4, fontWeight: 500 }}>
-              {t("forgotPassword.emailLabel", "Email")}
+            <label style={{ display: "block", marginBottom: "8px", fontWeight: 500, fontSize: "0.9rem", color: "rgba(255,255,255,0.7)" }}>
+              {t("forgotPassword.emailLabel", "E-mail")}
             </label>
             <input
               type="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
-              placeholder={t("forgotPassword.emailPlaceholder", "your@email.com")}
+              placeholder={t("forgotPassword.emailPlaceholder", "seu@email.com")}
               required
-              style={{ marginBottom: 24 }}
+              style={{ marginBottom: 32 }}
             />
 
             <button
               type="submit"
               disabled={loading}
-              style={{ width: "100%", marginBottom: 16 }}
+              className="glow-pulse"
+              style={{ width: "100%", marginBottom: "12px", padding: "16px", fontWeight: "800" }}
             >
-              {loading ? t("forgotPassword.submitting", "Sending link...") : t("forgotPassword.submitBtn", "Send recovery link")}
+              {loading ? t("forgotPassword.submitting", "Enviando link...") : t("forgotPassword.submitBtn", "Enviar link de recuperação")}
             </button>
           </form>
         )}
 
-        <p style={{ textAlign: "center", fontSize: "0.9rem", marginTop: 16 }}>
-          <Link to="/login" style={{ color: "#888", textDecoration: "underline" }}>
-            {t("common.backToLogin", "← Back to login")}
+        <div style={{ textAlign: "center", marginTop: "16px" }}>
+          <Link to="/login" style={{ color: "rgba(255,255,255,0.4)", fontSize: "0.9rem", textDecoration: "none" }}>
+            {t("common.backToLogin", "← Voltar ao login")}
           </Link>
-        </p>
+        </div>
       </div>
     </div>
   );

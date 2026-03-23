@@ -350,6 +350,20 @@ export interface AdminStats {
   }[];
 }
 
+export interface AdminUser {
+  id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  city: string | null;
+  birthDate: string | null;
+  gender: string | null;
+  canHost: boolean;
+  isAdmin: boolean;
+  createdAt: string;
+  roomsCreated: number;
+}
+
 export interface AdminSong {
   id: string;
   videoId: string;
@@ -378,6 +392,15 @@ export interface AdminPhrase {
 export async function getAdminStats(): Promise<AdminStats> {
   const token = localStorage.getItem("karaokefactory_token");
   const res = await fetch(`${API_BASE}/api/admin/stats`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error("Acesso negado");
+  return res.json();
+}
+
+export async function getAdminUsers(): Promise<AdminUser[]> {
+  const token = localStorage.getItem("karaokefactory_token");
+  const res = await fetch(`${API_BASE}/api/admin/users`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) throw new Error("Acesso negado");

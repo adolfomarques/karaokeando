@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth, getToken } from "../context/AuthContext";
 import { getDeviceFingerprint } from "../lib/deviceId";
+import Logo from "../components/Logo";
 import {
   connectWS,
   enqueue,
@@ -151,21 +152,6 @@ const IconSearch = ({ size = 16 }: { size?: number }) => (
   </svg>
 );
 
-const IconEdit = ({ size = 16 }: { size?: number }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-  </svg>
-);
 
 const IconTrophy = ({ size = 16 }: { size?: number }) => (
   <svg
@@ -264,23 +250,6 @@ const IconTrendingUp = ({ size = 16 }: { size?: number }) => (
   </svg>
 );
 
-const IconUsers = ({ size = 16 }: { size?: number }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-    <circle cx="9" cy="7" r="4"></circle>
-    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-  </svg>
-);
 
 const IconUser = ({ size = 16 }: { size?: number }) => (
   <svg
@@ -999,262 +968,221 @@ export default function RoomMobile() {
   // Show error screen for room_not_found
   if (error) {
     return (
-      <div
-        className="container"
-        style={{ paddingTop: 60, textAlign: "center" }}
-      >
-        <h2
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 8,
-          }}
-        >
-          <IconX size={24} /> {error}
-        </h2>
-        <p style={{ color: "#888", marginTop: 16 }}>
-          {t("mobile.invalidCode", "Go back and enter a valid code.")}
-        </p>
-        <a
-          href="/"
-          style={{ color: "#3498db", marginTop: 20, display: "inline-block" }}
-        >
-          {t("common.backToHome", "← Back to home")}
-        </a>
+      <div style={{ minHeight: "100vh", background: "#0A0A0A", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px" }}>
+        <div className="glass-card" style={{ padding: "40px", textAlign: "center", maxWidth: "400px" }}>
+          <div style={{ fontSize: "3rem", marginBottom: "20px" }}>⚠️</div>
+          <h2 style={{ color: "#fff", marginBottom: "16px", fontWeight: "900" }}>{error}</h2>
+          <p style={{ color: "rgba(255,255,255,0.5)", marginBottom: "32px", lineHeight: 1.6 }}>
+            {t("mobile.invalidCode", "O código da sala parece ser inválido ou expirou.")}
+          </p>
+          <button onClick={() => navigate("/")} className="glow-pulse" style={{ width: "100%" }}>
+            {t("common.backToHome", "Voltar ao Início")}
+          </button>
+        </div>
       </div>
     );
   }
 
   if (!state) {
     return (
-      <div
-        className="container"
-        style={{ paddingTop: 60, textAlign: "center" }}
-      >
-        <h2>{t("mobile.connecting", { code })}</h2>
+      <div style={{ minHeight: "100vh", background: "#0A0A0A", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+        <Logo width={180} />
+        <div style={{ marginTop: "40px", display: "flex", alignItems: "center", gap: "12px" }}>
+          <div className="pulse-dot" style={{ background: "#FF0080" }}></div>
+          <span style={{ color: "rgba(255,255,255,0.4)", fontWeight: "600", letterSpacing: "2px" }}>
+            {t("mobile.connecting", { code }).toUpperCase()}
+          </span>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container" style={{ paddingBottom: 120 }}>
-      {/* Toast notification */}
+    <div style={{
+      minHeight: "100vh",
+      background: "#0A0A0A",
+      color: "#fff",
+      fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
+      paddingBottom: "80px",
+      position: "relative",
+      overflowX: "hidden"
+    }}>
+      {/* Animated Blobs for depth */}
+      <div className="blob blob-1" style={{ top: "10%", left: "5%" }}></div>
+      <div className="blob blob-2" style={{ bottom: "20%", right: "10%" }}></div>
+      {/* Header Sticky Glass */}
+      <div style={{
+        position: "sticky",
+        top: 0,
+        zIndex: 1000,
+        background: "rgba(10, 10, 10, 0.7)",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
+        borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
+        padding: "16px 20px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: "12px"
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <Logo width={110} />
+          <div style={{
+            background: "rgba(255, 0, 128, 0.1)",
+            color: "#FF0080",
+            padding: "4px 10px",
+            borderRadius: "20px",
+            fontSize: "0.75rem",
+            fontWeight: "900",
+            letterSpacing: "1px",
+            border: "1px solid rgba(255, 0, 128, 0.2)"
+          }}>
+            {code}
+          </div>
+        </div>
+
+        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+          <button
+            onClick={() => setShowNameModal(true)}
+            style={{
+              padding: "10px",
+              background: "rgba(255,255,255,0.05)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              borderRadius: "50%",
+              width: "42px",
+              height: "42px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: "none"
+            }}
+          >
+            <IconUser size={20} />
+          </button>
+        </div>
+      </div>
+
+      {/* Floating Toast Notification */}
       {toast && (
-        <div
-          style={{
-            position: "fixed",
-            top: 20,
-            left: "50%",
-            transform: "translateX(-50%)",
-            background: "#4CAF50",
-            color: "#fff",
-            padding: "12px 20px",
-            borderRadius: 8,
-            fontSize: 14,
-            fontWeight: 500,
-            zIndex: 2000,
-            boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
-            animation: "fadeIn 0.3s ease",
-          }}
-        >
-          {toast}
+        <div style={{
+          position: "fixed",
+          top: "80px",
+          left: "20px",
+          right: "20px",
+          zIndex: 2000,
+          background: "rgba(255, 0, 128, 0.95)",
+          color: "#fff",
+          padding: "12px 20px",
+          borderRadius: "16px",
+          boxShadow: "0 10px 30px rgba(255, 0, 128, 0.3)",
+          display: "flex",
+          alignItems: "center",
+          gap: "12px",
+          animation: "fadeInUp 0.4s ease-out"
+        }}>
+          ✨ {toast}
         </div>
       )}
 
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 12,
-        }}
-      >
-        <button
-          onClick={() => navigate("/")}
-          style={{
-            background: "transparent",
-            border: "1px solid #666",
-            borderRadius: 8,
-            padding: "6px 12px",
-            color: "#fff",
-            fontSize: 14,
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            gap: 4,
-          }}
-        >
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M15 18l-6-6 6-6" />
-          </svg>
-          {t("mobile.leaveRoom", "Leave room")}
-        </button>
-        <h2
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            margin: 0,
-            fontSize: "1.2rem",
-          }}
-        >
-          <IconMic size={20} /> {code}
-        </h2>
-        <button
-          onClick={() => {
-            setNameInput(nickname);
-            setShowNameModal(true);
-          }}
-          style={{
-            background: "transparent",
-            border: "1px solid #444",
-            borderRadius: 8,
-            padding: "6px 12px",
-            color: "#fff",
-            fontSize: 14,
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
-            cursor: "pointer",
-          }}
-        >
-          {nickname || t("common.guest", "Guest")} <IconEdit size={14} />
-        </button>
-      </div>
-
-      {/* Modal para mudar nome */}
+      {/* Modal para mudar nome - Glass implementation */}
       {showNameModal && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,0.8)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 1000,
-            padding: 20,
-          }}
-        >
-          <div
-            style={{
-              background: "#1e1e1e",
-              borderRadius: 16,
-              padding: 24,
-              width: "100%",
-              maxWidth: 320,
-            }}
-          >
-            <h3 style={{ margin: "0 0 16px", textAlign: "center" }}>
-              {t("mobile.changeNickname", "Change nickname")}
+        <div style={{
+          position: "fixed",
+          inset: 0,
+          background: "rgba(0,0,0,0.8)",
+          backdropFilter: "blur(10px)",
+          WebkitBackdropFilter: "blur(10px)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 2000,
+          padding: "20px"
+        }}>
+          <div className="glass-card" style={{ padding: "32px", width: "100%", maxWidth: "380px", border: "1px solid rgba(255,255,255,0.15)" }}>
+            <h3 style={{ margin: "0 0 16px", fontSize: "1.25rem", fontWeight: "900", textAlign: "center" }}>
+              {t("mobile.changeNickname", "Alterar Apelido")}
             </h3>
+            <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.9rem", textAlign: "center", marginBottom: "24px", lineHeight: 1.5 }}>
+              {t("mobile.nameDesc", "Como as outras pessoas verão seu nome na sala e no ranking.")}
+            </p>
+
             {nameError && (
-              <div
-                style={{
-                  background: "#ff4444",
-                  color: "#fff",
-                  padding: 12,
-                  borderRadius: 8,
-                  marginBottom: 16,
-                  fontSize: 14,
-                  textAlign: "center",
-                }}
-              >
+              <div style={{
+                background: "rgba(255, 68, 68, 0.15)", color: "#ff4444",
+                padding: "12px", borderRadius: "10px", marginBottom: "20px", fontSize: "0.85rem", textAlign: "center",
+                border: "1px solid rgba(255, 68, 68, 0.3)"
+              }}>
                 {nameError}
               </div>
             )}
+
             <input
-              type="text"
-              value={nameInput}
-              onChange={e => {
-                setNameInput(e.target.value);
-                if (nameError) setNameError(null);
-              }}
+              type="text" value={nameInput}
+              onChange={e => { setNameInput(e.target.value); if (nameError) setNameError(null); }}
               onKeyDown={e => e.key === "Enter" && handleSaveName()}
               placeholder={t("mobile.typeNickname", "Digite seu apelido")}
               autoFocus
-              style={{
-                width: "100%",
-                padding: 12,
-                fontSize: 16,
-                background: "#2a2a2a",
-                border: nameError ? "1px solid #ff4444" : "1px solid #444",
-                borderRadius: 8,
-                color: "#fff",
-                marginBottom: 16,
-                boxSizing: "border-box",
-              }}
+              style={{ width: "100%", marginBottom: "24px" }}
             />
-            <div style={{ display: "flex", gap: 12 }}>
+
+            <div style={{ display: "flex", gap: "12px" }}>
               <button
-                onClick={() => {
-                  setShowNameModal(false);
-                  setNameError(null);
-                }}
-                style={{
-                  flex: 1,
-                  padding: 12,
-                  background: "#333",
-                  border: "none",
-                  borderRadius: 8,
-                  color: "#fff",
-                  fontSize: 16,
-                  cursor: "pointer",
-                }}
+                onClick={() => { setShowNameModal(false); setNameError(null); }}
+                style={{ flex: 1, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", padding: "14px" }}
               >
-                {t("common.cancel", "Cancel")}
+                {t("common.cancel", "Cancelar")}
               </button>
               <button
                 onClick={handleSaveName}
                 disabled={!nameInput.trim()}
-                style={{
-                  flex: 1,
-                  padding: 12,
-                  background: nameInput.trim() ? "#7c4dff" : "#444",
-                  border: "none",
-                  borderRadius: 8,
-                  color: "#fff",
-                  fontSize: 16,
-                  fontWeight: 600,
-                  cursor: nameInput.trim() ? "pointer" : "not-allowed",
-                }}
+                className="glow-pulse"
+                style={{ flex: 1, padding: "14px", fontWeight: "700" }}
               >
-                {t("common.save", "Save")}
+                {t("common.save", "Salvar")}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      <div className="tabs">
-        <button
-          className={tab === "queue" ? "active" : ""}
-          onClick={() => setTab("queue")}
-        >
-          {t("mobile.queue", "Queue")}
-        </button>
-        <button
-          className={tab === "ranking" ? "active" : ""}
-          onClick={() => setTab("ranking")}
-        >
-          {t("tv.ranking", "Ranking")}
-        </button>
-        <button
-          className={tab === "saved" ? "active" : ""}
-          onClick={() => setTab("saved")}
-        >
-          {t("mobile.songs", "Songs")}
-        </button>
+      {/* Tabs - Pills Design */}
+      <div style={{
+        padding: "20px 20px 10px",
+        display: "flex",
+        gap: "8px",
+        overflowX: "auto",
+        scrollbarWidth: "none"
+      }}>
+        {[
+          { id: "queue", label: t("mobile.queue", "Fila"), icon: <IconMusic size={16} /> },
+          { id: "ranking", label: t("tv.ranking", "Ranking"), icon: <IconTrophy size={16} /> },
+          { id: "saved", label: t("mobile.songs", "Músicas"), icon: <IconLibrary size={16} /> }
+        ].map(t_item => (
+          <button
+            key={t_item.id}
+            onClick={() => setTab(t_item.id as Tab)}
+            style={{
+              flex: "1 0 auto",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px",
+              padding: "12px 20px",
+              borderRadius: "20px",
+              fontSize: "0.85rem",
+              fontWeight: "700",
+              height: "44px",
+              background: tab === t_item.id ? "#FF0080" : "rgba(255,255,255,0.05)",
+              color: tab === t_item.id ? "#fff" : "rgba(255,255,255,0.5)",
+              border: tab === t_item.id ? "1px solid rgba(255,0,128,0.3)" : "1px solid rgba(255,255,255,0.08)",
+              transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+              whiteSpace: "nowrap",
+              boxShadow: tab === t_item.id ? "0 4px 15px rgba(255,0,128,0.3)" : "none"
+            }}
+          >
+            {t_item.icon} {t_item.label}
+          </button>
+        ))}
       </div>
 
       {tab === "queue" && (
@@ -1429,118 +1357,57 @@ export default function RoomMobile() {
             </p>
           ) : (
             <>
-              <div
-                style={{ fontSize: "0.85rem", color: "#888", marginBottom: 8 }}
-              >
-                {t("mobile.upNext", "Up next")}:
+              <div style={{ fontSize: "0.85rem", color: "rgba(255,255,255,0.4)", marginBottom: "12px", fontWeight: "700", letterSpacing: "1px" }}>
+                {t("mobile.upNext", "PRÓXIMAS NA FILA").toUpperCase()}:
               </div>
-              {(showAllQueue ? state.queue : state.queue.slice(0, 5)).map(
-                (item, i) => {
-                  // Format singers display - singers can be objects with id/name or strings
-                  const singers = item.singers || [];
-                  const singerNames = singers.map(s =>
-                    typeof s === "string" ? s : s.name
-                  );
-                  const singersDisplay =
-                    singerNames.length > 1
-                      ? singerNames.join(" e ")
-                      : singerNames[0] || item.requestedBy;
-                  return (
-                    <div
-                      key={item.id}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 12,
-                        background: "#1e1e1e",
-                        borderRadius: 12,
-                        padding: "12px 16px",
-                        marginBottom: 10,
-                        border: "1px solid rgba(255,255,255,0.05)",
-                      }}
-                    >
-                      <div
-                        style={{
-                          fontSize: "1rem",
-                          fontWeight: 700,
-                          color: "#888",
-                          minWidth: 24,
-                        }}
-                      >
-                        {i + 1}
-                      </div>
-                      <div
-                        style={{
-                          flex: 1,
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: 4,
-                          minWidth: 0, /* Ensures truncation works */
-                        }}
-                      >
-                        <div
-                          style={{
-                            fontSize: "1rem",
-                            fontWeight: 600,
-                            color: "#fff",
-                            whiteSpace: "nowrap",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                          }}
-                        >
-                          {item.title}
-                        </div>
-                        <div
-                          style={{
-                            fontSize: "0.85rem",
-                            color: "#aaa",
-                            whiteSpace: "nowrap",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                          }}
-                        >
-                          {t("mobile.requestedBy", "Requested by")}: <span style={{ color: "#ec4899", fontWeight: 500 }}>{singersDisplay}</span>
-                        </div>
-                      </div>
-
-                      {(isHost || item.requesterId === myUserId) && (
-                        <button
-                          onClick={() => handleQueueRemove(item.id)}
-                          style={{
-                            padding: 10,
-                            background: "rgba(231, 76, 60, 0.15)",
-                            color: "#ff5252",
-                            border: "1px solid rgba(231, 76, 60, 0.2)",
-                            borderRadius: 8,
-                            cursor: "pointer",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            flexShrink: 0,
-                          }}
-                        >
-                          <IconTrash size={16} />
-                        </button>
-                      )}
+              {(showAllQueue ? state.queue : state.queue.slice(0, 5)).map((item, i) => {
+                const singers = item.singers || [];
+                const singerNames = singers.map(s => typeof s === "string" ? s : s.name);
+                const singersDisplay = singerNames.length > 1 ? singerNames.join(" e ") : singerNames[0] || item.requestedBy;
+                return (
+                  <div key={item.id} style={{
+                    display: "flex", alignItems: "center", gap: "16px",
+                    background: "rgba(255,255,255,0.03)", borderRadius: "16px",
+                    padding: "16px", marginBottom: "12px", border: "1px solid rgba(255,255,255,0.05)",
+                    transition: "all 0.2s ease"
+                  }}>
+                    <div style={{ fontSize: "1.1rem", fontWeight: "950", color: "#FF0080", minWidth: "28px", textAlign: "center", opacity: 0.8 }}>
+                      {String(i + 1).padStart(2, '0')}
                     </div>
-                  );
-                }
-              )}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: "1rem", fontWeight: "700", color: "#fff", marginBottom: "4px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                        {item.title}
+                      </div>
+                      <div style={{ fontSize: "0.85rem", color: "rgba(255,255,255,0.4)", display: "flex", alignItems: "center", gap: "4px" }}>
+                        <span style={{ fontWeight: "700", color: "#7928CA" }}>{singersDisplay}</span>
+                      </div>
+                    </div>
+                    {(isHost || item.requesterId === myUserId) && (
+                      <button
+                        onClick={() => handleQueueRemove(item.id)}
+                        style={{
+                          padding: "10px", background: "rgba(255, 68, 68, 0.1)",
+                          color: "#ff4444", border: "1px solid rgba(255, 68, 68, 0.15)",
+                          borderRadius: "12px", height: "42px", width: "42px", flexShrink: 0
+                        }}
+                      >
+                        <IconTrash size={18} />
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
               {state.queue.length > 5 && (
                 <button
                   onClick={() => setShowAllQueue(!showAllQueue)}
                   style={{
-                    width: "100%",
-                    background: "transparent",
-                    border: "1px solid #444",
-                    marginTop: 8,
-                    padding: "8px",
-                    fontSize: "0.85rem",
+                    width: "100%", background: "rgba(255,255,255,0.05)",
+                    border: "1px solid rgba(255,255,255,0.1)", marginTop: "12px",
+                    padding: "12px", fontSize: "0.85rem", borderRadius: "12px", fontWeight: "700",
+                    color: "rgba(255,255,255,0.6)"
                   }}
                 >
-                  {showAllQueue
-                    ? t("mobile.showLess", "▲ Show less")
-                    : t("mobile.showMore", { count: state.queue.length - 5 })}
+                  {showAllQueue ? t("mobile.showLess", "▲ Ver menos") : t("mobile.showMore", { count: state.queue.length - 5 })}
                 </button>
               )}
             </>
@@ -1596,11 +1463,16 @@ export default function RoomMobile() {
               <button
                 onClick={handleManualSearch}
                 disabled={searching || !searchQuery.trim() || cooldownRemaining > 0}
+                className={cooldownRemaining > 0 ? "btn-neon-border" : ""}
                 style={{
                   flex: 0,
                   whiteSpace: "nowrap",
-                  background: cooldownRemaining > 0 ? "#444" : undefined,
+                  minWidth: cooldownRemaining > 0 ? "80px" : "auto",
                   cursor: cooldownRemaining > 0 ? "not-allowed" : "pointer",
+                  height: "48px", // Match height of search input for better alignment
+                  borderRadius: "12px",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  background: cooldownRemaining > 0 ? "transparent" : (isLinkMode ? "#2ecc71" : "var(--primary)"),
                 }}
               >
                 {searching ? (
@@ -1755,86 +1627,45 @@ export default function RoomMobile() {
                   style={{ display: "flex", flexDirection: "column", gap: 12 }}
                 >
                   {searchResults.map(result => (
-                    <div
-                      key={result.videoId}
-                      style={{
-                        background: "#2a2a2a",
-                        borderRadius: 8,
-                        overflow: "hidden",
-                      }}
-                    >
-                      <div style={{ position: "relative" }}>
+                    <div key={result.videoId} className="glass-card" style={{ padding: 0, overflow: "hidden", marginBottom: "8px", border: "1px solid rgba(255,255,255,0.05)" }}>
+                      <div style={{ position: "relative", width: "100%", aspectRatio: "16/9" }}>
                         <img
-                          src={result.thumbnail}
-                          alt={result.title}
-                          style={{
-                            width: "100%",
-                            display: "block",
-                            cursor: "pointer",
-                          }}
+                          src={result.thumbnail} alt={result.title}
+                          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", cursor: "pointer" }}
                           onClick={() => setPreviewVideo(result)}
                         />
-                        <div
-                          style={{
-                            position: "absolute",
-                            top: "50%",
-                            left: "50%",
-                            transform: "translate(-50%, -50%)",
-                            background: "rgba(0,0,0,0.7)",
-                            borderRadius: "50%",
-                            width: 48,
-                            height: 48,
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            cursor: "pointer",
-                            pointerEvents: "none",
-                          }}
-                        >
-                          <IconPlay size={24} />
+                        <div style={{
+                          position: "absolute", inset: 0, background: "rgba(0,0,0,0.3)",
+                          display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer"
+                        }} onClick={() => setPreviewVideo(result)}>
+                          <div style={{
+                            width: 50, height: 50, borderRadius: "50%", background: "rgba(255,255,255,0.2)",
+                            backdropFilter: "blur(5px)", display: "flex", alignItems: "center", justifyContent: "center",
+                            border: "1px solid rgba(255,255,255,0.3)"
+                          }}>
+                            <IconPlay size={24} />
+                          </div>
                         </div>
                       </div>
-                      <div style={{ padding: 12 }}>
-                        <div
-                          style={{
-                            fontSize: "0.9rem",
-                            fontWeight: 600,
-                            marginBottom: 4,
-                          }}
-                        >
+                      <div style={{ padding: "16px" }}>
+                        <div style={{ fontSize: "1rem", fontWeight: "700", marginBottom: "6px", color: "#fff", lineHeight: 1.4 }}>
                           {result.title}
                         </div>
-                        <div
-                          style={{
-                            fontSize: "0.8rem",
-                            color: "#888",
-                            marginBottom: 8,
-                          }}
-                        >
+                        <div style={{ fontSize: "0.85rem", color: "rgba(255,255,255,0.4)", marginBottom: "16px" }}>
                           {result.channelTitle}
                         </div>
                         <button
                           onClick={() => handleAddFromSearch(result)}
                           disabled={adding === result.videoId || cooldownRemaining > 0}
+                          className={cooldownRemaining > 0 ? "" : "glow-pulse"}
                           style={{
-                            width: "100%",
-                            background: cooldownRemaining > 0 ? "#444" : "#2ecc71",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            gap: 8,
-                            cursor: cooldownRemaining > 0 ? "not-allowed" : "pointer",
+                            width: "100%", padding: "14px", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
+                            background: cooldownRemaining > 0 ? "rgba(255,255,255,0.05)" : "#FF0080",
+                            color: cooldownRemaining > 0 ? "rgba(255,255,255,0.3)" : "#fff",
+                            border: "none", cursor: cooldownRemaining > 0 ? "not-allowed" : "pointer"
                           }}
                         >
-                          {adding === result.videoId ? (
-                            "Adicionando..."
-                          ) : cooldownRemaining > 0 ? (
-                            t("common.waitAction", "Aguarde")
-                          ) : (
-                            <>
-                              <IconPlus size={16} /> {t("mobile.addToQueue", "Add to queue")}
-                            </>
-                          )}
+                          {adding === result.videoId ? "..." : cooldownRemaining > 0 ? t("common.wait", "Aguarde") : <><IconPlus size={18} /> {t("mobile.addToQueue", "Adicionar à Fila")}</>}
                         </button>
                       </div>
                     </div>
@@ -1847,255 +1678,122 @@ export default function RoomMobile() {
       )}
 
       {tab === "ranking" && (
-        <div className="card">
-          <h3
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              marginBottom: 16,
-            }}
-          >
-            <IconTrophy size={20} /> {t("tv.ranking", "Ranking")}
-          </h3>
-
-          {/* Toggle Solo/Duplas */}
-          <div
-            style={{
-              display: "flex",
-              gap: 8,
-              marginBottom: 16,
-              background: "#222",
-              borderRadius: 8,
-              padding: 4,
-            }}
-          >
+        <div style={{ padding: "0 20px" }}>
+          <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
             <button
               onClick={() => setRankingView("solo")}
               style={{
                 flex: 1,
-                padding: "8px 12px",
-                background: rankingView === "solo" ? "#ff4081" : "transparent",
-                border: "none",
-                borderRadius: 6,
+                padding: "10px",
+                borderRadius: "12px",
+                background: rankingView === "solo" ? "#FF0080" : "rgba(255,255,255,0.05)",
                 color: "#fff",
-                fontWeight: 600,
-                fontSize: "0.85rem",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 6,
-                cursor: "pointer",
+                border: "none",
+                fontWeight: "700",
               }}
             >
-              <IconUser size={14} /> {t("tv.solo", "Solo")}
+              {t("tv.solo", "Solo")}
             </button>
             <button
               onClick={() => setRankingView("duet")}
               style={{
                 flex: 1,
-                padding: "8px 12px",
-                background: rankingView === "duet" ? "#ff4081" : "transparent",
-                border: "none",
-                borderRadius: 6,
+                padding: "10px",
+                borderRadius: "12px",
+                background: rankingView === "duet" ? "#7928CA" : "rgba(255,255,255,0.05)",
                 color: "#fff",
-                fontWeight: 600,
-                fontSize: "0.85rem",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 6,
-                cursor: "pointer",
+                border: "none",
+                fontWeight: "700",
               }}
             >
-              <IconUsers size={14} /> {t("tv.duets", "Duets")}
+              {t("tv.duet", "Dueto")}
             </button>
           </div>
 
           {rankingView === "solo" ? (
-            // Solo ranking
             Object.keys(state.ranking).length === 0 ? (
-              <p style={{ color: "#888" }}>{t("tv.nobodyScored", "Ninguém pontuou ainda")}</p>
+              <p style={{ color: "#888", textAlign: "center", padding: "20px" }}>{t("tv.nobodyScored", "Ninguém pontuou ainda")}</p>
             ) : (
-              Object.entries(state.ranking)
-                .sort(([, a], [, b]) => b.score - a.score)
-                .map(([odUserId, entry], i) => (
-                  <div key={odUserId} className="ranking-item">
-                    <span
-                      style={{ display: "flex", alignItems: "center", gap: 8 }}
-                    >
-                      <span
-                        style={{
-                          width: 24,
-                          height: 24,
-                          borderRadius: "50%",
-                          background:
-                            i === 0
-                              ? "#f1c40f"
-                              : i === 1
-                                ? "#bdc3c7"
-                                : i === 2
-                                  ? "#cd6133"
-                                  : "#555",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          fontSize: "0.75rem",
-                          fontWeight: 700,
-                        }}
-                      >
-                        {i + 1}
-                      </span>
-                      {entry.name}
-                    </span>
-                    <span style={{ fontWeight: 700 }}>{entry.score} pts</span>
-                  </div>
-                ))
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                {Object.entries(state.ranking)
+                  .sort(([, a], [, b]) => b.score - a.score)
+                  .map(([odUserId, entry], i) => (
+                    <div key={odUserId} className="glass-card" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                        <span style={{
+                          width: "24px", height: "24px", borderRadius: "50%", background: i === 0 ? "#FFD700" : "rgba(255,255,255,0.1)",
+                          display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.75rem", fontWeight: "700", color: i === 0 ? "#000" : "#fff"
+                        }}>{i + 1}</span>
+                        <span style={{ fontWeight: "700" }}>{entry.name}</span>
+                      </div>
+                      <span style={{ fontWeight: "700" }}>{entry.score} pts</span>
+                    </div>
+                  ))}
+              </div>
             )
-          ) : // Duet ranking
-            !state.duetRanking || state.duetRanking.length === 0 ? (
-              <p style={{ color: "#888" }}>{t("tv.noDuetScored", "Nenhuma dupla pontuou ainda")}</p>
-            ) : (
-              [...state.duetRanking]
+          ) : (!state.duetRanking || state.duetRanking.length === 0) ? (
+            <p style={{ color: "#888", textAlign: "center", padding: "20px" }}>{t("tv.noDuetScored", "Nenhuma dupla pontuou ainda")}</p>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              {[...state.duetRanking]
                 .sort((a, b) => b.score - a.score)
                 .map((duet, i) => (
-                  <div key={duet.names.join("-")} className="ranking-item">
-                    <span
-                      style={{ display: "flex", alignItems: "center", gap: 8 }}
-                    >
-                      <span
-                        style={{
-                          width: 24,
-                          height: 24,
-                          borderRadius: "50%",
-                          background:
-                            i === 0
-                              ? "#f1c40f"
-                              : i === 1
-                                ? "#bdc3c7"
-                                : i === 2
-                                  ? "#cd6133"
-                                  : "#555",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          fontSize: "0.75rem",
-                          fontWeight: 700,
-                        }}
-                      >
-                        {i + 1}
-                      </span>
-                      <span>
-                        {duet.names[0]} & {duet.names[1]}
-                      </span>
-                    </span>
-                    <span
-                      style={{
-                        fontWeight: 700,
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "flex-end",
-                      }}
-                    >
-                      <span>{duet.score} pts</span>
-                      <span style={{ fontSize: "0.7rem", color: "#888" }}>
-                        {duet.count} {duet.count > 1 ? t("mobile.songs", "songs") : t("mobile.song", "song")}
-                      </span>
-                    </span>
+                  <div key={duet.names.join("-")} className="glass-card" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                      <span style={{
+                        width: "24px", height: "24px", borderRadius: "50%", background: i === 0 ? "#FFD700" : "rgba(255,255,255,0.1)",
+                        display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.75rem", fontWeight: "700", color: i === 0 ? "#000" : "#fff"
+                      }}>{i + 1}</span>
+                      <div style={{ display: "flex", flexDirection: "column" }}>
+                        <span style={{ fontWeight: "700" }}>{duet.names[0]} & {duet.names[1]}</span>
+                        <span style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.4)" }}>
+                          {duet.count} {duet.count > 1 ? t("mobile.songs", "músicas") : t("mobile.song", "música")}
+                        </span>
+                      </div>
+                    </div>
+                    <span style={{ fontWeight: "700" }}>{duet.score} pts</span>
                   </div>
-                ))
-            )}
+                ))}
+            </div>
+          )}
         </div>
       )}
 
       {tab === "saved" && (
-        <div className="card">
+        <div style={{ padding: "10px 20px" }}>
           {/* Top Songs Section */}
           {topSongs.length > 0 && (
-            <div style={{ marginBottom: 24 }}>
-              <h3 style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <IconTrendingUp size={20} /> {t("mobile.mostPlayed", "Most Played")}
-              </h3>
-              <p
-                style={{ color: "#888", fontSize: "0.85rem", marginBottom: 12 }}
-              >
-                {t("mobile.mostPopular", "The most popular songs in all parties.")}
+            <div className="glass-card" style={{ padding: "24px", marginBottom: "20px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
+                <IconTrendingUp size={20} />
+                <h3 style={{ margin: 0, fontSize: "1.1rem", fontWeight: "900" }}>{t("mobile.mostPlayed", "Mais Tocadas")}</h3>
+              </div>
+              <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "0.85rem", marginBottom: "20px" }}>
+                {t("mobile.mostPopular", "As músicas mais populares em todas as festas.")}
               </p>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                 {topSongs.slice(0, 5).map((song, i) => (
-                  <div
-                    key={song.videoId}
-                    style={{
-                      background:
-                        "linear-gradient(135deg, #2a2a2a 0%, #3a3a3a 100%)",
-                      borderRadius: 8,
-                      padding: 10,
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 8,
-                    }}
-                  >
-                    <span
-                      style={{
-                        width: 24,
-                        height: 24,
-                        borderRadius: "50%",
-                        background:
-                          i === 0
-                            ? "#f1c40f"
-                            : i === 1
-                              ? "#bdc3c7"
-                              : i === 2
-                                ? "#cd6133"
-                                : "#555",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: "0.75rem",
-                        fontWeight: 700,
-                      }}
-                    >
-                      {i + 1}
-                    </span>
-                    <img
-                      src={`https://i.ytimg.com/vi/${song.videoId}/default.jpg`}
-                      alt=""
-                      style={{
-                        width: 50,
-                        height: 38,
-                        objectFit: "cover",
-                        borderRadius: 4,
-                      }}
-                    />
+                  <div key={song.videoId} style={{
+                    display: "flex", alignItems: "center", gap: "12px", background: "rgba(255,255,255,0.03)",
+                    padding: "12px", borderRadius: "16px", border: "1px solid rgba(255,255,255,0.05)"
+                  }}>
+                    <div style={{
+                      width: "28px", height: "28px", borderRadius: "50%", background: i === 0 ? "#FFD700" : "rgba(255,255,255,0.1)",
+                      display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.8rem", fontWeight: "900", color: i === 0 ? "#000" : "#fff"
+                    }}>{i + 1}</div>
+                    <img src={`https://i.ytimg.com/vi/${song.videoId}/default.jpg`} alt="" style={{ width: "50px", height: "38px", objectFit: "cover", borderRadius: "8px" }} />
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div
-                        style={{
-                          fontSize: "0.85rem",
-                        }}
-                      >
-                        <TruncatedText text={song.title} maxLength={35} />
-                      </div>
-                      <div style={{ fontSize: "0.7rem", color: "#888" }}>
-                        {song.playCount}{" "}
-                        {song.playCount === 1 ? t("mobile.playTime", "play") : t("mobile.playTimes", "plays")}
-                      </div>
+                      <div style={{ fontSize: "0.9rem", fontWeight: "700", color: "#fff" }}><TruncatedText text={song.title} maxLength={35} /></div>
+                      <div style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.4)" }}>{song.playCount} {song.playCount === 1 ? t("mobile.playTime", "play") : t("mobile.playTimes", "plays")}</div>
                     </div>
                     <button
-                      onClick={() =>
-                        openAddSongModal(song.videoId, song.title, "top")
-                      }
+                      onClick={() => openAddSongModal(song.videoId, song.title, "top")}
                       disabled={adding === song.videoId || cooldownRemaining > 0}
                       style={{
-                        padding: "8px 12px",
-                        fontSize: "0.8rem",
-                        background: cooldownRemaining > 0 ? "#444" : "#2ecc71",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        cursor: cooldownRemaining > 0 ? "not-allowed" : "pointer",
+                        padding: "10px", background: "#FF0080", borderRadius: "10px", opacity: cooldownRemaining > 0 ? 0.3 : 1
                       }}
                     >
-                      <IconPlus size={16} />
+                      <IconPlus size={18} />
                     </button>
                   </div>
                 ))}
@@ -2104,392 +1802,162 @@ export default function RoomMobile() {
           )}
 
           {/* Library Section */}
-          <h3 style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <IconLibrary size={20} /> {t("mobile.songLibrary", "Song Library")}
-          </h3>
-          <p style={{ color: "#888", fontSize: "0.85rem", marginBottom: 12 }}>
-            {t("mobile.libraryDesc", "Added songs stay saved here for everyone.")}
-          </p>
-          {songLibrary.length === 0 ? (
-            <p style={{ color: "#888" }}>
-              {t("mobile.libraryEmpty", "The library is empty.")}
-              <br />
-              {t("mobile.searchToAddLibrary", "Search and add a song in the Queue tab!")}
+          <div className="glass-card" style={{ padding: "24px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
+              <IconLibrary size={20} />
+              <h3 style={{ margin: 0, fontSize: "1.1rem", fontWeight: "900" }}>{t("mobile.library", "Minha Biblioteca")}</h3>
+            </div>
+            <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "0.85rem", marginBottom: "20px" }}>
+              {t("mobile.libraryDesc", "Músicas que as pessoas da sala já salvaram.")}
             </p>
-          ) : (
-            <>
-              <input
-                placeholder={t("mobile.filterSongs", "Filter songs...")}
-                value={savedFilter}
-                onChange={e => setSavedFilter(e.target.value)}
-                style={{ marginBottom: 12 }}
-              />
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                {songLibrary
-                  .filter(song =>
-                    song.title.toLowerCase().includes(savedFilter.toLowerCase())
-                  )
-                  .map(song => (
-                    <div
-                      key={song.id}
-                      style={{
-                        background: "#2a2a2a",
-                        borderRadius: 8,
-                        padding: 12,
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 8,
-                      }}
-                    >
-                      <img
-                        src={`https://i.ytimg.com/vi/${song.videoId}/default.jpg`}
-                        alt=""
-                        style={{
-                          width: 60,
-                          height: 45,
-                          objectFit: "cover",
-                          borderRadius: 4,
-                        }}
-                      />
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: "0.9rem" }}>
-                          <TruncatedText text={song.title} maxLength={40} />
-                        </div>
-                        <div style={{ fontSize: "0.75rem", color: "#888" }}>
-                        {t("mobile.addedBy", "by")} {song.addedBy}
-                        </div>
+
+            {songLibrary.length === 0 ? (
+              <div style={{ textAlign: "center", padding: "40px 0", color: "rgba(255,255,255,0.2)" }}>
+                <IconMusic size={48} />
+                <p>{t("mobile.libraryEmpty", "A biblioteca da sala está vazia.")}</p>
+              </div>
+            ) : (
+              <>
+                <input
+                  placeholder={t("mobile.filterSongs", "Filtrar músicas...")}
+                  value={savedFilter}
+                  onChange={e => setSavedFilter(e.target.value)}
+                  style={{ marginBottom: "20px" }}
+                />
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                  {songLibrary.filter(song => song.title.toLowerCase().includes(savedFilter.toLowerCase())).map(song => (
+                    <div key={song.id} style={{
+                      display: "flex", alignItems: "center", gap: "12px", background: "rgba(255,255,255,0.03)",
+                      padding: "12px", borderRadius: "16px", border: "1px solid rgba(255,255,255,0.05)"
+                    }}>
+                      <img src={`https://i.ytimg.com/vi/${song.videoId}/default.jpg`} alt="" style={{ width: "50px", height: "38px", objectFit: "cover", borderRadius: "8px" }} />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: "0.9rem", fontWeight: "700", color: "#fff" }}><TruncatedText text={song.title} maxLength={40} /></div>
+                        <div style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.4)" }}>{t("mobile.addedBy", "por")} {song.addedBy}</div>
                       </div>
-                      <button
-                        onClick={() => handleAddFromSaved(song)}
-                        disabled={adding === song.videoId || cooldownRemaining > 0}
-                        style={{
-                          padding: "8px 12px",
-                          fontSize: "0.85rem",
-                          background: cooldownRemaining > 0 ? "#444" : "#2ecc71",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          cursor: cooldownRemaining > 0 ? "not-allowed" : "pointer",
-                        }}
-                      >
-                        {adding === song.videoId ? (
-                          "..."
-                        ) : cooldownRemaining > 0 ? (
-                          t("common.waitAction", "Wait")
-                        ) : (
-                          <IconPlus size={16} />
-                        )}
-                      </button>
-                      {isHost && (
+                      <div style={{ display: "flex", gap: "8px" }}>
                         <button
-                          onClick={() => handleDeleteSaved(song.id)}
+                          onClick={() => handleAddFromSaved(song)}
+                          disabled={adding === song.videoId || cooldownRemaining > 0}
                           style={{
-                            padding: "8px 12px",
-                            fontSize: "0.85rem",
-                            background: "#c0392b",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
+                            padding: "10px", background: "#7928CA", borderRadius: "10px", opacity: cooldownRemaining > 0 ? 0.3 : 1
                           }}
                         >
-                          <IconTrash size={16} />
+                          <IconPlus size={18} />
                         </button>
-                      )}
+                        {isHost && (
+                          <button
+                            onClick={() => handleDeleteSaved(song.id)}
+                            style={{ padding: "10px", background: "rgba(255,68,68,0.1)", color: "#ff4444", borderRadius: "10px", border: "1px solid rgba(255,68,68,0.2)" }}
+                          >
+                            <IconTrash size={18} />
+                          </button>
+                        )}
+                      </div>
                     </div>
                   ))}
-                {songLibrary.filter(song =>
-                  song.title.toLowerCase().includes(savedFilter.toLowerCase())
-                ).length === 0 && (
-                    <p style={{ color: "#888", textAlign: "center" }}>
-                      {t("mobile.noSongFound", "No song found")}
-                    </p>
-                  )}
-              </div>
-            </>
-          )}
+                </div>
+              </>
+            )}
+          </div>
         </div>
       )}
 
-      {/* Modal de Preview */}
+      {/* Modals & Reactions */}
       {previewVideo && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: "rgba(0,0,0,0.9)",
-            zIndex: 1000,
-            display: "flex",
-            flexDirection: "column",
-            padding: 16,
-          }}
-          onClick={() => setPreviewVideo(null)}
-        >
-          <div style={{ textAlign: "right", marginBottom: 8 }}>
-            <button
-              onClick={() => setPreviewVideo(null)}
-              style={{
-                background: "transparent",
-                color: "#fff",
-                fontSize: "1.5rem",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
+        <div style={{
+          position: "fixed", inset: 0, background: "rgba(0,0,0,0.9)", backdropFilter: "blur(15px)",
+          WebkitBackdropFilter: "blur(15px)", display: "flex", flexDirection: "column", padding: "20px", zIndex: 3000
+        }}>
+          <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "16px" }}>
+            <button onClick={() => setPreviewVideo(null)} style={{ background: "rgba(255,255,255,0.1)", borderRadius: "50%", width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center", border: "none" }}>
               <IconX size={24} />
             </button>
           </div>
-          <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-            <div
-              style={{
-                position: "relative",
-                paddingBottom: "56.25%",
-                height: 0,
-              }}
-            >
+          <div className="glass-card" style={{ padding: "20px", border: "1px solid rgba(255,255,255,0.1)" }}>
+            <div style={{ position: "relative", width: "100%", aspectRatio: "16/9", borderRadius: "12px", overflow: "hidden", marginBottom: "20px" }}>
               <iframe
                 src={`https://www.youtube.com/embed/${previewVideo.videoId}?autoplay=1`}
-                style={{
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  width: "100%",
-                  height: "100%",
-                  border: "none",
-                }}
-                allow="autoplay; encrypted-media"
-                allowFullScreen
-                onClick={e => e.stopPropagation()}
+                style={{ position: "absolute", inset: 0, width: "100%", height: "100%", border: "none" }}
+                allow="autoplay; encrypted-media" allowFullScreen
               />
             </div>
-            <div style={{ marginTop: 16, color: "#fff" }}>
-              <div style={{ fontWeight: 600, marginBottom: 4 }}>
-                {previewVideo.title}
-              </div>
-              <div
-                style={{ color: "#888", fontSize: "0.9rem", marginBottom: 16 }}
-              >
-                {previewVideo.channelTitle}
-              </div>
-              <button
-                onClick={e => {
-                  e.stopPropagation();
-                  handleAddFromSearch(previewVideo);
-                  setPreviewVideo(null);
-                }}
-                disabled={adding === previewVideo.videoId || cooldownRemaining > 0}
-                style={{
-                  width: "100%",
-                  background: cooldownRemaining > 0 ? "#444" : "#2ecc71",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 8,
-                  cursor: cooldownRemaining > 0 ? "not-allowed" : "pointer",
-                }}
-              >
-                {adding === previewVideo.videoId ? (
-                  t("mobile.adding", "Adding...")
-                ) : cooldownRemaining > 0 ? (
-                  t("mobile.waitCooldown", "Wait for Cooldown")
-                ) : (
-                  <>
-                    <IconPlus size={16} /> {t("mobile.addToQueue", "Add to queue")}
-                  </>
-                )}
-              </button>
-            </div>
+            <h3 style={{ margin: "0 0 8px", fontSize: "1.1rem", fontWeight: "900", color: "#fff" }}>{previewVideo.title}</h3>
+            <p style={{ color: "rgba(255,255,255,0.4)", marginBottom: "24px", fontSize: "0.9rem" }}>{previewVideo.channelTitle}</p>
+            <button
+              onClick={() => { handleAddFromSearch(previewVideo); setPreviewVideo(null); }}
+              disabled={adding === previewVideo.videoId || cooldownRemaining > 0}
+              className="glow-pulse"
+              style={{ width: "100%", padding: "16px", fontWeight: "700", background: "#FF0080", borderRadius: "12px", border: "none", color: "#fff" }}
+            >
+              {adding === previewVideo.videoId ? "..." : <><IconPlus size={20} /> {t("mobile.addToQueue", "Adicionar à Fila")}</>}
+            </button>
           </div>
         </div>
       )}
 
-      {/* Modal de Adicionar Música - Escolher Solo/Dueto */}
       {addSongModal && (
-        <div
-          onClick={() => setAddSongModal(null)}
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: "rgba(0,0,0,0.85)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 1000,
-            padding: 20,
-          }}
-        >
-          <div
-            onClick={e => e.stopPropagation()}
-            style={{
-              background: "#1a1a1a",
-              borderRadius: 16,
-              padding: 24,
-              maxWidth: 350,
-              width: "100%",
-              border: "1px solid #333",
-            }}
-          >
-            <div style={{ marginBottom: 16 }}>
-              <div
-                style={{ fontSize: "0.85rem", color: "#888", marginBottom: 4 }}
-              >
-                🎵 {t("mobile.addToQueue", "Add to queue")}
-              </div>
-              <div style={{ fontSize: "1.1rem", fontWeight: 600 }}>
-                {addSongModal.title}
-              </div>
-            </div>
+        <div style={{
+          position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", backdropFilter: "blur(10px)",
+          WebkitBackdropFilter: "blur(10px)", display: "flex", alignItems: "center", justifyContent: "center", padding: "20px", zIndex: 3000
+        }}>
+          <div className="glass-card" style={{ padding: "32px", width: "100%", maxWidth: "380px", border: "1px solid rgba(255,255,255,0.2)" }}>
+            <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.8rem", fontWeight: "900", letterSpacing: "1px", marginBottom: "8px" }}>SOLO OU DUETO?</div>
+            <h3 style={{ margin: "0 0 24px", fontSize: "1.25rem", fontWeight: "900", lineHeight: 1.3, color: "#fff" }}>{addSongModal.title}</h3>
 
-            <div style={{ marginBottom: 20 }}>
-              <label
-                style={{
-                  fontSize: "0.9rem",
-                  color: "#ccc",
-                  display: "block",
-                  marginBottom: 8,
-                }}
-              >
-                {t("mobile.whoWillSing", "Who will sing?")}
+            <div style={{ marginBottom: "24px" }}>
+              <label style={{ fontSize: "0.9rem", color: "rgba(255,255,255,0.6)", display: "block", marginBottom: "12px" }}>
+                {t("mobile.whoWillSing", "Quem vai cantar?")}:
               </label>
-
               <select
-                value={modalPartner}
-                onChange={e => setModalPartner(e.target.value)}
-                style={{
-                  width: "100%",
-                  padding: "14px 12px",
-                  background: "#2a2a2a",
-                  border: "1px solid #444",
-                  borderRadius: 8,
-                  color: "#fff",
-                  fontSize: "1rem",
-                  fontWeight: 500,
-                  cursor: "pointer",
-                  appearance: "none",
-                  WebkitAppearance: "none",
-                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
-                  backgroundRepeat: "no-repeat",
-                  backgroundPosition: "right 12px center",
-                  backgroundSize: "20px",
-                  paddingRight: "40px",
-                }}
+                value={modalPartner} onChange={e => setModalPartner(e.target.value)}
+                style={{ width: "100%", padding: "14px", height: "54px", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "12px", color: "#fff" }}
               >
-                <option
-                  value=""
-                  style={{ background: "#1a1a1a", color: "#fff" }}
-                >
-                  {t("mobile.alone", "Solo")}
-                </option>
-                {participants
-                  .filter(p => p.id !== myUserId)
-                  .map(p => (
-                    <option
-                      key={p.id}
-                      value={p.id}
-                      style={{ background: "#1a1a1a", color: "#fff" }}
-                    >
-                      {p.name}
-                    </option>
-                  ))}
+                <option value="" style={{ background: "#000" }}>{t("mobile.alone", "Vou cantar sozinho(a)")}</option>
+                {participants.filter(p => p.id !== myUserId).map(p => (
+                  <option key={p.id} value={p.id} style={{ background: "#000" }}>{p.name}</option>
+                ))}
               </select>
             </div>
 
-            <div style={{ display: "flex", gap: 10 }}>
+            <div style={{ display: "flex", gap: "12px" }}>
               <button
                 onClick={() => setAddSongModal(null)}
-                style={{
-                  flex: 1,
-                  padding: "12px",
-                  background: "#444",
-                  border: "none",
-                  borderRadius: 8,
-                  color: "#fff",
-                  fontWeight: 600,
-                  cursor: "pointer",
-                }}
+                style={{ flex: 1, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", padding: "14px", borderRadius: "12px" }}
               >
-                {t("common.cancel", "Cancel")}
+                {t("common.cancel", "Cancelar")}
               </button>
               <button
                 onClick={handleConfirmAddSong}
                 disabled={adding === addSongModal.videoId || cooldownRemaining > 0}
-                style={{
-                  flex: 1,
-                  padding: "12px",
-                  background: cooldownRemaining > 0 ? "#444" : "#2ecc71",
-                  border: "none",
-                  borderRadius: 8,
-                  color: "#fff",
-                  fontWeight: 600,
-                  cursor: cooldownRemaining > 0 ? "not-allowed" : "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 6,
-                }}
+                className="glow-pulse"
+                style={{ flex: 1, padding: "14px", fontWeight: "700", background: "#FF0080", borderRadius: "12px", border: "none", color: "#fff" }}
               >
-                {adding === addSongModal.videoId ? (
-                  t("mobile.adding", "Adding...")
-                ) : cooldownRemaining > 0 ? (
-                  t("mobile.cooldown", "Cooldown")
-                ) : (
-                  <>
-                    <IconPlus size={16} /> {t("common.add", "Add")}
-                  </>
-                )}
+                {t("common.confirm", "Confirmar")}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Reaction Buttons */}
-      <div
-        style={{
-          position: "fixed",
-          bottom: 24,
-          left: "50%",
-          transform: "translateX(-50%)",
-          display: "flex",
-          flexDirection: "row",
-          gap: 16,
-          zIndex: 100,
-          background: "rgba(0, 0, 0, 0.4)",
-          backdropFilter: "blur(12px)",
-          WebkitBackdropFilter: "blur(12px)",
-          padding: "8px 20px",
-          borderRadius: "40px",
-          border: "1px solid rgba(255, 255, 255, 0.1)",
-          boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
-        }}
-      >
+      <div style={{
+        position: "fixed", bottom: "30px", left: "50%", transform: "translateX(-50%)",
+        display: "flex", gap: "12px", zIndex: 100, background: "rgba(10, 10, 10, 0.6)",
+        backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+        padding: "10px 16px", borderRadius: "32px", border: "1px solid rgba(255, 255, 255, 0.1)",
+        boxShadow: "0 10px 40px rgba(0,0,0,0.5)"
+      }}>
         {["👏", "🎤", "🔥", "😂"].map(emoji => (
           <button
-            key={emoji}
-            onClick={() => sendReaction(emoji)}
+            key={emoji} onClick={() => sendReaction(emoji)}
             style={{
-              width: 52,
-              height: 52,
-              borderRadius: "50%",
-              fontSize: "26px",
-              background: "rgba(255, 255, 255, 0.1)",
-              border: "1px solid rgba(255, 255, 255, 0.1)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              padding: 0,
-              margin: 0,
-              transition: "transform 0.1s ease, background 0.2s ease",
+              width: "48px", height: "48px", borderRadius: "50%", fontSize: "22px",
+              background: "rgba(255,255,255,0.05)", border: "none",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              transition: "transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275)"
             }}
-            onPointerDown={e => (e.currentTarget.style.transform = "scale(0.8)")}
-            onPointerUp={e => (e.currentTarget.style.transform = "scale(1.1)")}
+            onPointerDown={e => (e.currentTarget.style.transform = "scale(0.85)")}
+            onPointerUp={e => (e.currentTarget.style.transform = "scale(1.2)")}
             onPointerLeave={e => (e.currentTarget.style.transform = "scale(1)")}
           >
             {emoji}

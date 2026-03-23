@@ -10,7 +10,8 @@
     "wait": "Espere",
     "waitAction": "Aguarde",
     "backToHome": "← Voltar ao início",
-    "welcome": "Olá"
+    "welcome": "Olá",
+    "and": "e"
   },
   "home": {
     "title": "KARAOKE FACTORY",
@@ -91,7 +92,13 @@
     "noDuetScored": "Nenhuma dupla pontuou ainda.",
     "singDuetToAppear": "Cante em dupla para aparecer aqui!",
     "newSongToast": "Nova música na fila",
-    "requestedBy": "Pedido por"
+    "requestedBy": "Pedido por",
+    "queueTitle": "Fila de Reprodução",
+    "remaining": "restantes",
+    "songsInQueue": "MÚSICAS NA FILA",
+    "participants": "Participantes",
+    "songs": "Músicas",
+    "song": "Música"
   },
   "mobile": {
     "invalidCode": "Volte e entre com um código válido.",

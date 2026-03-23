@@ -51,6 +51,14 @@ export default function Home() {
     }
   }, [user]);
 
+  useEffect(() => {
+    document.title = "Karaoke Factory | Free Online Karaoke Party";
+    const metaDesc = window.document.querySelector('meta[name="description"]');
+    if (metaDesc) {
+      metaDesc.setAttribute("content", "Cante seus sucessos favoritos com amigos! Karaoke Factory é a plataforma definitiva para festas de karaokê colaborativas.");
+    }
+  }, []);
+
   const handleDeleteRoom = async (code: string) => {
     if (!window.confirm(t("home.confirmDelete", "Are you sure you want to delete this room?"))) return;
     try {

@@ -22,12 +22,12 @@ export default function CompleteProfile() {
     setError("");
 
     if (password !== confirmPassword) {
-      setError(t("createRoom.passwordsDontMatch", "Passwords do not match"));
+      setError(t("createRoom.passwordsDontMatch", "As senhas não coincidem"));
       return;
     }
 
     if (password.length < 6) {
-      setError(t("complete.passwordTooShort", "Password must be at least 6 characters"));
+      setError(t("complete.passwordTooShort", "A senha deve ter pelo menos 6 caracteres"));
       return;
     }
 
@@ -41,13 +41,11 @@ export default function CompleteProfile() {
       gender,
     });
 
-    setLoading(true); // Manter loading enquanto navega
-
     if (result.success) {
       navigate("/");
     } else {
       setLoading(false);
-      setError(result.error || t("complete.error", "Error completing registration"));
+      setError(result.error || t("complete.error", "Erro ao completar cadastro"));
     }
   };
 
@@ -57,129 +55,125 @@ export default function CompleteProfile() {
   }
 
   return (
-    <div className="container" style={{ paddingTop: 40, maxWidth: 450 }}>
-      <Logo width={300} />
-      <p style={{ textAlign: "center", color: "#888", marginBottom: 24 }}>
-        {t("complete.desc", "Complete your registration to create rooms")}
+    <div style={{ minHeight: "100vh", background: "#0A0A0A", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "60px 20px" }}>
+      <Logo width={220} style={{ marginBottom: "24px" }} />
+      <p style={{ textAlign: "center", color: "rgba(255,255,255,0.45)", marginBottom: "32px", fontSize: "1rem" }}>
+        {t("complete.desc", "Complete seu cadastro para criar salas")}
       </p>
 
-      <div className="card">
-        <div
-          style={{
-            background: "#333",
-            padding: "12px 16px",
-            borderRadius: 8,
-            marginBottom: 20,
-          }}
-        >
-          <p style={{ margin: 0, fontSize: "0.9rem" }}>
+      <div className="glass-card" style={{ padding: "40px 36px", width: "100%", maxWidth: "480px" }}>
+        <div style={{
+          background: "rgba(255,255,255,0.05)",
+          padding: "16px 20px",
+          borderRadius: "16px",
+          marginBottom: "28px",
+          border: "1px solid rgba(255,255,255,0.08)",
+        }}>
+          <p style={{ margin: 0, fontSize: "0.95rem", color: "#fff" }}>
             <strong>{user.name}</strong>
             <br />
-            <span style={{ color: "#888" }}>{user.email}</span>
+            <span style={{ color: "rgba(255,255,255,0.4)", fontSize: "0.85rem" }}>{user.email}</span>
           </p>
         </div>
 
         <form onSubmit={handleSubmit}>
           {error && (
-            <div
-              style={{
-                background: "#ff4444",
-                color: "white",
-                padding: "12px 16px",
-                borderRadius: 8,
-                marginBottom: 16,
-                fontSize: "0.9rem",
-              }}
-            >
-              {error}
+            <div style={{
+              background: "rgba(255,80,80,0.15)", color: "#ff6b6b",
+              padding: "12px 14px", borderRadius: "10px", marginBottom: "20px", fontSize: "0.88rem",
+              border: "1px solid rgba(255,80,80,0.3)",
+            }}>
+              ⚠️ {error}
             </div>
           )}
 
-          <label style={{ display: "block", marginBottom: 4, fontWeight: 500 }}>
-            {t("complete.phone", "Phone")}
-          </label>
-          <input
-            type="tel"
-            value={phone}
-            onChange={e => setPhone(e.target.value)}
-            placeholder="(00) 00000-0000"
-            required
-            style={{ marginBottom: 16 }}
-          />
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "20px" }}>
+            <div>
+              <label style={{ display: "block", marginBottom: "6px", fontWeight: 500, fontSize: "0.88rem", color: "rgba(255,255,255,0.7)" }}>
+                {t("complete.phone", "Telefone")}
+              </label>
+              <input
+                type="tel" value={phone}
+                onChange={e => setPhone(e.target.value)}
+                placeholder="(00) 00000-0000"
+                required
+              />
+            </div>
+            <div>
+              <label style={{ display: "block", marginBottom: "6px", fontWeight: 500, fontSize: "0.88rem", color: "rgba(255,255,255,0.7)" }}>
+                {t("complete.city", "Cidade")}
+              </label>
+              <input
+                type="text" value={city}
+                onChange={e => setCity(e.target.value)}
+                placeholder="Nome da Cidade"
+                required
+              />
+            </div>
+          </div>
 
-          <label style={{ display: "block", marginBottom: 4, fontWeight: 500 }}>
-            {t("complete.city", "City")}
-          </label>
-          <input
-            type="text"
-            value={city}
-            onChange={e => setCity(e.target.value)}
-            placeholder="City Name"
-            required
-            style={{ marginBottom: 16 }}
-          />
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "20px" }}>
+            <div>
+              <label style={{ display: "block", marginBottom: "6px", fontWeight: 500, fontSize: "0.88rem", color: "rgba(255,255,255,0.7)" }}>
+                {t("complete.dob", "Nascimento")}
+              </label>
+              <input
+                type="date" value={birthDate}
+                onChange={e => setBirthDate(e.target.value)}
+                required
+              />
+            </div>
+            <div>
+              <label style={{ display: "block", marginBottom: "6px", fontWeight: 500, fontSize: "0.88rem", color: "rgba(255,255,255,0.7)" }}>
+                {t("complete.gender", "Gênero")}
+              </label>
+              <select
+                value={gender}
+                onChange={e => setGender(e.target.value)}
+                required
+                style={{
+                  width: "100%", padding: "12px", borderRadius: "12px",
+                  background: "rgba(255,255,255,0.05)", color: "#fff",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  fontSize: "0.95rem", outline: "none"
+                }}
+              >
+                <option value="" disabled>{t("complete.select", "Selecione...")}</option>
+                <option value="masculino">{t("register.male", "Masculino")}</option>
+                <option value="feminino">{t("register.female", "Feminino")}</option>
+                <option value="outro">{t("register.other", "Outro")}</option>
+                <option value="prefiro_nao_informar">{t("register.preferNotToSay", "Prefiro não informar")}</option>
+              </select>
+            </div>
+          </div>
 
-          <label style={{ display: "block", marginBottom: 4, fontWeight: 500 }}>
-            {t("complete.dob", "Date of Birth")}
-          </label>
-          <input
-            type="date"
-            value={birthDate}
-            onChange={e => setBirthDate(e.target.value)}
-            required
-            style={{ marginBottom: 16 }}
-          />
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "32px" }}>
+            <div>
+              <label style={{ display: "block", marginBottom: "6px", fontWeight: 500, fontSize: "0.88rem", color: "rgba(255,255,255,0.7)" }}>
+                {t("complete.password", "Senha")}
+              </label>
+              <input
+                type="password" value={password}
+                onChange={e => setPassword(e.target.value)}
+                placeholder="Mín 6 chars"
+                required
+              />
+            </div>
+            <div>
+              <label style={{ display: "block", marginBottom: "6px", fontWeight: 500, fontSize: "0.88rem", color: "rgba(255,255,255,0.7)" }}>
+                {t("complete.confirmPassword", "Confirmar")}
+              </label>
+              <input
+                type="password" value={confirmPassword}
+                onChange={e => setConfirmPassword(e.target.value)}
+                placeholder="Senha novamente"
+                required
+              />
+            </div>
+          </div>
 
-          <label style={{ display: "block", marginBottom: 4, fontWeight: 500 }}>
-            {t("complete.gender", "Gender")}
-          </label>
-          <select
-            value={gender}
-            onChange={e => setGender(e.target.value)}
-            required
-            style={{
-              marginBottom: 16,
-              width: "100%",
-              padding: "12px",
-              borderRadius: 8,
-              background: "#222",
-              color: "#fff",
-              border: "1px solid #444",
-            }}
-          >
-            <option value="">{t("complete.select", "Select...")}</option>
-            <option value="masculino">{t("register.male", "Male")}</option>
-            <option value="feminino">{t("register.female", "Female")}</option>
-            <option value="outro">{t("register.other", "Other")}</option>
-            <option value="prefiro_nao_informar">{t("register.preferNotToSay", "Prefer not to say")}</option>
-          </select>
-
-          <label style={{ display: "block", marginBottom: 4, fontWeight: 500 }}>
-            {t("complete.password", "Password")}
-          </label>
-          <input
-            type="password"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            placeholder={t("complete.passwordPlaceholder", "Min 6 characters")}
-            required
-            style={{ marginBottom: 16 }}
-          />
-
-          <label style={{ display: "block", marginBottom: 4, fontWeight: 500 }}>
-            {t("complete.confirmPassword", "Confirm Password")}
-          </label>
-          <input
-            type="password"
-            value={confirmPassword}
-            onChange={e => setConfirmPassword(e.target.value)}
-            placeholder={t("complete.confirmPlaceholder", "Type password again")}
-            required
-            style={{ marginBottom: 24 }}
-          />
-
-          <button type="submit" disabled={loading} style={{ width: "100%" }}>
-            {loading ? t("complete.saving", "Saving...") : t("complete.btn", "Complete Registration")}
+          <button type="submit" disabled={loading} className="glow-pulse" style={{ width: "100%", padding: "16px", fontWeight: "800" }}>
+            {loading ? t("complete.saving", "Salvando...") : t("complete.btn", "Completar Cadastro")}
           </button>
         </form>
       </div>
