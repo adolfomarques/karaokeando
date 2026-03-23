@@ -86,11 +86,6 @@ interface Reaction {
   emoji: string;
   name: string;
   x: number;
-  yOffset: number;
-  rotation: number;
-  scale: number;
-  duration: number;
-  delay: number;
 }
 
 // Icon components
@@ -301,18 +296,15 @@ const ReactionDisplay = ({ reactions }: { reactions: Reaction[] }) => {
           key={r.id}
           style={{
             position: "absolute",
-            bottom: r.yOffset,
+            bottom: -80,
             left: `${r.x}%`,
             fontSize: "56px",
-            animation: `rise ${r.duration}s cubic-bezier(0.2, 0.8, 0.2, 1) forwards`,
-            animationDelay: `${r.delay}s`,
+            animation: "rise 4.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
             filter: "drop-shadow(0 6px 16px rgba(0,0,0,0.8))",
             zIndex: 9999,
-            transform: `scale(${r.scale}) rotate(${r.rotation}deg)`,
-            opacity: 0, // Inicia invisível por causa do delay
           }}
         >
           <span
@@ -340,10 +332,8 @@ const ReactionDisplay = ({ reactions }: { reactions: Reaction[] }) => {
             transform: translateY(0) scale(0.3) rotate(-10deg);
             opacity: 0;
           }
-          5% {
-            opacity: 1;
-          }
           10% {
+            opacity: 1;
             transform: translateY(-100px) scale(1.4) rotate(0deg);
           }
           30% {
@@ -368,19 +358,6 @@ const IconPlay = ({ size = 16 }: { size?: number }) => (
     stroke="none"
   >
     <polygon points="5 3 19 12 5 21 5 3"></polygon>
-  </svg>
-);
-
-const IconPause = ({ size = 16 }: { size?: number }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="currentColor"
-    stroke="none"
-  >
-    <rect x="6" y="4" width="4" height="16" />
-    <rect x="14" y="4" width="4" height="16" />
   </svg>
 );
 
@@ -428,7 +405,6 @@ export default function RoomTV() {
   const [hasInteracted, setHasInteracted] = useState(false);
   const [autoPlayCountdown, setAutoPlayCountdown] = useState<number | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
   const [participantsCount, setParticipantsCount] = useState<number>(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [reactions, setReactions] = useState<Reaction[]>([]);
@@ -566,10 +542,9 @@ export default function RoomTV() {
   const handleQueueRemove = useCallback(
     async (itemId: string) => {
       if (!code) return;
-      if (!window.confirm(t("common.confirmRemove", "Deseja remover esta música da fila?"))) return;
       await removeQueueItem(code, itemId, undefined, tvToken).catch(() => { });
     },
-    [code, tvToken, t]
+    [code, tvToken]
   );
 
   const handleQueueMove = useCallback(
@@ -683,11 +658,8 @@ export default function RoomTV() {
 
     if (autoPlayCountdown === null) {
       setAutoPlayCountdown(10);
-      setIsPaused(false); // Reset pause on new song
       return;
     }
-
-    if (isPaused) return;
 
     if (autoPlayCountdown > 0) {
       const timer = setTimeout(() => {
@@ -807,22 +779,17 @@ export default function RoomTV() {
         } else if (m.type === "REACTION") {
           console.log("[TV] Reaction received:", m);
           const mReaction = m as unknown as { reaction: string; name: string };
-          const newReaction: Reaction = {
+          const newReaction = {
             id: Math.random().toString(36).substring(2, 9),
             emoji: mReaction.reaction,
             name: mReaction.name || "Convidado",
             x: Math.random() * 80 + 10, // 10% a 90%
-            yOffset: -100 - (Math.random() * 100), // Variação de altura inicial (-100 a -200)
-            rotation: (Math.random() * 40) - 20, // -20 a 20 graus
-            scale: 0.8 + (Math.random() * 0.6), // 0.8 a 1.4
-            duration: 4 + (Math.random() * 1.5), // 4.0 a 5.5 segundos
-            delay: Math.random() * 0.8, // 0 a 0.8 segundos de atraso
           };
-          setReactions(prev => [...prev.slice(-20), newReaction]);
-          // Remove after animation finishes (duration + delay)
+          setReactions(prev => [...prev, newReaction]);
+          // Remove after animation finishes
           setTimeout(() => {
             setReactions(prev => prev.filter(r => r.id !== newReaction.id));
-          }, (newReaction.duration + newReaction.delay) * 1000 + 500);
+          }, 4500);
         }
       },
       tvToken
@@ -1413,20 +1380,6 @@ export default function RoomTV() {
               from { transform: translate(0, 0); }
               to   { transform: translate(-80px, -60px); }
             }
-            .custom-scrollbar::-webkit-scrollbar {
-              width: 6px;
-            }
-            .custom-scrollbar::-webkit-scrollbar-track {
-              background: rgba(255, 255, 255, 0.02);
-              border-radius: 10px;
-            }
-            .custom-scrollbar::-webkit-scrollbar-thumb {
-              background: rgba(255, 0, 128, 0.3);
-              border-radius: 10px;
-            }
-            .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-              background: rgba(255, 0, 128, 0.5);
-            }
           `}</style>
           
           {/* Header */}
@@ -1510,36 +1463,17 @@ export default function RoomTV() {
             <div className="tv-glass-card flex flex-col overflow-hidden">
               {state.queue.length > 0 ? (
                 <>
-                  <div className="tv-header-separator shrink-0" style={{ padding: "clamp(10px, 2vh, 40px) 3vh", textAlign: "center" }}>
-                    <div style={{ fontSize: "clamp(0.8rem, 0.9vw, 1.1rem)", color: "#FF0080", textTransform: "uppercase", letterSpacing: "2px", fontWeight: 800, marginBottom: "1vh" }}>
+                  <div className="tv-header-separator" style={{ padding: "4vh 3vh", textAlign: "center" }}>
+                    <div style={{ fontSize: "1.2rem", color: "#FF0080", textTransform: "uppercase", letterSpacing: "2px", fontWeight: 800, marginBottom: "2vh" }}>
                       <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px" }}>
-                        <IconMusic size={18} /> {t("tv.nextSong", "PRÓXIMA MÚSICA")}
+                        <IconMusic size={20} /> {t("tv.nextSong", "PRÓXIMA MÚSICA")}
                       </span>
                     </div>
-                     <div style={{ 
-                      fontSize: "clamp(18px, 2.2vw, 32px)", 
-                      fontWeight: 900, 
-                      color: "#fff", 
-                      marginBottom: "1vh", 
-                      lineHeight: 1.1, 
-                      textTransform: "uppercase",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: "15px"
-                    }}>
-                      <span style={{ color: "#FF0080", opacity: 0.8 }}>01</span>
-                      <div style={{
-                        display: "-webkit-box",
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: "vertical",
-                        overflow: "hidden"
-                      }}>
-                        {state.queue[0].title}
-                      </div>
+                    <div style={{ fontSize: "2.8vw", fontWeight: 900, color: "#fff", marginBottom: "1.5vh", lineHeight: 1.1, textTransform: "uppercase" }}>
+                      {state.queue[0].title}
                     </div>
-                    <div style={{ fontSize: "clamp(14px, 1.1vw, 20px)", color: "rgba(255,255,255,0.6)", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, fontWeight: 600, marginBottom: "1.5vh" }}>
-                      <IconMic size={20} />
+                    <div style={{ fontSize: "1.4vw", color: "rgba(255,255,255,0.6)", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, fontWeight: 600, marginBottom: "4vh" }}>
+                      <IconMic size={24} />
                       {state.queue[0].singers?.map(s => (typeof s === "string" ? s : s.name)).join(" e ") || state.queue[0].requestedBy}
                     </div>
                     <div style={{ display: "flex", gap: 16, justifyContent: "center" }}>
@@ -1553,8 +1487,8 @@ export default function RoomTV() {
                           background: "linear-gradient(135deg, #FF0080, #FF4D6D)",
                           color: "#fff",
                           border: "none",
-                          fontSize: "clamp(14px, 1.2vw, 20px)",
-                          padding: "1vh 3vw",
+                          fontSize: "1.4vw",
+                          padding: "1.5vh 4vw",
                           fontWeight: 800,
                           borderRadius: '999px',
                           textTransform: "uppercase",
@@ -1572,32 +1506,6 @@ export default function RoomTV() {
                           ? `${t("mobile.start", "Iniciar")} (${autoPlayCountdown}s)`
                           : t("mobile.start", "Iniciar")}
                       </button>
-                      
-                      {autoPlayCountdown !== null && (
-                        <button
-                          onClick={() => setIsPaused(!isPaused)}
-                          style={{
-                            background: "rgba(255, 255, 255, 0.05)",
-                            color: isPaused ? "#00e5ff" : "rgba(255, 255, 255, 0.6)",
-                            border: `1px solid ${isPaused ? "#00e5ff" : "rgba(255, 255, 255, 0.1)"}`,
-                            borderRadius: '999px',
-                            padding: "1vh 2vw",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            cursor: "pointer",
-                            transition: "all 0.2s",
-                            boxShadow: isPaused ? "0 0 20px rgba(0, 229, 255, 0.2)" : "none"
-                          }}
-                          title={isPaused ? "Retomar" : "Pausar"}
-                        >
-                          {isPaused ? <IconPlay size={22} /> : <IconPause size={22} />}
-                          <span style={{ marginLeft: 8, fontSize: "clamp(12px, 1vw, 16px)", fontWeight: 700, textTransform: "uppercase" }}>
-                            {isPaused ? t("common.resume", "Retomar") : t("common.pause", "Pausar")}
-                          </span>
-                        </button>
-                      )}
-
                       <button
                         onClick={() => handleQueueRemove(state.queue[0].id)}
                         style={{
@@ -1624,13 +1532,13 @@ export default function RoomTV() {
                         }}
                         title="Remover da fila"
                       >
-                        <IconTrash size={22} />
+                        <IconTrash size={28} />
                       </button>
                     </div>
                   </div>
 
                   {state.queue.length > 1 && (
-                    <div className="flex-1 overflow-y-auto custom-scrollbar" style={{ padding: "clamp(15px, 2vh, 30px) 3vh" }}>
+                    <div className="flex-1 overflow-hidden" style={{ padding: "3vh" }}>
                       <h3 style={{ margin: "0 0 2vh", fontSize: "1rem", color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "2px", fontWeight: 700 }}>
                         {t("tv.queueTitle")} ({state.queue.length - 1} {t("tv.remaining")})
                       </h3>
@@ -1646,31 +1554,26 @@ export default function RoomTV() {
                               gap: 16,
                             }}
                           >
-                            <div style={{ display: "flex", alignItems: "center", gap: 16, flex: 1, overflow: "hidden" }}>
-                              <span style={{ fontSize: "1.1rem", fontWeight: 900, color: "#FF0080", opacity: 0.6, width: "32px", flexShrink: 0 }}>
-                                {String(state.queue.indexOf(item) + 1).padStart(2, '0')}
-                              </span>
-                              <div style={{ flex: 1, overflow: "hidden" }}>
-                                <div style={{ fontSize: "1.1rem", fontWeight: 800, color: "#fff", marginBottom: "2px", textTransform: "uppercase" }}>
-                                  <TruncatedText text={item.title} maxLength={40} />
-                                </div>
-                                <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.85rem", display: "flex", alignItems: "center", gap: "6px" }}>
-                                  <IconUser size={12} />
-                                  {item.singers?.map(s => (typeof s === "string" ? s : s.name)).join(" e ") || item.requestedBy}
-                                </div>
+                            <div style={{ flex: 1, overflow: "hidden" }}>
+                              <div style={{ fontSize: "1.2rem", fontWeight: 800, color: "#fff", marginBottom: "4px", textTransform: "uppercase" }}>
+                                <TruncatedText text={item.title} maxLength={40} />
+                              </div>
+                              <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.95rem", display: "flex", alignItems: "center", gap: "8px" }}>
+                                <IconUser size={14} />
+                                {item.singers?.map(s => (typeof s === "string" ? s : s.name)).join(" e ") || item.requestedBy}
                               </div>
                             </div>
-                            <div style={{ display: "flex", gap: 8 }}>
-                              <button className="tv-btn-glass" style={{ padding: "8px" }} onClick={() => handleQueueMove(item.id, "up")} title="Subir"><IconChevronUp /></button>
-                              <button className="tv-btn-glass" style={{ padding: "8px" }} onClick={() => handleQueueMove(item.id, "down")} title="Descer"><IconChevronDown /></button>
-                              <button className="tv-btn-glass" style={{ padding: "8px" }} onClick={() => handleQueueToTop(item.id)} title="Mover para o topo"><IconChevronsUp /></button>
+                            <div style={{ display: "flex", gap: 10 }}>
+                              <button className="tv-btn-glass" style={{ padding: "10px" }} onClick={() => handleQueueMove(item.id, "up")} title="Subir"><IconChevronUp /></button>
+                              <button className="tv-btn-glass" style={{ padding: "10px" }} onClick={() => handleQueueMove(item.id, "down")} title="Descer"><IconChevronDown /></button>
+                              <button className="tv-btn-glass" style={{ padding: "10px" }} onClick={() => handleQueueToTop(item.id)} title="Mover para o topo"><IconChevronsUp /></button>
                               <button 
                                 className="tv-btn-glass" 
-                                style={{ padding: "8px", background: "rgba(255,0,128,0.15)", border: "1px solid rgba(255,0,128,0.3)", color: "#fff" }} 
+                                style={{ padding: "10px", color: "rgba(255,80,80,0.6)" }} 
                                 onClick={() => handleQueueRemove(item.id)} 
                                 title="Remover"
                               >
-                                <IconTrash size={18} />
+                                <IconTrash />
                               </button>
                             </div>
                           </div>
@@ -1719,7 +1622,7 @@ export default function RoomTV() {
                 </div>
               </div>
 
-              <div className="flex-1 overflow-y-auto custom-scrollbar" style={{ padding: "3vh" }}>
+              <div className="flex-1 overflow-hidden" style={{ padding: "3vh" }}>
               {rankingView === "solo" ? (
                 // Solo ranking
                 Object.keys(state.ranking).length === 0 ? (

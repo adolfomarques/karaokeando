@@ -4,11 +4,9 @@
     "enter": "Entrar",
     "save": "Salvar",
     "pause": "Pausar",
-    "resume": "Retomar",
     "continue": "Continuar",
     "skip": "Pular",
     "add": "Adicionar",
-    "confirmRemove": "Deseja remover esta música da fila?",
     "wait": "Espere",
     "waitAction": "Aguarde",
     "backToHome": "← Voltar ao início",
@@ -100,9 +98,7 @@
     "songsInQueue": "MÚSICAS NA FILA",
     "participants": "Participantes",
     "songs": "Músicas",
-    "song": "Música",
-    "resume": "Retomar",
-    "pause": "Pausar"
+    "song": "Música"
   },
   "mobile": {
     "invalidCode": "Volte e entre com um código válido.",

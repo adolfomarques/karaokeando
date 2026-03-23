@@ -152,7 +152,7 @@ body::after {
   padding: 32px;
   margin-bottom: 16px;
   position: relative;
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 .card::before {
