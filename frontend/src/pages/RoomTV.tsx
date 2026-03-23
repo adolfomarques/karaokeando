@@ -361,6 +361,19 @@ const IconPlay = ({ size = 16 }: { size?: number }) => (
   </svg>
 );
 
+const IconPause = ({ size = 16 }: { size?: number }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    stroke="none"
+  >
+    <rect x="6" y="4" width="4" height="16" />
+    <rect x="14" y="4" width="4" height="16" />
+  </svg>
+);
+
 const IconMaximize = ({ size = 16 }: { size?: number }) => (
   <svg
     width={size}
@@ -405,6 +418,7 @@ export default function RoomTV() {
   const [hasInteracted, setHasInteracted] = useState(false);
   const [autoPlayCountdown, setAutoPlayCountdown] = useState<number | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const [participantsCount, setParticipantsCount] = useState<number>(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [reactions, setReactions] = useState<Reaction[]>([]);
@@ -658,10 +672,12 @@ export default function RoomTV() {
 
     if (autoPlayCountdown === null) {
       setAutoPlayCountdown(10);
+      setIsPaused(false);
       return;
     }
 
     if (autoPlayCountdown > 0) {
+      if (isPaused) return; // Se estiver pausado, não diminui o contador
       const timer = setTimeout(() => {
         setAutoPlayCountdown(prev => (prev !== null ? prev - 1 : null));
       }, 1000);
@@ -681,7 +697,7 @@ export default function RoomTV() {
         setIsTransitioning(false);
       });
     }
-  }, [state, showScore, autoPlayCountdown, code, tvToken, isTransitioning]);
+  }, [state, showScore, autoPlayCountdown, code, tvToken, isTransitioning, isPaused]);
 
   // Auto-finalize when YouTube video ends
   const handleVideoEnd = useCallback(async () => {
@@ -1464,15 +1480,26 @@ export default function RoomTV() {
               {state.queue.length > 0 ? (
                 <>
                   <div className="tv-header-separator" style={{ padding: "4vh 3vh", textAlign: "center" }}>
-                    <div style={{ fontSize: "1.2rem", color: "#FF0080", textTransform: "uppercase", letterSpacing: "2px", fontWeight: 800, marginBottom: "2vh" }}>
+                    <div style={{ fontSize: "1.2rem", color: "#FF0080", textTransform: "uppercase", letterSpacing: "2px", fontWeight: 800, marginBottom: "1.5vh" }}>
                       <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px" }}>
                         <IconMusic size={20} /> {t("tv.nextSong", "PRÓXIMA MÚSICA")}
                       </span>
                     </div>
-                    <div style={{ fontSize: "2.8vw", fontWeight: 900, color: "#fff", marginBottom: "1.5vh", lineHeight: 1.1, textTransform: "uppercase" }}>
+                    <div style={{ 
+                      fontSize: "clamp(20px, 2.2vw, 36px)", 
+                      fontWeight: 900, 
+                      color: "#fff", 
+                      marginBottom: "1vh", 
+                      lineHeight: 1.1, 
+                      textTransform: "uppercase",
+                      display: "-webkit-box",
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: "vertical",
+                      overflow: "hidden"
+                    }}>
                       {state.queue[0].title}
                     </div>
-                    <div style={{ fontSize: "1.4vw", color: "rgba(255,255,255,0.6)", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, fontWeight: 600, marginBottom: "4vh" }}>
+                    <div style={{ fontSize: "clamp(16px, 1.2vw, 24px)", color: "rgba(255,255,255,0.6)", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, fontWeight: 600, marginBottom: "3vh" }}>
                       <IconMic size={24} />
                       {state.queue[0].singers?.map(s => (typeof s === "string" ? s : s.name)).join(" e ") || state.queue[0].requestedBy}
                     </div>
@@ -1506,6 +1533,32 @@ export default function RoomTV() {
                           ? `${t("mobile.start", "Iniciar")} (${autoPlayCountdown}s)`
                           : t("mobile.start", "Iniciar")}
                       </button>
+
+                      {autoPlayCountdown !== null && (
+                        <button
+                          onClick={() => setIsPaused(!isPaused)}
+                          style={{
+                            background: "rgba(255, 255, 255, 0.05)",
+                            color: isPaused ? "#00e5ff" : "rgba(255, 255, 255, 0.6)",
+                            border: `1px solid ${isPaused ? "#00e5ff" : "rgba(255, 255, 255, 0.1)"}`,
+                            borderRadius: '999px',
+                            padding: "1vh 2vw",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            cursor: "pointer",
+                            transition: "all 0.2s",
+                            boxShadow: isPaused ? "0 0 20px rgba(0, 229, 255, 0.2)" : "none"
+                          }}
+                          title={isPaused ? "Retomar" : "Pausar"}
+                        >
+                          {isPaused ? <IconPlay size={22} /> : <IconPause size={22} />}
+                          <span style={{ marginLeft: 8, fontSize: "clamp(12px, 1vw, 16px)", fontWeight: 700, textTransform: "uppercase" }}>
+                            {isPaused ? t("common.resume", "Retomar") : t("common.pause", "Pausar")}
+                          </span>
+                        </button>
+                      )}
+
                       <button
                         onClick={() => handleQueueRemove(state.queue[0].id)}
                         style={{
@@ -1538,7 +1591,13 @@ export default function RoomTV() {
                   </div>
 
                   {state.queue.length > 1 && (
-                    <div className="flex-1 overflow-hidden" style={{ padding: "3vh" }}>
+                    <div className="flex-1 overflow-y-auto custom-scrollbar" style={{ padding: "1vh 3vh 3vh" }}>
+                      <style>{`
+                        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+                        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); border-radius: 10px; }
+                        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,0,128,0.3); border-radius: 10px; }
+                        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,0,128,0.5); }
+                      `}</style>
                       <h3 style={{ margin: "0 0 2vh", fontSize: "1rem", color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "2px", fontWeight: 700 }}>
                         {t("tv.queueTitle")} ({state.queue.length - 1} {t("tv.remaining")})
                       </h3>
