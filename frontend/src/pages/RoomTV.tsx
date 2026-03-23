@@ -89,6 +89,8 @@ interface Reaction {
   size?: number;
   duration?: number;
   delay?: number;
+  targetY?: number;
+  rotOffset?: number;
 }
 
 // Icon components
@@ -294,6 +296,26 @@ const IconUser = ({ size = 16 }: { size?: number }) => (
 const ReactionDisplay = ({ reactions }: { reactions: Reaction[] }) => {
   return (
     <>
+      <style>{`
+        @keyframes organicFloatTV {
+          0% {
+            transform: translateY(0) scale(0.3) rotate(calc(var(--rot) * -1deg));
+            opacity: 0;
+          }
+          15% {
+            opacity: 1;
+            transform: translateY(-30px) scale(1.2) rotate(calc(var(--rot) * 1deg));
+          }
+          70% {
+            transform: translateY(calc(var(--ty) * 0.6)) scale(1) rotate(calc(var(--rot) * 0.5deg));
+            opacity: 0.8;
+          }
+          100% {
+            transform: translateY(var(--ty)) scale(0.8) rotate(calc(var(--rot) * 1.5deg));
+            opacity: 0;
+          }
+        }
+      `}</style>
       {reactions.map(r => (
         <div
           key={r.id}
@@ -302,13 +324,15 @@ const ReactionDisplay = ({ reactions }: { reactions: Reaction[] }) => {
             bottom: -80,
             left: `${r.x}%`,
             fontSize: `${r.size || 56}px`,
-            animation: `rise ${r.duration || 4.5}s ease-out ${r.delay || 0}s forwards`,
+            "--ty": `${r.targetY || -400}px`,
+            "--rot": `${r.rotOffset || 10}`,
+            animation: `organicFloatTV ${r.duration || 2.5}s ease-out ${r.delay || 0}s forwards`,
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
             filter: "drop-shadow(0 6px 16px rgba(0,0,0,0.8))",
             zIndex: 9999,
-          }}
+          } as React.CSSProperties}
         >
           {r.name && (
             <span
@@ -331,25 +355,6 @@ const ReactionDisplay = ({ reactions }: { reactions: Reaction[] }) => {
           {r.emoji}
         </div>
       ))}
-      <style>{`
-        @keyframes rise {
-          0% {
-            transform: translateY(0) scale(0.3) rotate(-10deg);
-            opacity: 0;
-          }
-          10% {
-            opacity: 1;
-            transform: translateY(-100px) scale(1.4) rotate(0deg);
-          }
-          30% {
-            transform: translateY(-300px) scale(1.1) rotate(5deg);
-          }
-          100% {
-            transform: translateY(-1200px) scale(1) rotate(0deg);
-            opacity: 0;
-          }
-        }
-      `}</style>
     </>
   );
 };
@@ -805,15 +810,17 @@ export default function RoomTV() {
             emoji: mReaction.reaction,
             name: i === 0 ? (mReaction.name || "Convidado") : undefined,
             x: 10 + Math.random() * 80, // 10% a 90%
-            duration: 3 + Math.random() * 2, // Variando velocidade 3s a 5s
-            delay: Math.random() * 0.4, // Stutter inicial leve de 0 a 400ms
-            size: 40 + Math.random() * 40, // Variando o tamanho do ícone (40px a 80px)
+            duration: 1.5 + Math.random() * 1.5, // Variando velocidade 1.5s a 3.0s
+            delay: Math.random() * 0.3, // Stutter inicial
+            size: 40 + Math.random() * 50, // Variando tamanho (40px a 90px)
+            targetY: -(300 + Math.random() * 500), // Random height from -300 to -800
+            rotOffset: -20 + Math.random() * 40 // Random rotation degree spread
           }));
           setReactions(prev => [...prev, ...newReactions]);
           // Remove after animation finishes
           setTimeout(() => {
             setReactions(prev => prev.filter(r => !newReactions.find(nr => nr.id === r.id)));
-          }, 6000);
+          }, 4000);
         }
       },
       tvToken
