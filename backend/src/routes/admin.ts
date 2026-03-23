@@ -60,6 +60,7 @@ export default async function adminRoutes(app: FastifyInstance) {
   });
 
   // --- USERS MANAGEMENT ---
+  // API endpoint to list all users with detailed information
   app.get("/api/admin/users", { preHandler: [requireAdmin] }, async () => {
     const users = await prisma.user.findMany({
       select: {
