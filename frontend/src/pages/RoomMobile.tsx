@@ -394,8 +394,6 @@ export default function RoomMobile() {
     t("mobile.almostReady", "Almost ready..."),
   ];
 
-  const [localReactions, setLocalReactions] = useState<{ id: string; emoji: string; left: number; duration: number; delay: number; size: number }[]>([]);
-
   useEffect(() => {
     if (!searching) {
       setLoadingStep(0);
@@ -417,21 +415,6 @@ export default function RoomMobile() {
         })
       );
     }
-
-    const newReactions = Array.from({ length: 4 }).map(() => ({
-      id: Math.random().toString(36).substring(2, 9),
-      emoji,
-      left: 15 + Math.random() * 70, // Spread organicament
-      duration: 1.2 + Math.random() * 1.8, // 1.2s to 3s
-      delay: Math.random() * 0.15, // Smooth stuttered start
-      size: 26 + Math.random() * 20 // Variation in sizes
-    }));
-
-    setLocalReactions(prev => [...prev, ...newReactions]);
-
-    setTimeout(() => {
-      setLocalReactions(prev => prev.filter(r => !newReactions.find(nr => nr.id === r.id)));
-    }, 3200);
   };
 
   // Check auth on mount
@@ -1956,34 +1939,6 @@ export default function RoomMobile() {
           </div>
         </div>
       )}
-
-      {/* Floating Emojis */}
-      <style>{`
-        @keyframes organicFloatUp {
-          0% { transform: translateY(0) scale(0.3) rotate(-15deg); opacity: 0; }
-          15% { opacity: 1; transform: translateY(-30px) scale(1.2) rotate(10deg); }
-          50% { transform: translateY(-120px) scale(1) rotate(-5deg); opacity: 0.8; }
-          100% { transform: translateY(-350px) scale(0.8) rotate(15deg); opacity: 0; }
-        }
-      `}</style>
-      <div style={{ position: "fixed", bottom: "80px", left: 0, right: 0, height: "300px", pointerEvents: "none", zIndex: 99 }}>
-        {localReactions.map(r => (
-          <div
-            key={r.id}
-            style={{
-              position: "absolute",
-              left: `${r.left}%`,
-              bottom: 0,
-              fontSize: `${r.size}px`,
-              animation: `organicFloatUp ${r.duration}s ease-out ${r.delay}s forwards`,
-              opacity: 0,
-              filter: "drop-shadow(0 4px 10px rgba(0,0,0,0.5))"
-            }}
-          >
-            {r.emoji}
-          </div>
-        ))}
-      </div>
 
       <div style={{
         position: "fixed", bottom: "30px", left: "50%", transform: "translateX(-50%)",

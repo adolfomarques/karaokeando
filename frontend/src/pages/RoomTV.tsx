@@ -84,8 +84,11 @@ interface FinalizedEvent {
 interface Reaction {
   id: string;
   emoji: string;
-  name: string;
+  name?: string;
   x: number;
+  size?: number;
+  duration?: number;
+  delay?: number;
 }
 
 // Icon components
@@ -298,8 +301,8 @@ const ReactionDisplay = ({ reactions }: { reactions: Reaction[] }) => {
             position: "absolute",
             bottom: -80,
             left: `${r.x}%`,
-            fontSize: "56px",
-            animation: "rise 4.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards",
+            fontSize: `${r.size || 56}px`,
+            animation: `rise ${r.duration || 4.5}s ease-out ${r.delay || 0}s forwards`,
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
@@ -307,22 +310,24 @@ const ReactionDisplay = ({ reactions }: { reactions: Reaction[] }) => {
             zIndex: 9999,
           }}
         >
-          <span
-            style={{
-              fontSize: "18px",
-              color: "#fff",
-              fontWeight: 800,
-              textShadow: "0 2px 8px rgba(0,0,0,1), 0 0 12px rgba(0,0,0,0.5)",
-              marginBottom: 6,
-              whiteSpace: "nowrap",
-              padding: "4px 12px",
-              background: "rgba(0,0,0,0.5)",
-              borderRadius: "12px",
-              backdropFilter: "blur(4px)",
-            }}
-          >
-            {r.name}
-          </span>
+          {r.name && (
+            <span
+              style={{
+                fontSize: "18px",
+                color: "#fff",
+                fontWeight: 800,
+                textShadow: "0 2px 8px rgba(0,0,0,1), 0 0 12px rgba(0,0,0,0.5)",
+                marginBottom: 6,
+                whiteSpace: "nowrap",
+                padding: "4px 12px",
+                background: "rgba(0,0,0,0.5)",
+                borderRadius: "12px",
+                backdropFilter: "blur(4px)",
+              }}
+            >
+              {r.name}
+            </span>
+          )}
           {r.emoji}
         </div>
       ))}
@@ -795,17 +800,20 @@ export default function RoomTV() {
         } else if (m.type === "REACTION") {
           console.log("[TV] Reaction received:", m);
           const mReaction = m as unknown as { reaction: string; name: string };
-          const newReaction = {
+          const newReactions = Array.from({ length: 4 }).map((_, i) => ({
             id: Math.random().toString(36).substring(2, 9),
             emoji: mReaction.reaction,
-            name: mReaction.name || "Convidado",
-            x: Math.random() * 80 + 10, // 10% a 90%
-          };
-          setReactions(prev => [...prev, newReaction]);
+            name: i === 0 ? (mReaction.name || "Convidado") : undefined,
+            x: 10 + Math.random() * 80, // 10% a 90%
+            duration: 3 + Math.random() * 2, // Variando velocidade 3s a 5s
+            delay: Math.random() * 0.4, // Stutter inicial leve de 0 a 400ms
+            size: 40 + Math.random() * 40, // Variando o tamanho do ícone (40px a 80px)
+          }));
+          setReactions(prev => [...prev, ...newReactions]);
           // Remove after animation finishes
           setTimeout(() => {
-            setReactions(prev => prev.filter(r => r.id !== newReaction.id));
-          }, 4500);
+            setReactions(prev => prev.filter(r => !newReactions.find(nr => nr.id === r.id)));
+          }, 6000);
         }
       },
       tvToken
