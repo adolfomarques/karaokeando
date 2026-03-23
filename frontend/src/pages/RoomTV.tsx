@@ -1345,12 +1345,21 @@ export default function RoomTV() {
               align-items: center;
               gap: 8px;
             }
-            .tv-btn-glass:hover, .tv-btn-glass.active {
+            .tv-btn-glass.active {
               background: linear-gradient(135deg, #FF0080, #FF4D6D);
               border-color: transparent;
               color: #fff;
               box-shadow: 0 0 25px rgba(255, 0, 128, 0.45);
               transform: translateY(-2px);
+            }
+            @media (hover: hover) {
+              .tv-btn-glass:hover {
+                background: linear-gradient(135deg, #FF0080, #FF4D6D);
+                border-color: transparent;
+                color: #fff;
+                box-shadow: 0 0 25px rgba(255, 0, 128, 0.45);
+                transform: translateY(-2px);
+              }
             }
             .tv-item-box {
               background: rgba(255, 255, 255, 0.02);
@@ -1479,8 +1488,8 @@ export default function RoomTV() {
             <div className="tv-glass-card flex flex-col overflow-hidden">
               {state.queue.length > 0 ? (
                 <>
-                  <div className="tv-header-separator" style={{ padding: "4vh 3vh", textAlign: "center" }}>
-                    <div style={{ fontSize: "1.2rem", color: "#FF0080", textTransform: "uppercase", letterSpacing: "2px", fontWeight: 800, marginBottom: "1.5vh" }}>
+                  <div className="tv-header-separator" style={{ padding: "2vh 3vh", textAlign: "center" }}>
+                    <div style={{ fontSize: "1.2rem", color: "#FF0080", textTransform: "uppercase", letterSpacing: "2px", fontWeight: 800, marginBottom: "0.5vh" }}>
                       <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px" }}>
                         <IconMusic size={20} /> {t("tv.nextSong", "PRÓXIMA MÚSICA")}
                       </span>
@@ -1489,7 +1498,7 @@ export default function RoomTV() {
                       fontSize: "clamp(20px, 2.2vw, 36px)", 
                       fontWeight: 900, 
                       color: "#fff", 
-                      marginBottom: "1vh", 
+                      marginBottom: "0.5vh", 
                       lineHeight: 1.1, 
                       textTransform: "uppercase",
                       display: "-webkit-box",
@@ -1499,11 +1508,11 @@ export default function RoomTV() {
                     }}>
                       {state.queue[0].title}
                     </div>
-                    <div style={{ fontSize: "clamp(16px, 1.2vw, 24px)", color: "rgba(255,255,255,0.6)", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, fontWeight: 600, marginBottom: "3vh" }}>
+                    <div style={{ fontSize: "clamp(16px, 1.2vw, 24px)", color: "rgba(255,255,255,0.6)", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, fontWeight: 600, marginBottom: "1.5vh" }}>
                       <IconMic size={24} />
                       {state.queue[0].singers?.map(s => (typeof s === "string" ? s : s.name)).join(" e ") || state.queue[0].requestedBy}
                     </div>
-                    <div style={{ display: "flex", gap: 16, justifyContent: "center" }}>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 12, justifyContent: "center" }}>
                       <button
                         onClick={() => {
                           setAutoPlayCountdown(null);
@@ -1514,15 +1523,17 @@ export default function RoomTV() {
                           background: "linear-gradient(135deg, #FF0080, #FF4D6D)",
                           color: "#fff",
                           border: "none",
-                          fontSize: "1.4vw",
-                          padding: "1.5vh 4vw",
+                          fontSize: "clamp(14px, 1.2vw, 20px)",
+                          padding: "1vh 2vw",
                           fontWeight: 800,
                           borderRadius: '999px',
                           textTransform: "uppercase",
-                          letterSpacing: "2px",
+                          letterSpacing: "1px",
                           display: "flex",
                           alignItems: "center",
-                          gap: 12,
+                          minHeight: "44px",
+                          whiteSpace: "nowrap",
+                          gap: 8,
                           boxShadow: "0 0 30px rgba(255, 0, 128, 0.4)",
                           cursor: "pointer",
                           transition: "all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)"
@@ -1546,6 +1557,8 @@ export default function RoomTV() {
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
+                            minHeight: "44px",
+                            whiteSpace: "nowrap",
                             cursor: "pointer",
                             transition: "all 0.2s",
                             boxShadow: isPaused ? "0 0 20px rgba(0, 229, 255, 0.2)" : "none"
@@ -1622,13 +1635,13 @@ export default function RoomTV() {
                                 {item.singers?.map(s => (typeof s === "string" ? s : s.name)).join(" e ") || item.requestedBy}
                               </div>
                             </div>
-                            <div style={{ display: "flex", gap: 10 }}>
-                              <button className="tv-btn-glass" style={{ padding: "10px" }} onClick={() => handleQueueMove(item.id, "up")} title="Subir"><IconChevronUp /></button>
-                              <button className="tv-btn-glass" style={{ padding: "10px" }} onClick={() => handleQueueMove(item.id, "down")} title="Descer"><IconChevronDown /></button>
-                              <button className="tv-btn-glass" style={{ padding: "10px" }} onClick={() => handleQueueToTop(item.id)} title="Mover para o topo"><IconChevronsUp /></button>
+                            <div style={{ display: "flex", gap: 8 }}>
+                              <button className="tv-btn-glass" style={{ padding: "8px", minWidth: "36px", justifyContent: "center" }} onClick={() => handleQueueMove(item.id, "up")} title="Subir"><IconChevronUp /></button>
+                              <button className="tv-btn-glass" style={{ padding: "8px", minWidth: "36px", justifyContent: "center" }} onClick={() => handleQueueMove(item.id, "down")} title="Descer"><IconChevronDown /></button>
+                              <button className="tv-btn-glass" style={{ padding: "8px", minWidth: "36px", justifyContent: "center" }} onClick={() => handleQueueToTop(item.id)} title="Mover para o topo"><IconChevronsUp /></button>
                               <button 
-                                className="tv-btn-glass" 
-                                style={{ padding: "10px", color: "rgba(255,80,80,0.6)" }} 
+                                className="tv-btn-glass tv-btn-trash" 
+                                style={{ padding: "8px", minWidth: "36px", justifyContent: "center", color: "rgba(255,80,80,0.8)", borderColor: "rgba(255,80,80,0.3)" }} 
                                 onClick={() => handleQueueRemove(item.id)} 
                                 title="Remover"
                               >
