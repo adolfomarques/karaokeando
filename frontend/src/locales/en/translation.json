@@ -4,9 +4,11 @@
     "enter": "Enter",
     "save": "Save",
     "pause": "Pause",
+    "resume": "Resume",
     "continue": "Continue",
     "skip": "Skip",
     "add": "Add",
+    "confirmRemove": "Do you want to remove this song from the queue?",
     "wait": "Wait",
     "waitAction": "Wait",
     "backToHome": "← Back to home",
@@ -98,7 +100,9 @@
     "songsInQueue": "SONGS IN QUEUE",
     "participants": "Participants",
     "songs": "Songs",
-    "song": "Song"
+    "song": "Song",
+    "resume": "Resume",
+    "pause": "Pause"
   },
   "mobile": {
     "invalidCode": "Go back and enter a valid code.",

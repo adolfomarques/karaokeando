@@ -407,13 +407,16 @@ export default function RoomMobile() {
 
   const sendReaction = (emoji: string) => {
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      wsRef.current.send(
-        JSON.stringify({
-          type: "REACTION",
-          reaction: emoji,
-          name: nickname || user?.name || "Anônimo",
-        })
-      );
+      // Envia 4 reações de uma vez para criar um efeito de "explosão" na TV
+      for (let i = 0; i < 4; i++) {
+        wsRef.current.send(
+          JSON.stringify({
+            type: "REACTION",
+            reaction: emoji,
+            name: nickname || user?.name || "Anônimo",
+          })
+        );
+      }
     }
   };
 
@@ -836,6 +839,7 @@ export default function RoomMobile() {
 
   const handleQueueRemove = async (itemId: string) => {
     if (!code) return;
+    if (!window.confirm(t("common.confirmRemove", "Deseja remover esta música da fila?"))) return;
     try {
       await removeQueueItem(code, itemId, myUserId);
     } catch (err) {
@@ -1005,7 +1009,8 @@ export default function RoomMobile() {
       fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
       paddingBottom: "80px",
       position: "relative",
-      overflowX: "hidden"
+      overflowX: "hidden",
+      overflowY: "auto"
     }}>
       {/* Animated Blobs for depth */}
       <div className="blob blob-1" style={{ top: "10%", left: "5%" }}></div>
