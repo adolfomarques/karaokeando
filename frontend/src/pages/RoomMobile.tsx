@@ -405,6 +405,7 @@ export default function RoomMobile() {
     return () => clearInterval(interval);
   }, [searching, loadingMessages.length]);
 
+  // Floating emojis were removed from mobile (they are now exclusive to TV).
   const sendReaction = (emoji: string) => {
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       wsRef.current.send(
