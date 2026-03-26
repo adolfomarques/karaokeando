@@ -1481,7 +1481,7 @@ export default function RoomTV() {
                       )}&color=000000&bgcolor=ffffff`}
                       alt="QR Code"
                       loading="lazy"
-                      className="w-[85px] h-[85px] md:w-[105px] md:h-[105px] mb-3 object-contain"
+                      className="w-[85px] h-[85px] md:w-[105px] md:h-[105px] mb-4 object-contain"
                       style={{ 
                         borderRadius: "14px", 
                         background: "#fff", 
@@ -1489,7 +1489,7 @@ export default function RoomTV() {
                         boxShadow: "0 0 25px rgba(255, 255, 255, 0.5), 0 0 40px rgba(255, 0, 128, 0.2)"
                       }}
                     />
-                    <div className="text-[#FF0080] text-[0.7rem] md:text-[0.9rem] font-black uppercase tracking-[3px] leading-tight animate-pulse" style={{ textShadow: "0 0 12px rgba(255,0,128,0.4)" }}>
+                    <div className="text-[#FF0080] text-[0.7rem] md:text-[0.9rem] font-black uppercase tracking-[3px] leading-tight animate-pulse" style={{ marginTop: "4px", textShadow: "0 0 12px rgba(255,0,128,0.4)" }}>
                       {t("tv.scanToJoin")}
                     </div>
                   </div>
@@ -1498,7 +1498,7 @@ export default function RoomTV() {
           </header>
 
           {/* Conteúdo principal */}
-          <main className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-8 items-stretch max-w-[1600px] w-full mx-auto min-h-0 overflow-hidden">
+          <main className="flex-1 grid grid-cols-2 gap-8 items-stretch max-w-[1800px] w-full mx-auto min-h-0 overflow-hidden">
             {/* Próxima música / Fila */}
             <div className="tv-glass-card flex flex-col overflow-hidden">
               {state.queue.length > 0 ? (
@@ -1510,7 +1510,7 @@ export default function RoomTV() {
                       </span>
                     </div>
                     <div style={{ 
-                      fontSize: "clamp(20px, 2.2vw, 36px)", 
+                      fontSize: "clamp(18px, 1.8vw, 28px)", 
                       fontWeight: 900, 
                       color: "#fff", 
                       marginBottom: "0.5vh", 
@@ -1523,7 +1523,7 @@ export default function RoomTV() {
                     }}>
                       {state.queue[0].title}
                     </div>
-                    <div style={{ fontSize: "clamp(16px, 1.2vw, 24px)", color: "rgba(255,255,255,0.6)", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, fontWeight: 600, marginBottom: "1.5vh" }}>
+                    <div style={{ fontSize: "clamp(14px, 1vw, 20px)", color: "rgba(255,255,255,0.6)", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, fontWeight: 600, marginBottom: "1.5vh" }}>
                       <IconMic size={24} />
                       {state.queue[0].singers?.map(s => (typeof s === "string" ? s : s.name)).join(" e ") || state.queue[0].requestedBy}
                     </div>
@@ -1642,10 +1642,10 @@ export default function RoomTV() {
                             }}
                           >
                             <div style={{ flex: 1, overflow: "hidden" }}>
-                              <div style={{ fontSize: "1.2rem", fontWeight: 800, color: "#fff", marginBottom: "4px", textTransform: "uppercase" }}>
+                              <div style={{ fontSize: "1rem", fontWeight: 800, color: "#fff", marginBottom: "2px", textTransform: "uppercase" }}>
                                 <TruncatedText text={item.title} maxLength={40} />
                               </div>
-                              <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.95rem", display: "flex", alignItems: "center", gap: "8px" }}>
+                              <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.85rem", display: "flex", alignItems: "center", gap: "8px" }}>
                                 <IconUser size={14} />
                                 {item.singers?.map(s => (typeof s === "string" ? s : s.name)).join(" e ") || item.requestedBy}
                               </div>
@@ -1709,7 +1709,7 @@ export default function RoomTV() {
                 </div>
               </div>
 
-              <div className="flex-1 overflow-hidden" style={{ padding: "3vh" }}>
+              <div className="flex-1 overflow-y-auto custom-scrollbar" style={{ padding: "1vh 3vh 3vh" }}>
               {rankingView === "solo" ? (
                 // Solo ranking
                 Object.keys(state.ranking).length === 0 ? (
@@ -1724,7 +1724,7 @@ export default function RoomTV() {
                       .sort(([, a], [, b]) => b.score - a.score)
                       .map(([odUserId, entry], i) => (
                         <div key={odUserId} className="tv-item-box" style={{ 
-                          display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1.5vh 2.5vh",
+                          display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1vh 2vh",
                           border: i === 0 ? "1px solid #FFD700" : i === 1 ? "1px solid #C0C0C0" : i === 2 ? "1px solid #CD7F32" : "1px solid rgba(255, 255, 255, 0.08)",
                           boxShadow: i === 0 ? "0 0 20px rgba(255, 215, 0, 0.2)" : "none",
                           background: i === 0 ? "rgba(255, 215, 0, 0.05)" : "rgba(255, 255, 255, 0.02)"
@@ -1739,9 +1739,9 @@ export default function RoomTV() {
                             }}>
                               {i + 1}
                             </span>
-                            <span style={{ fontSize: "1.5rem", fontWeight: i < 3 ? 900 : 700, color: "#fff", textTransform: "uppercase" }}>{entry.name}</span>
+                            <span style={{ fontSize: "1.2rem", fontWeight: i < 3 ? 900 : 700, color: "#fff", textTransform: "uppercase" }}>{entry.name}</span>
                           </span>
-                          <span style={{ fontSize: "1.8vw", fontWeight: 900, color: i === 0 ? "#FFD700" : i === 1 ? "#ddd" : i === 2 ? "#cd7f32" : "#FF0080", textShadow: i === 0 ? "0 0 15px rgba(255,215,0,0.5)" : "none" }}>
+                          <span style={{ fontSize: "1.5vw", fontWeight: 900, color: i === 0 ? "#FFD700" : i === 1 ? "#ddd" : i === 2 ? "#cd7f32" : "#FF0080", textShadow: i === 0 ? "0 0 15px rgba(255,215,0,0.5)" : "none" }}>
                             {entry.score} pts
                           </span>
                         </div>
@@ -1761,7 +1761,7 @@ export default function RoomTV() {
                       .sort((a, b) => b.score - a.score)
                       .map((duet, i) => (
                         <div key={duet.names.join("-")} className="tv-item-box" style={{ 
-                          display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1.5vh 2.5vh",
+                          display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1vh 2vh",
                           border: i === 0 ? "1px solid #FFD700" : i === 1 ? "1px solid #C0C0C0" : i === 2 ? "1px solid #CD7F32" : "1px solid rgba(255, 255, 255, 0.08)",
                           boxShadow: i === 0 ? "0 0 20px rgba(255, 215, 0, 0.2)" : "none",
                           background: i === 0 ? "rgba(255, 215, 0, 0.05)" : "rgba(255, 255, 255, 0.02)"
@@ -1776,13 +1776,13 @@ export default function RoomTV() {
                             }}>
                               {i + 1}
                             </span>
-                            <span style={{ fontSize: "1.4rem", fontWeight: i < 3 ? 900 : 700, color: "#fff", textTransform: "uppercase" }}>{duet.names[0]} & {duet.names[1]}</span>
+                            <span style={{ fontSize: "1.1rem", fontWeight: i < 3 ? 900 : 700, color: "#fff", textTransform: "uppercase" }}>{duet.names[0]} & {duet.names[1]}</span>
                           </span>
                           <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
-                            <span style={{ fontSize: "1.8vw", fontWeight: 900, color: i === 0 ? "#FFD700" : i === 1 ? "#ddd" : i === 2 ? "#cd7f32" : "#FF0080", textShadow: i === 0 ? "0 0 15px rgba(255,215,0,0.5)" : "none" }}>
+                            <span style={{ fontSize: "1.5vw", fontWeight: 900, color: i === 0 ? "#FFD700" : i === 1 ? "#ddd" : i === 2 ? "#cd7f32" : "#FF0080", textShadow: i === 0 ? "0 0 15px rgba(255,215,0,0.5)" : "none" }}>
                               {duet.score} pts
                             </span>
-                            <span style={{ fontSize: "0.9rem", color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "1px", fontWeight: 700 }}>
+                            <span style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "1px", fontWeight: 700 }}>
                               {duet.count} {duet.count > 1 ? t("tv.songs", "Músicas") : t("tv.songs", "Música")}
                             </span>
                           </span>
