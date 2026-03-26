@@ -44,22 +44,22 @@ export default function AdminDashboard() {
         </header>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-0 mb-16 stagger-in border border-white/5 bg-white/[0.02]">
-          <div className="admin-card p-10 border-r border-white/5 relative group">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16 stagger-in">
+          <div className="admin-card admin-stat-card p-10 relative group">
             <div className="absolute top-4 right-4 text-[10px] font-mono text-gray-700 uppercase group-hover:text-[#00f5ff] transition-colors">USR_MNG</div>
-            <div className="text-gray-500 text-[10px] font-bold uppercase tracking-widest mb-4">Total de Usuários</div>
+            <div className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-4">Total de Usuários</div>
             <div className="text-6xl font-black neon-text-cyan admin-stat-value text-[#00f5ff]">{stats?.userCount}</div>
             <div className="mt-4 h-1 w-12 bg-[#00f5ff]/20"></div>
           </div>
-          <div className="admin-card p-10 border-r border-white/5 relative group">
+          <div className="admin-card admin-stat-card p-10 relative group">
             <div className="absolute top-4 right-4 text-[10px] font-mono text-gray-700 uppercase group-hover:text-[#00f5ff] transition-colors">RM_CTRL</div>
-            <div className="text-gray-500 text-[10px] font-bold uppercase tracking-widest mb-4">Salas Criadas</div>
+            <div className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-4">Salas Criadas</div>
             <div className="text-6xl font-black text-white admin-stat-value">{stats?.roomCount}</div>
             <div className="mt-4 h-1 w-12 bg-white/10"></div>
           </div>
-          <div className="admin-card p-10 relative group">
+          <div className="admin-card admin-stat-card p-10 relative group">
             <div className="absolute top-4 right-4 text-[10px] font-mono text-gray-700 uppercase group-hover:text-[#00f5ff] transition-colors">LIB_INF</div>
-            <div className="text-gray-500 text-[10px] font-bold uppercase tracking-widest mb-4">Músicas no Cache</div>
+            <div className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-4">Músicas no Cache</div>
             <div className="text-6xl font-black text-white admin-stat-value">{stats?.songCount}</div>
             <div className="mt-4 h-1 w-12 bg-white/10"></div>
           </div>

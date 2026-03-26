@@ -1091,10 +1091,14 @@ async function searchWithYtDlp(
     }
 
     // Fetch blocked channels
-    const blockedChannels = await prisma.blockedChannel.findMany({
-      select: { channelId: true }
-    });
-    const blockedIds = new Set(blockedChannels.map(c => c.channelId));
+    let blockedChannels: string[] = [];
+    try {
+      const blockedData = await prisma.blockedChannel.findMany({ select: { channelId: true } });
+      blockedChannels = blockedData.map(c => c.channelId);
+    } catch (err) {
+      console.error("Error fetching blocked channels, bypassing filter:", err);
+    }
+    const blockedIds = new Set(blockedChannels);
 
     // Check embeddability for all results in parallel (filtering out blocked channels first)
     const filteredRaw = raw.filter(r => !r.channelId || !blockedIds.has(r.channelId));

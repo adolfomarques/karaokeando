@@ -191,24 +191,39 @@ export default async function adminRoutes(app: FastifyInstance) {
   });
 
   // --- BLOCKED CHANNELS MANAGEMENT ---
-  app.get("/api/admin/blocked-channels", { preHandler: [requireAdmin] }, async () => {
-    return prisma.blockedChannel.findMany({ orderBy: { createdAt: "desc" } });
+  app.get("/api/admin/blocked-channels", { preHandler: [requireAdmin] }, async (request, reply) => {
+    try {
+      return await prisma.blockedChannel.findMany({ orderBy: { createdAt: "desc" } });
+    } catch (err) {
+      console.error("Missing table blocked_channels:", err);
+      return [];
+    }
   });
 
-  app.post("/api/admin/blocked-channels", { preHandler: [requireAdmin] }, async (request) => {
-    const { channelId, name } = request.body as { channelId: string; name?: string };
-    if (!channelId) throw new Error("Missing channelId");
-    
-    return prisma.blockedChannel.upsert({
-      where: { channelId },
-      update: { name },
-      create: { channelId, name },
-    });
+  app.post("/api/admin/blocked-channels", { preHandler: [requireAdmin] }, async (request, reply) => {
+    try {
+      const { channelId, name } = request.body as { channelId: string; name?: string };
+      if (!channelId) throw new Error("Missing channelId");
+      
+      return await prisma.blockedChannel.upsert({
+        where: { channelId },
+        update: { name },
+        create: { channelId, name },
+      });
+    } catch (err) {
+      console.error("Database error in blocked-channels:", err);
+      return reply.code(500).send({ error: "Erro ao acessar banco de dados. Verifique as migrações." });
+    }
   });
 
-  app.delete("/api/admin/blocked-channels/:id", { preHandler: [requireAdmin] }, async (request) => {
-    const { id } = request.params as { id: string };
-    await prisma.blockedChannel.delete({ where: { id } });
-    return { success: true };
+  app.delete("/api/admin/blocked-channels/:id", { preHandler: [requireAdmin] }, async (request, reply) => {
+    try {
+      const { id } = request.params as { id: string };
+      await prisma.blockedChannel.delete({ where: { id } });
+      return { success: true };
+    } catch (err) {
+      console.error("Database error in delete blocked-channel:", err);
+      return reply.code(500).send({ error: "Erro ao deletar. Verifique se a tabela existe." });
+    }
   });
 }

@@ -83,9 +83,12 @@ export default function AdminSongs() {
                     <td className="px-10 py-5">
                       <div className="w-24 aspect-video bg-[#050507] border border-white/5 overflow-hidden relative">
                          <img 
-                          src={`https://img.youtube.com/vi/${song.id}/mqdefault.jpg`} 
+                          src={`https://img.youtube.com/vi/${song.videoId}/mqdefault.jpg`} 
                           alt="Thumbnail" 
                           className="w-full h-full object-cover opacity-50 grayscale group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-500"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180"><rect fill="%230d0d12" width="320" height="180"/><text x="160" y="90" text-anchor="middle" fill="%23333" font-family="monospace" font-size="12">NO_THUMBNAIL</text></svg>';
+                          }}
                         />
                          <div className="absolute inset-x-0 bottom-0 bg-[#00f5ff] h-[1px] scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-500"></div>
                       </div>
@@ -111,14 +114,14 @@ export default function AdminSongs() {
                 ))}
                 {filteredSongs.length === 0 && !loading && (
                   <tr>
-                    <td colSpan={5} className="px-10 py-20 text-center text-gray-700 font-mono text-xs uppercase tracking-widest italic">
+                    <td colSpan={4} className="px-10 py-20 text-center text-gray-700 font-mono text-xs uppercase tracking-widest italic">
                       --- DATABASE_EMPTY ---
                     </td>
                   </tr>
                 )}
                 {loading && (
                   <tr>
-                    <td colSpan={5} className="px-10 py-20 text-center">
+                    <td colSpan={4} className="px-10 py-20 text-center">
                       <div className="flex items-center justify-center gap-2">
                         <div className="w-2 h-2 bg-[#00f5ff] animate-ping"></div>
                         <span className="text-gray-500 font-mono text-[10px] uppercase tracking-[0.3em]">Downloading_Registry...</span>

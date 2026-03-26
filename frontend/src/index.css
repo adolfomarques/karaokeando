@@ -53,6 +53,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
+  margin: 0;
 }
 
 /* ── Animated Background Blobs ──────────────────────────── */
@@ -418,10 +419,15 @@ h1, h2, h3 {
   box-shadow: 0 0 20px rgba(0, 245, 255, 0.1);
 }
 
-.admin-sidebar-link {
-  position: relative;
-  transition: all 0.2s;
-  border-radius: 0 !important;
+.admin-layout aside {
+  flex-shrink: 0 !important;
+  width: 280px;
+}
+
+@media (max-width: 767px) {
+  .admin-layout aside {
+    width: 100%;
+  }
 }
 
 .admin-sidebar-link.active {
@@ -429,6 +435,13 @@ h1, h2, h3 {
   color: #00f5ff !important;
   border-left: 4px solid #00f5ff !important;
   box-shadow: none !important;
+}
+
+.admin-stat-card {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  min-height: 180px;
 }
 
 .admin-table-header {
