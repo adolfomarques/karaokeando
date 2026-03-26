@@ -1534,7 +1534,7 @@ export default function RoomMobile() {
                     >
                       <img
                         src={`https://i.ytimg.com/vi/${song.videoId}/default.jpg`}
-                        alt=""
+                        alt="Thumbnail"
                         style={{
                           width: 50,
                           height: 38,
@@ -1782,7 +1782,7 @@ export default function RoomMobile() {
                       width: "28px", height: "28px", borderRadius: "50%", background: i === 0 ? "#FFD700" : "rgba(255,255,255,0.1)",
                       display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.8rem", fontWeight: "900", color: i === 0 ? "#000" : "#fff"
                     }}>{i + 1}</div>
-                    <img src={`https://i.ytimg.com/vi/${song.videoId}/default.jpg`} alt="" style={{ width: "50px", height: "38px", objectFit: "cover", borderRadius: "8px" }} />
+                    <img src={`https://i.ytimg.com/vi/${song.videoId}/default.jpg`} alt="Thumbnail" style={{ width: "50px", height: "38px", objectFit: "cover", borderRadius: "8px" }} />
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: "0.9rem", fontWeight: "700", color: "#fff" }}><TruncatedText text={song.title} maxLength={35} /></div>
                       <div style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.4)" }}>{song.playCount} {song.playCount === 1 ? t("mobile.playTime", "play") : t("mobile.playTimes", "plays")}</div>
@@ -1831,7 +1831,7 @@ export default function RoomMobile() {
                       display: "flex", alignItems: "center", gap: "12px", background: "rgba(255,255,255,0.03)",
                       padding: "12px", borderRadius: "16px", border: "1px solid rgba(255,255,255,0.05)"
                     }}>
-                      <img src={`https://i.ytimg.com/vi/${song.videoId}/default.jpg`} alt="" style={{ width: "50px", height: "38px", objectFit: "cover", borderRadius: "8px" }} />
+                      <img src={`https://i.ytimg.com/vi/${song.videoId}/default.jpg`} alt="Thumbnail" style={{ width: "50px", height: "38px", objectFit: "cover", borderRadius: "8px" }} />
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontSize: "0.9rem", fontWeight: "700", color: "#fff" }}><TruncatedText text={song.title} maxLength={40} /></div>
                         <div style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.4)" }}>{t("mobile.addedBy", "por")} {song.addedBy}</div>

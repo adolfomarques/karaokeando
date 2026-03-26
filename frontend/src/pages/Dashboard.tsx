@@ -268,7 +268,7 @@ export default function Dashboard() {
               <span className="rank">{getRankBadge(i)}</span>
               <img
                 src={`https://i.ytimg.com/vi/${song.videoId}/default.jpg`}
-                alt=""
+                alt="Thumbnail"
                 className="song-thumb"
               />
               <div className="song-info">

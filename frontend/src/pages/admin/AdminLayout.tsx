@@ -21,7 +21,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (!user) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-[#0a0a0c] text-white p-4 text-center">
-        <h1 className="text-2xl font-bold mb-4 text-red-500">{t("admin.restrictedAccess", "Acesso Restrito")}</h1>
+        <h2 className="text-2xl font-bold mb-4 text-red-500">{t("admin.restrictedAccess", "Acesso Restrito")}</h2>
         <p className="mb-6">{t("admin.mustBeLoggedIn", "Você precisa estar logado para acessar esta área.")}</p>
         <button 
           onClick={() => navigate("/login")}
@@ -36,7 +36,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (!user.isAdmin) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-[#0a0a0c] text-white p-4 text-center">
-        <h1 className="text-2xl font-bold mb-4 text-red-500">{t("admin.accessDenied", "Acesso Negado")}</h1>
+        <h2 className="text-2xl font-bold mb-4 text-red-500">{t("admin.accessDenied", "Acesso Negado")}</h2>
         <p className="mb-2">{t("admin.noAdminPrivileges", { email: user.email })}</p>
         <p className="mb-6 text-gray-400">{t("admin.checkDeploy", "Verifique se o deploy do servidor já terminou ou tente sair e entrar novamente.")}</p>
         <button 

@@ -1,8 +1,6 @@
 [build]
-  # Configura a pasta base do frontend
-  base = "frontend"
-  command = "npm run build"
-  publish = "dist"
+  command = "cd frontend && npm install && npm run build"
+  publish = "frontend/dist"
 
 # Redirecionamento obrigatório para que React Router funcione na Netlify
 [[redirects]]

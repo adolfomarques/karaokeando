@@ -41,3 +41,6 @@ coverage/
 # Cache
 .cache/
 .parcel-cache/
+
+# Local Netlify folder
+.netlify

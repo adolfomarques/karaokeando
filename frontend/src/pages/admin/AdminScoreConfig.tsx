@@ -186,7 +186,7 @@ export default function AdminScoreConfig() {
             <div className="lg:col-span-8 grid grid-cols-2 md:grid-cols-3 gap-6 stagger-in">
               {backgrounds.map(bg => (
                 <div key={bg.id} className="group relative aspect-video bg-black border border-white/5 overflow-hidden">
-                  <img src={bg.url} alt="" className="w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700" />
+                  <img src={bg.url} alt="Background" className="w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700" />
                   <div className="absolute inset-0 bg-[#00f5ff]/20 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
                   <div className="absolute bottom-4 right-4 translate-y-4 group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-300 flex gap-2">
                     <button 

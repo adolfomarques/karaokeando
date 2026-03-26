@@ -192,7 +192,7 @@ export default function AdminPlaylists() {
                         <img 
                           className="inline-block h-12 w-12 grayscale group-hover/thumb:grayscale-0 transition-all ring-4 ring-[#0a0a0c] border border-white/10"
                           src={`https://img.youtube.com/vi/${ps.song.id}/mqdefault.jpg`}
-                          alt=""
+                          alt="Thumbnail"
                         />
                       </div>
                     ))}

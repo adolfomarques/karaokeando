@@ -84,7 +84,7 @@ export default function AdminSongs() {
                       <div className="w-24 aspect-video bg-[#050507] border border-white/5 overflow-hidden relative">
                          <img 
                           src={`https://img.youtube.com/vi/${song.id}/mqdefault.jpg`} 
-                          alt="" 
+                          alt="Thumbnail" 
                           className="w-full h-full object-cover opacity-50 grayscale group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-500"
                         />
                          <div className="absolute inset-x-0 bottom-0 bg-[#00f5ff] h-[1px] scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-500"></div>
