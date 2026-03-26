@@ -1,0 +1,11 @@
+[build]
+  # Configura a pasta base do frontend
+  base = "frontend"
+  command = "npm run build"
+  publish = "dist"
+
+# Redirecionamento obrigatório para que React Router funcione na Netlify
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

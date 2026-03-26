@@ -4,15 +4,13 @@ export default function Logo({ width = 336, style = {} }: { width?: number | str
   const { t } = useTranslation();
   return (
     <div 
-      className="logo-container"
+      className="logo-wrapper"
       style={{ 
         display: 'flex', 
         justifyContent: 'center', 
         alignItems: 'center', 
         marginBottom: 12, 
         marginTop: 4,
-        position: 'relative',
-        overflow: 'hidden', // Required for the shimmer effect
         animation: 'fadeInLogo 1.2s ease-out forwards',
         ...style 
       }}
@@ -34,7 +32,32 @@ export default function Logo({ width = 336, style = {} }: { width?: number | str
           20%, 100% { transform: translateX(200%) skewX(-20deg); }
         }
 
-        .logo-container::after {
+        .logo-inner-container {
+          position: relative;
+          display: inline-block;
+          transition: transform 0.3s ease-in-out;
+          cursor: pointer;
+        }
+
+        .shimmer-mask {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          pointer-events: none;
+          -webkit-mask-image: url('/logo.png');
+          -webkit-mask-size: contain;
+          -webkit-mask-repeat: no-repeat;
+          -webkit-mask-position: center;
+          mask-image: url('/logo.png');
+          mask-size: contain;
+          mask-repeat: no-repeat;
+          mask-position: center;
+          z-index: 3;
+        }
+
+        .shimmer-mask::after {
           content: "";
           position: absolute;
           top: 0;
@@ -44,30 +67,34 @@ export default function Logo({ width = 336, style = {} }: { width?: number | str
           background: linear-gradient(
             to right,
             transparent,
-            rgba(255, 255, 255, 0.15),
+            rgba(255, 255, 255, 0.25),
             transparent
           );
           transform: skewX(-20deg);
           animation: shimmer 6s infinite ease-in-out;
-          pointer-events: none;
         }
       `}</style>
-      <img
-        src="/logo.png"
-        alt={t("home.title", "KARAOKE FACTORY")}
-        style={{ 
-          width, 
-          maxWidth: '100%', 
-          height: 'auto', 
-          objectFit: 'contain',
-          animation: 'pulseGlow 4s infinite ease-in-out',
-          transition: 'transform 0.3s ease-in-out',
-          cursor: 'pointer',
-          zIndex: 2,
-        }}
+      <div 
+        className="logo-inner-container" 
+        style={{ width, maxWidth: '100%' }}
         onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
         onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
-      />
+      >
+        <img
+          src="/logo.png"
+          alt={t("home.title", "KARAOKE FACTORY")}
+          style={{ 
+            width: '100%', 
+            height: 'auto', 
+            objectFit: 'contain',
+            animation: 'pulseGlow 4s infinite ease-in-out',
+            display: 'block',
+            position: 'relative',
+            zIndex: 2,
+          }}
+        />
+        <div className="shimmer-mask"></div>
+      </div>
     </div>
   );
 }
