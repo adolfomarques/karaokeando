@@ -54,6 +54,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { label: t("admin.songs", "Músicas"), path: "/admin/songs" },
     { label: t("admin.playlists", "Playlists"), path: "/admin/playlists" },
     { label: t("admin.scoreConfig", "Configuração de Score"), path: "/admin/score-config" },
+    { label: t("admin.blockedChannels", "Canais Bloqueados"), path: "/admin/blocked-channels" },
   ];
 
   return (

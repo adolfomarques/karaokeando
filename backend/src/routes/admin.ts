@@ -189,4 +189,26 @@ export default async function adminRoutes(app: FastifyInstance) {
     await prisma.playlist.delete({ where: { id } });
     return { success: true };
   });
+
+  // --- BLOCKED CHANNELS MANAGEMENT ---
+  app.get("/api/admin/blocked-channels", { preHandler: [requireAdmin] }, async () => {
+    return prisma.blockedChannel.findMany({ orderBy: { createdAt: "desc" } });
+  });
+
+  app.post("/api/admin/blocked-channels", { preHandler: [requireAdmin] }, async (request) => {
+    const { channelId, name } = request.body as { channelId: string; name?: string };
+    if (!channelId) throw new Error("Missing channelId");
+    
+    return prisma.blockedChannel.upsert({
+      where: { channelId },
+      update: { name },
+      create: { channelId, name },
+    });
+  });
+
+  app.delete("/api/admin/blocked-channels/:id", { preHandler: [requireAdmin] }, async (request) => {
+    const { id } = request.params as { id: string };
+    await prisma.blockedChannel.delete({ where: { id } });
+    return { success: true };
+  });
 }

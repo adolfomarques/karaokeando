@@ -427,11 +427,13 @@ export default function RoomTV() {
   const [tvToken, setTvToken] = useState<string | null>(null);
   const [hasInteracted, setHasInteracted] = useState(false);
   const [autoPlayCountdown, setAutoPlayCountdown] = useState<number | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [participantsCount, setParticipantsCount] = useState<number>(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [reactions, setReactions] = useState<Reaction[]>([]);
+  const [recentlyMoved, setRecentlyMoved] = useState<string[]>([]);
   const [reconnectKey, setReconnectKey] = useState(0);
   const isTransitioningRef = useRef(false);
   const wsRef = useRef<WebSocket | null>(null);
@@ -564,9 +566,13 @@ export default function RoomTV() {
   const [ytReady, setYtReady] = useState(!!window.YT);
 
   const handleQueueRemove = useCallback(
-    async (itemId: string) => {
+    async (itemId: string, songTitle?: string) => {
       if (!code) return;
+      const title = songTitle || "esta música";
+      if (!window.confirm(`Remover "${title}" da fila?`)) return;
+      setDeletingId(itemId);
       await removeQueueItem(code, itemId, undefined, tvToken).catch(() => { });
+      setDeletingId(null);
     },
     [code, tvToken]
   );
@@ -574,14 +580,25 @@ export default function RoomTV() {
   const handleQueueMove = useCallback(
     async (itemId: string, direction: "up" | "down") => {
       if (!code) return;
+      setRecentlyMoved([itemId, direction]);
       await moveQueueItem(code, itemId, direction, undefined, tvToken).catch(() => { });
     },
     [code, tvToken]
   );
 
+  useEffect(() => {
+    if (recentlyMoved.length > 0) {
+      const timer = setTimeout(() => {
+        setRecentlyMoved([]);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [recentlyMoved]);
+
   const handleQueueToTop = useCallback(
     async (itemId: string) => {
       if (!code) return;
+      setRecentlyMoved([itemId, "up"]);
       await queueItemToTop(code, itemId, undefined, tvToken).catch(() => { });
     },
     [code, tvToken]
@@ -1326,9 +1343,10 @@ export default function RoomTV() {
               -webkit-backdrop-filter: blur(24px);
               border: 1px solid rgba(255, 255, 255, 0.08);
               border-radius: 24px;
-              box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+              box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), 0 0 30px rgba(255, 0, 128, 0.08);
               overflow: hidden;
               animation: slideIn 0.8s ease-out forwards;
+              padding: 24px;
             }
             .tv-header-separator {
               padding-bottom: 2vh;
@@ -1380,12 +1398,30 @@ export default function RoomTV() {
               background: rgba(255, 255, 255, 0.02);
               border: 1px solid rgba(255, 255, 255, 0.05);
               border-radius: 16px;
-              padding: 1.5vh 2.5vh;
+              padding: 12px 16px;
               transition: all 0.3s ease;
+              line-height: 1.4;
+              min-height: 60px;
             }
             .tv-item-box:hover {
                 border-color: rgba(255, 0, 128, 0.3);
                 background: rgba(255, 255, 255, 0.04);
+            }
+            .tv-item-box.moved {
+                animation: slideUp 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+            }
+            @keyframes slideUp {
+                0% { opacity: 0.5; transform: translateY(10px); }
+                50% { background: rgba(255, 0, 128, 0.15); border-color: rgba(255, 0, 128, 0.5); }
+                100% { opacity: 1; transform: translateY(0); }
+            }
+            .tv-item-box.moving-down {
+                animation: slideDown 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+            }
+            @keyframes slideDown {
+                0% { opacity: 0.5; transform: translateY(-10px); }
+                50% { background: rgba(255, 0, 128, 0.15); border-color: rgba(255, 0, 128, 0.5); }
+                100% { opacity: 1; transform: translateY(0); }
             }
             .tv-background-blobs {
                 position: fixed;
@@ -1423,94 +1459,90 @@ export default function RoomTV() {
           `}</style>
           
           {/* Header */}
-          <header className="w-full flex justify-between items-center gap-4 mb-2 md:mb-12 px-2 md:px-0 shrink-0">
-            {/* Esquerda: Logout */}
-            <div className="flex-1 flex justify-start">
+          <header className="w-full flex justify-between items-start gap-4 px-2 md:px-0 shrink-0">
+            {/* Esquerda: Logout - menor e mais discreto */}
+            <div className="flex justify-start" style={{ paddingTop: 8 }}>
                 <button
                     onClick={() => navigate("/")}
                     style={{
-                    background: "rgba(255, 255, 255, 0.05)",
-                    border: "1px solid rgba(255, 255, 255, 0.1)",
+                    background: "rgba(255, 255, 255, 0.03)",
+                    border: "1px solid rgba(255, 255, 255, 0.08)",
                     borderRadius: "999px",
-                    padding: "10px 24px",
-                    color: "rgba(255, 255, 255, 0.6)",
-                    fontSize: "0.85rem",
-                    fontWeight: 700,
+                    padding: "6px 14px",
+                    color: "rgba(255, 255, 255, 0.4)",
+                    fontSize: "0.7rem",
+                    fontWeight: 600,
                     cursor: "pointer",
                     display: "flex",
                     alignItems: "center",
-                    gap: 8,
+                    gap: 6,
                     transition: "all 0.3s ease",
                     textTransform: "uppercase",
                     letterSpacing: "1px"
                     }}
                     onMouseEnter={e => {
-                        e.currentTarget.style.background = "rgba(255, 255, 255, 0.1)";
+                        e.currentTarget.style.background = "rgba(255, 255, 255, 0.08)";
                         e.currentTarget.style.color = "#fff";
-                        e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.2)";
                     }}
                     onMouseLeave={e => {
-                        e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)";
-                        e.currentTarget.style.color = "rgba(255, 255, 255, 0.6)";
-                        e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.1)";
+                        e.currentTarget.style.background = "rgba(255, 255, 255, 0.03)";
+                        e.currentTarget.style.color = "rgba(255, 255, 255, 0.4)";
                     }}
                 >
-                    <IconSkipBack size={14} />
+                    <IconSkipBack size={12} />
                     {t("auth.logout", "Sair")}
                 </button>
             </div>
 
             {/* Centro: Logo e Room Code */}
-            <div className="flex-1 flex flex-col items-center justify-center gap-1">
-                <div className="w-48 md:w-64"><Logo width="100%" /></div>
-                <div className="flex items-center gap-2 text-xl md:text-2xl text-white tracking-widest mt-0">
-                    <span className="opacity-40 font-light" style={{ fontSize: '0.8em' }}>ROOM:</span>
-                    <span className="tv-neon-text font-black text-2xl md:text-4xl">{code}</span>
+            <div className="flex-1 flex flex-col items-center justify-start" style={{ maxWidth: '180px', marginTop: -10 }}>
+                <div style={{ transform: 'scale(0.45)', transformOrigin: 'center top', width: '336px', marginBottom: '-120px' }}><Logo /></div>
+                <div className="flex items-center gap-3 text-white tracking-[0.2em]" style={{ paddingBottom: 20, paddingTop: 8 }}>
+                    <span className="opacity-50 font-light" style={{ fontSize: '1.5em', letterSpacing: '0.15em' }}>ROOM</span>
+                    <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: '1.2em' }}>—</span>
+                    <span className="tv-neon-text font-black" style={{ fontSize: 24, fontWeight: 'bold', color: '#FF0080', textShadow: '0 0 15px rgba(255,0,128,0.5)' }}>{code}</span>
                 </div>
             </div>
             
             {/* Direita: QR Code */}
-            <div className="flex-1 flex justify-end">
-              <div className="tv-glass-card flex h-[130px] md:h-[155px] w-full max-w-[200px] md:max-w-[280px] p-3 md:p-6 items-center justify-center border-l border-white/10" style={{
-                  boxShadow: "inset 0 0 40px rgba(255, 0, 128, 0.05), 0 10px 40px rgba(0,0,0,0.4)"
+            <div className="flex justify-end" style={{ paddingTop: 8 }}>
+              <div style={{
+                  background: "rgba(255, 255, 255, 0.03)",
+                  backdropFilter: "blur(12px)",
+                  padding: 8,
+                  borderRadius: 12,
+                  border: "1px solid rgba(255, 255, 255, 0.08)",
               }}>
-                  <div className="flex flex-col items-center justify-center text-center">
-                    <img
-                      src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(
-                        window.location.origin + "/join/" + code
-                      )}&color=000000&bgcolor=ffffff`}
-                      alt="QR Code"
-                      loading="lazy"
-                      className="w-[85px] h-[85px] md:w-[105px] md:h-[105px] mb-4 object-contain"
-                      style={{ 
-                        borderRadius: "14px", 
-                        background: "#fff", 
-                        padding: "6px",
-                        boxShadow: "0 0 25px rgba(255, 255, 255, 0.5), 0 0 40px rgba(255, 0, 128, 0.2)"
-                      }}
-                    />
-                    <div className="text-[#FF0080] text-[0.7rem] md:text-[0.9rem] font-black uppercase tracking-[3px] leading-tight animate-pulse" style={{ marginTop: "4px", textShadow: "0 0 12px rgba(255,0,128,0.4)" }}>
-                      {t("tv.scanToJoin")}
-                    </div>
-                  </div>
+                  <img
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${encodeURIComponent(
+                      window.location.origin + "/join/" + code
+                    )}&color=000000&bgcolor=ffffff`}
+                    alt="QR"
+                    loading="lazy"
+                    style={{ width: 110, height: 110, borderRadius: 8, background: "rgb(255, 255, 255)", padding: 4 }}
+                  />
               </div>
             </div>
           </header>
 
           {/* Conteúdo principal */}
-          <main className="flex-1 grid grid-cols-2 gap-8 items-stretch max-w-[1800px] w-full mx-auto min-h-0 overflow-hidden">
+          <main className="flex-1 grid grid-cols-2 gap-8 items-stretch max-w-[1800px] w-full mx-auto min-h-0 overflow-hidden" style={{ gap: 32 }}>
             {/* Próxima música / Fila */}
             <div className="tv-glass-card flex flex-col overflow-hidden">
               {state.queue.length > 0 ? (
                 <>
-                  <div className="tv-header-separator" style={{ padding: "2vh 3vh", textAlign: "center" }}>
-                    <div style={{ fontSize: "1.2rem", color: "#FF0080", textTransform: "uppercase", letterSpacing: "2px", fontWeight: 800, marginBottom: "0.5vh" }}>
-                      <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px" }}>
-                        <IconMusic size={20} /> {t("tv.nextSong", "PRÓXIMA MÚSICA")}
+                  <div className="tv-header-separator" style={{ padding: "1.5vh 3vh", textAlign: "center" }}>
+                    <div style={{ fontSize: "1rem", color: "#FF0080", textTransform: "uppercase", letterSpacing: "3px", fontWeight: 900, marginBottom: "8px", display: "flex", alignItems: "center", justifyContent: "center", gap: "12px" }}>
+                      <IconMusic size={16} /> 
+                      <span>{t("tv.nextSong", "PRÓXIMA MÚSICA")}</span>
+                      <span style={{ color: "rgba(255,255,255,0.15)", fontSize: "0.8rem" }}>—</span>
+                      <span style={{ color: "#fff", fontWeight: 600, fontSize: "0.95rem", display: "flex", alignItems: "center", gap: 6 }}>
+                        <IconMic size={14} />
+                        {state.queue[0].singers?.map(s => (typeof s === "string" ? s : s.name)).join(" e ") || state.queue[0].requestedBy}
                       </span>
                     </div>
                     <div style={{ 
-                      fontSize: "clamp(18px, 1.8vw, 28px)", 
+                      fontSize: "clamp(18px, 1.8vw, 20px)", 
                       fontWeight: 900, 
                       color: "#fff", 
                       marginBottom: "0.5vh", 
@@ -1523,10 +1555,6 @@ export default function RoomTV() {
                     }}>
                       {state.queue[0].title}
                     </div>
-                    <div style={{ fontSize: "clamp(14px, 1vw, 20px)", color: "rgba(255,255,255,0.6)", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, fontWeight: 600, marginBottom: "1.5vh" }}>
-                      <IconMic size={24} />
-                      {state.queue[0].singers?.map(s => (typeof s === "string" ? s : s.name)).join(" e ") || state.queue[0].requestedBy}
-                    </div>
                     <div style={{ display: "flex", flexWrap: "wrap", gap: 12, justifyContent: "center" }}>
                       <button
                         onClick={() => {
@@ -1538,23 +1566,23 @@ export default function RoomTV() {
                           background: "linear-gradient(135deg, #FF0080, #FF4D6D)",
                           color: "#fff",
                           border: "none",
-                          fontSize: "clamp(14px, 1.2vw, 20px)",
-                          padding: "1vh 2vw",
+                          fontSize: "clamp(12px, 1vw, 16px)",
+                          padding: "8px 16px",
                           fontWeight: 800,
                           borderRadius: '999px',
                           textTransform: "uppercase",
                           letterSpacing: "1px",
                           display: "flex",
                           alignItems: "center",
-                          minHeight: "44px",
+                          minHeight: "36px",
                           whiteSpace: "nowrap",
-                          gap: 8,
-                          boxShadow: "0 0 30px rgba(255, 0, 128, 0.4)",
+                          gap: 6,
+                          boxShadow: "0 0 20px rgba(255, 0, 128, 0.4)",
                           cursor: "pointer",
                           transition: "all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)"
                         }}
                       >
-                        <IconPlay size={24} />
+                        <IconPlay size={18} />
                         {autoPlayCountdown !== null
                           ? `${t("mobile.start", "Iniciar")} (${autoPlayCountdown}s)`
                           : t("mobile.start", "Iniciar")}
@@ -1568,11 +1596,11 @@ export default function RoomTV() {
                             color: isPaused ? "#00e5ff" : "rgba(255, 255, 255, 0.6)",
                             border: `1px solid ${isPaused ? "#00e5ff" : "rgba(255, 255, 255, 0.1)"}`,
                             borderRadius: '999px',
-                            padding: "1vh 2vw",
+                            padding: "8px 14px",
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
-                            minHeight: "44px",
+                            minHeight: "36px",
                             whiteSpace: "nowrap",
                             cursor: "pointer",
                             transition: "all 0.2s",
@@ -1588,10 +1616,11 @@ export default function RoomTV() {
                       )}
 
                       <button
-                        onClick={() => handleQueueRemove(state.queue[0].id)}
+                        onClick={() => handleQueueRemove(state.queue[0].id, state.queue[0].title)}
+                        disabled={deletingId === state.queue[0].id}
                         style={{
                           background: "rgba(255, 255, 255, 0.05)",
-                          color: "rgba(255, 255, 255, 0.4)",
+                          color: deletingId === state.queue[0].id ? "rgba(255,0,0,0.8)" : "rgba(255, 255, 255, 0.4)",
                           border: "1px solid rgba(255, 255, 255, 0.1)",
                           borderRadius: '999px',
                           padding: "1vh 2vw",
@@ -1613,27 +1642,31 @@ export default function RoomTV() {
                         }}
                         title="Remover da fila"
                       >
-                        <IconTrash size={28} />
+                        <IconTrash size={20} />
                       </button>
                     </div>
                   </div>
 
                   {state.queue.length > 1 && (
-                    <div className="flex-1 overflow-y-auto custom-scrollbar" style={{ padding: "1vh 3vh 3vh" }}>
+                    <div className="flex-1 overflow-y-auto custom-scrollbar" style={{ padding: "12px 20px", maxHeight: "400px" }}>
                       <style>{`
                         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
                         .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); border-radius: 10px; }
                         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,0,128,0.3); border-radius: 10px; }
                         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,0,128,0.5); }
                       `}</style>
-                      <h3 style={{ margin: "0 0 2vh", fontSize: "1rem", color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "2px", fontWeight: 700 }}>
+                      <h3 style={{ margin: "0 0 12px", fontSize: "1rem", color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "2px", fontWeight: 700 }}>
                         {t("tv.queueTitle")} ({state.queue.length - 1} {t("tv.remaining")})
                       </h3>
-                      <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                        {state.queue.slice(1, 6).map((item) => (
-                          <div
-                            key={item.id}
-                            className="tv-item-box"
+                      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                        {state.queue.slice(1, 7).map((item) => {
+                            const isMoved = recentlyMoved[0] === item.id;
+                            const moveDirection = isMoved ? recentlyMoved[1] : null;
+                            const animClass = isMoved ? (moveDirection === "up" ? "moved" : "moving-down") : "";
+                            return (
+                              <div
+                                key={item.id}
+                                className={`tv-item-box ${animClass}`}
                             style={{
                               display: "flex",
                               justifyContent: "space-between",
@@ -1642,29 +1675,30 @@ export default function RoomTV() {
                             }}
                           >
                             <div style={{ flex: 1, overflow: "hidden" }}>
-                              <div style={{ fontSize: "1rem", fontWeight: 800, color: "#fff", marginBottom: "2px", textTransform: "uppercase" }}>
+                              <div style={{ fontSize: "0.9rem", fontWeight: 800, color: "#fff", marginBottom: "2px", textTransform: "uppercase" }}>
                                 <TruncatedText text={item.title} maxLength={40} />
                               </div>
-                              <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.85rem", display: "flex", alignItems: "center", gap: "8px" }}>
+                              <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.8rem", display: "flex", alignItems: "center", gap: "8px" }}>
                                 <IconUser size={14} />
                                 {item.singers?.map(s => (typeof s === "string" ? s : s.name)).join(" e ") || item.requestedBy}
                               </div>
                             </div>
-                            <div style={{ display: "flex", gap: 8 }}>
-                              <button className="tv-btn-glass" style={{ padding: "8px", minWidth: "36px", justifyContent: "center" }} onClick={() => handleQueueMove(item.id, "up")} title="Subir"><IconChevronUp /></button>
-                              <button className="tv-btn-glass" style={{ padding: "8px", minWidth: "36px", justifyContent: "center" }} onClick={() => handleQueueMove(item.id, "down")} title="Descer"><IconChevronDown /></button>
-                              <button className="tv-btn-glass" style={{ padding: "8px", minWidth: "36px", justifyContent: "center" }} onClick={() => handleQueueToTop(item.id)} title="Mover para o topo"><IconChevronsUp /></button>
-                              <button 
-                                className="tv-btn-glass tv-btn-trash" 
-                                style={{ padding: "8px", minWidth: "36px", justifyContent: "center", color: "rgba(255,80,80,0.8)", borderColor: "rgba(255,80,80,0.3)" }} 
-                                onClick={() => handleQueueRemove(item.id)} 
+                            <div style={{ display: "flex", gap: 6 }}>
+                              <button className="tv-btn-glass" style={{ padding: 8, minWidth: 36, minHeight: 36, justifyContent: "center" }} onClick={() => handleQueueMove(item.id, "up")} title="Subir"><IconChevronUp /></button>
+                              <button className="tv-btn-glass" style={{ padding: 8, minWidth: 36, minHeight: 36, justifyContent: "center" }} onClick={() => handleQueueMove(item.id, "down")} title="Descer"><IconChevronDown /></button>
+                              <button className="tv-btn-glass" style={{ padding: 8, minWidth: 36, minHeight: 36, justifyContent: "center" }} onClick={() => handleQueueToTop(item.id)} title="Mover para o topo"><IconChevronsUp /></button>
+                              <button className="tv-btn-glass tv-btn-trash" 
+                                style={{ padding: 8, minWidth: 36, minHeight: 36, justifyContent: "center", color: deletingId === item.id ? "rgba(255,0,0,0.8)" : "rgba(255,255,255,0.8)", borderColor: "rgba(255,80,80,0.3)" }} 
+                                onClick={() => handleQueueRemove(item.id, item.title)} 
                                 title="Remover"
+                                disabled={deletingId === item.id}
                               >
                                 <IconTrash />
                               </button>
                             </div>
                           </div>
-                        ))}
+                        );
+                      })}
                       </div>
                       {state.queue.length > 6 && (
                         <div style={{ color: "rgba(255,255,255,0.2)", marginTop: 24, textAlign: "center", fontWeight: 700, fontSize: "1rem", letterSpacing: "2px" }}>

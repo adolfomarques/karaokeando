@@ -97,3 +97,12 @@ model PlaylistSong {
   @@id([playlistId, songId])
   @@map("playlist_songs")
 }
+
+model BlockedChannel {
+  id        String   @id @default(uuid())
+  channelId String   @unique @map("channel_id")
+  name      String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("blocked_channels")
+}

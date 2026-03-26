@@ -23,6 +23,7 @@ const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const AdminSongs = lazy(() => import("./pages/admin/AdminSongs"));
 const AdminPlaylists = lazy(() => import("./pages/admin/AdminPlaylists"));
 const AdminScoreConfig = lazy(() => import("./pages/admin/AdminScoreConfig"));
+const AdminBlockedChannels = lazy(() => import("./pages/admin/AdminBlockedChannels"));
 
 function PageLoader() {
   return (
@@ -65,6 +66,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
               <Route path="/admin/songs" element={<AdminSongs />} />
               <Route path="/admin/playlists" element={<AdminPlaylists />} />
               <Route path="/admin/score-config" element={<AdminScoreConfig />} />
+              <Route path="/admin/blocked-channels" element={<AdminBlockedChannels />} />
               <Route path="/old-admin" element={<Dashboard />} />
             </Routes>
           </Suspense>

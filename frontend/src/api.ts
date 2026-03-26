@@ -389,6 +389,13 @@ export interface AdminPhrase {
   createdAt: string;
 }
 
+export interface AdminBlockedChannel {
+  id: string;
+  channelId: string;
+  name: string | null;
+  createdAt: string;
+}
+
 export async function getAdminStats(): Promise<AdminStats> {
   const token = localStorage.getItem("karaokefactory_token");
   const res = await fetch(`${API_BASE}/api/admin/stats`, {
@@ -504,6 +511,36 @@ export async function updateAdminPhrase(id: string, phrase: string, minScore: nu
 export async function deleteAdminPhrase(id: string) {
   const token = localStorage.getItem("karaokefactory_token");
   const res = await fetch(`${API_BASE}/api/admin/phrases/${id}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.json();
+}
+
+export async function getAdminBlockedChannels(): Promise<AdminBlockedChannel[]> {
+  const token = localStorage.getItem("karaokefactory_token");
+  const res = await fetch(`${API_BASE}/api/admin/blocked-channels`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.json();
+}
+
+export async function addAdminBlockedChannel(channelId: string, name?: string) {
+  const token = localStorage.getItem("karaokefactory_token");
+  const res = await fetch(`${API_BASE}/api/admin/blocked-channels`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ channelId, name }),
+  });
+  return res.json();
+}
+
+export async function deleteAdminBlockedChannel(id: string) {
+  const token = localStorage.getItem("karaokefactory_token");
+  const res = await fetch(`${API_BASE}/api/admin/blocked-channels/${id}`, {
     method: "DELETE",
     headers: { Authorization: `Bearer ${token}` },
   });

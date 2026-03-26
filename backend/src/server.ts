@@ -1038,6 +1038,7 @@ interface YouTubeSearchResult {
   title: string;
   thumbnail: string;
   channelTitle: string;
+  channelId?: string;
   isEmbeddable?: boolean;
 }
 
@@ -1082,16 +1083,25 @@ async function searchWithYtDlp(
           title: j.title || "(sem título)",
           thumbnail: `https://i.ytimg.com/vi/${j.id}/mqdefault.jpg`,
           channelTitle: j.channel || j.uploader || "",
+          channelId: j.channel_id || j.uploader_id || "",
         });
       } catch {
         // skip invalid JSON lines
       }
     }
 
-    // Check embeddability for all results in parallel
-    const embeddableFlags = await Promise.all(raw.map(r => checkEmbeddable(r.videoId)));
+    // Fetch blocked channels
+    const blockedChannels = await prisma.blockedChannel.findMany({
+      select: { channelId: true }
+    });
+    const blockedIds = new Set(blockedChannels.map(c => c.channelId));
 
-    const results: YouTubeSearchResult[] = raw.map((r, i) => ({
+    // Check embeddability for all results in parallel (filtering out blocked channels first)
+    const filteredRaw = raw.filter(r => !r.channelId || !blockedIds.has(r.channelId));
+    
+    const embeddableFlags = await Promise.all(filteredRaw.map(r => checkEmbeddable(r.videoId)));
+
+    const results: YouTubeSearchResult[] = filteredRaw.map((r, i) => ({
       ...r,
       isEmbeddable: embeddableFlags[i],
     }));
@@ -1302,6 +1312,8 @@ app.get<{ Querystring: { key?: string } }>(
     return { activeRooms };
   }
 );
+
+// Blocked Channels routes moved to routes/admin.ts
 
 // WebSocket
 app.get<{ Params: { roomCode: string } }>(
