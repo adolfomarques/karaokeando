@@ -218,22 +218,6 @@ const IconSkipForward = ({ size = 16 }: { size?: number }) => (
   </svg>
 );
 
-const IconX = ({ size = 16 }: { size?: number }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <line x1="18" y1="6" x2="6" y2="18"></line>
-    <line x1="6" y1="6" x2="18" y2="18"></line>
-  </svg>
-);
-
 const IconTrendingUp = ({ size = 16 }: { size?: number }) => (
   <svg
     width={size}
@@ -1011,6 +995,7 @@ export default function RoomMobile() {
       {/* Animated Blobs for depth */}
       <div className="blob blob-1" style={{ top: "10%", left: "5%" }}></div>
       <div className="blob blob-2" style={{ bottom: "20%", right: "10%" }}></div>
+      {/* Removed obsolete mobile-header-left style */}
       {/* Header Sticky Glass */}
       <div style={{
         position: "sticky",
@@ -1026,8 +1011,7 @@ export default function RoomMobile() {
         justifyContent: "space-between",
         gap: "12px"
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <Logo width={110} />
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", flex: 1 }} className="mobile-header-left">
           <div style={{
             background: "rgba(255, 0, 128, 0.1)",
             color: "#FF0080",
@@ -1041,8 +1025,17 @@ export default function RoomMobile() {
             {code}
           </div>
         </div>
+        <div style={{ 
+          position: "absolute", 
+          left: "50%", 
+          transform: "translateX(-50%)", 
+          display: "flex", 
+          alignItems: "center" 
+        }}>
+          <Logo width={110} />
+        </div>
 
-        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+        <div style={{ display: "flex", gap: "8px", alignItems: "center", flex: 1, justifyContent: "flex-end" }}>
           <button
             onClick={() => setShowNameModal(true)}
             style={{
@@ -1870,9 +1863,32 @@ export default function RoomMobile() {
           position: "fixed", inset: 0, background: "rgba(0,0,0,0.9)", backdropFilter: "blur(15px)",
           WebkitBackdropFilter: "blur(15px)", display: "flex", flexDirection: "column", padding: "20px", zIndex: 3000
         }}>
-          <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "16px" }}>
-            <button onClick={() => setPreviewVideo(null)} style={{ background: "rgba(255,255,255,0.1)", borderRadius: "50%", width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center", border: "none" }}>
-              <IconX size={24} />
+          <div style={{ position: "relative", width: "100%", display: "flex", justifyContent: "flex-end" }}>
+            <button 
+              onClick={() => setPreviewVideo(null)} 
+              style={{ 
+                position: "absolute",
+                top: "16px",
+                right: "16px",
+                width: "40px", 
+                height: "40px",
+                padding: "0",
+                borderRadius: "50%",
+                backgroundColor: "rgba(255, 255, 255, 0.15)",
+                display: "flex", 
+                alignItems: "center", 
+                justifyContent: "center", 
+                border: "1px solid rgba(255, 255, 255, 0.2)",
+                cursor: "pointer",
+                zIndex: 100,
+                overflow: "hidden",
+                transition: "background-color 0.2s ease"
+              }}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
             </button>
           </div>
           <div className="glass-card" style={{ padding: "20px", border: "1px solid rgba(255,255,255,0.1)" }}>
@@ -1889,7 +1905,7 @@ export default function RoomMobile() {
               onClick={() => { handleAddFromSearch(previewVideo); setPreviewVideo(null); }}
               disabled={adding === previewVideo.videoId || cooldownRemaining > 0}
               className="glow-pulse"
-              style={{ width: "100%", padding: "16px", fontWeight: "700", background: "#FF0080", borderRadius: "12px", border: "none", color: "#fff" }}
+              style={{ width: "100%", padding: "16px", fontWeight: "700", background: "#FF0080", borderRadius: "12px", border: "none", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}
             >
               {adding === previewVideo.videoId ? "..." : <><IconPlus size={20} /> {t("mobile.addToQueue", "Adicionar à Fila")}</>}
             </button>
