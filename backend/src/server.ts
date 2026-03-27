@@ -42,39 +42,7 @@ initYoutube();
 // Prevents spawning duplicate yt-dlp processes for the same query.
 // ─────────────────────────────────────────────────────────────
 
-const CACHE_TTL_MS = 30 * 60 * 1000; // 30 minutes
-
-const CACHE_FILE = "search_cache.json";
-
-interface CacheEntry {
-  results: YouTubeSearchResult[];
-  expiresAt: number;
-}
-
-// Results cache: key = normalized query string
-let searchCache = new Map<string, CacheEntry>();
-
-async function loadSearchCache() {
-  try {
-    const data = await fs.readFile(CACHE_FILE, "utf-8");
-    const parsed = JSON.parse(data);
-    searchCache = new Map(Object.entries(parsed));
-    console.log(`[cache] Loaded ${searchCache.size} search cache entries from disk`);
-  } catch {
-    // no existing cache or invalid format
-  }
-}
-
-async function saveSearchCache() {
-  try {
-    const obj = Object.fromEntries(searchCache);
-    await fs.writeFile(CACHE_FILE, JSON.stringify(obj), "utf-8");
-  } catch (err) {
-    console.error("[cache] Failed to save search cache to disk", err);
-  }
-}
-
-loadSearchCache();
+const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours persistent cache
 
 // In-flight deduplication: same query that's still in progress shares one Promise
 const inFlightSearches = new Map<string, Promise<YouTubeSearchResult[]>>();
@@ -159,22 +127,23 @@ function isSearchRateLimited(ip: string): boolean {
   return entry.count > SEARCH_RATE_LIMIT;
 }
 
-// Housekeeping: clear expired entries every 10 minutes and flush to disk
-setInterval(() => {
+// Housekeeping: clean expired rate limits and DB search cache
+setInterval(async () => {
   const now = Date.now();
-  let changed = false;
-  for (const [key, entry] of searchCache.entries()) {
-    if (now > entry.expiresAt) {
-      searchCache.delete(key);
-      changed = true;
-    }
-  }
-  if (changed) saveSearchCache().catch(() => {});
-  // Also clean up rate limit map
+  // Clean rate limit map
   for (const [ip, entry] of searchRateMap.entries()) {
     if (now > entry.resetAt) searchRateMap.delete(ip);
   }
-}, 10 * 60 * 1000).unref();
+  // Clean DB search cache (expired entries)
+  try {
+    const deleted = await prisma.searchCache.deleteMany({
+      where: { expiresAt: { lt: new Date() } }
+    });
+    if (deleted.count > 0) console.log(`[housekeeping] Removed ${deleted.count} expired search cache entries from DB.`);
+  } catch (err) {
+    console.error("[housekeeping] DB Error", err);
+  }
+}, 30 * 60 * 1000).unref();
 
 // ─────────────────────────────────────────────────────────────
 
@@ -1209,9 +1178,22 @@ async function searchWithInnertube(
       isEmbeddable: embeddableFlags[i],
     })).filter(r => r.isEmbeddable === true).slice(0, 12);
 
-    // Store in cache before returning
-    searchCache.set(cacheKey, { results: final, expiresAt: Date.now() + CACHE_TTL_MS });
-    saveSearchCache().catch(() => {});
+    // Store in DB cache before returning (ignoring errors)
+    try {
+      await prisma.searchCache.upsert({
+        where: { query: cacheKey },
+        update: { 
+          results: final as any, 
+          expiresAt: new Date(Date.now() + CACHE_TTL_MS) 
+        },
+        create: {
+          query: cacheKey,
+          results: final as any,
+          expiresAt: new Date(Date.now() + CACHE_TTL_MS)
+        }
+      });
+    } catch {}
+
     return final;
   } catch (err) {
     console.error("[youtubei search error]", err);
@@ -1244,14 +1226,16 @@ app.get<{ Querystring: { q: string; userId?: string; roomCode?: string } }>(
     const searchTerm = query + " karaoke";
     const cacheKey = searchTerm.toLowerCase();
 
-    // 1) Cache hit → return immediately with cache headers (but filter for safety)
-    const cached = searchCache.get(cacheKey);
-    if (cached && Date.now() < cached.expiresAt) {
-      console.log(`[search] CACHE HIT: "${query}"`);
-      const remainingTtl = Math.floor((cached.expiresAt - Date.now()) / 1000);
-      reply.header("Cache-Control", `public, max-age=${remainingTtl}, stale-while-revalidate=60`);
-      // Re-filter just in case old cache entries have non-embeddable videos
-      return cached.results.filter(r => r.isEmbeddable === true);
+    // 1) DB Cache hit → check persistent storage
+    try {
+      const cached = await prisma.searchCache.findUnique({ where: { query: cacheKey } });
+      if (cached && new Date() < cached.expiresAt) {
+        console.log(`[search] DB CACHE HIT: "${query}"`);
+        reply.header("Cache-Control", `public, max-age=3600, stale-while-revalidate=600`);
+        return (cached.results as any[]).filter(r => r.isEmbeddable === true);
+      }
+    } catch (err) {
+      console.error("[search] DB Cache Error", err);
     }
 
     // 2) Deduplicate in-flight requests for the same query
@@ -1629,26 +1613,7 @@ const PREWARM_QUERIES = [
 ];
 
 async function prewarmSearchCache() {
-  console.log(`[cache] Pre-warming cache with ${PREWARM_QUERIES.length} popular songs...`);
-  let warmed = 0;
-  for (const query of PREWARM_QUERIES) {
-    const cacheKey = query.toLowerCase();
-    // Skip if already cached
-    if (searchCache.has(cacheKey)) {
-      warmed++;
-      continue;
-    }
-    try {
-      await searchWithInnertube(query, cacheKey);
-      warmed++;
-      console.log(`[cache] Pre-warmed ${warmed}/${PREWARM_QUERIES.length}: "${query}"`);
-      // Small delay between queries to avoid YouTube rate-limit
-      await new Promise(r => setTimeout(r, 3000));
-    } catch (err) {
-      console.error(`[cache] Failed to pre-warm: "${query}"`, err);
-    }
-  }
-  console.log(`[cache] Pre-warming complete: ${warmed}/${PREWARM_QUERIES.length} queries cached.`);
+  console.log(`[cache] Pre-warming logic disabled (now persistent in DB).`);
 }
 
 // Start

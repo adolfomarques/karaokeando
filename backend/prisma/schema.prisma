@@ -106,3 +106,14 @@ model BlockedChannel {
 
   @@map("blocked_channels")
 }
+
+model SearchCache {
+  id        String   @id @default(uuid())
+  query     String   @unique
+  results   Json
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([query])
+  @@map("search_cache")
+}
