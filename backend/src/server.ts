@@ -66,6 +66,52 @@ loadSearchCache();
 // In-flight deduplication: same query that's still in progress shares one Promise
 const inFlightSearches = new Map<string, Promise<YouTubeSearchResult[]>>();
 
+// ─────────────────────────────────────────────────────────────
+// Concurrency Limiter: max 3 yt-dlp processes at once
+// Prevents CPU exhaustion on single-core Render free tier
+// ─────────────────────────────────────────────────────────────
+const YT_DLP_MAX_CONCURRENT = 3;
+let ytDlpActiveCount = 0;
+const ytDlpQueue: Array<{ resolve: () => void }> = [];
+
+async function acquireYtDlpSlot(): Promise<void> {
+  if (ytDlpActiveCount < YT_DLP_MAX_CONCURRENT) {
+    ytDlpActiveCount++;
+    return;
+  }
+  return new Promise<void>((resolve) => {
+    ytDlpQueue.push({ resolve });
+  });
+}
+
+function releaseYtDlpSlot(): void {
+  if (ytDlpQueue.length > 0) {
+    const next = ytDlpQueue.shift()!;
+    next.resolve();
+  } else {
+    ytDlpActiveCount--;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// Per-IP Search Rate Limiter: max 10 searches per minute
+// ─────────────────────────────────────────────────────────────
+const SEARCH_RATE_LIMIT = 10;
+const SEARCH_RATE_WINDOW_MS = 60_000;
+const searchRateMap = new Map<string, { count: number; resetAt: number }>();
+
+function isSearchRateLimited(ip: string): boolean {
+  const now = Date.now();
+  let entry = searchRateMap.get(ip);
+  if (!entry || now > entry.resetAt) {
+    entry = { count: 1, resetAt: now + SEARCH_RATE_WINDOW_MS };
+    searchRateMap.set(ip, entry);
+    return false;
+  }
+  entry.count++;
+  return entry.count > SEARCH_RATE_LIMIT;
+}
+
 // Housekeeping: clear expired entries every 10 minutes and flush to disk
 setInterval(() => {
   const now = Date.now();
@@ -77,6 +123,10 @@ setInterval(() => {
     }
   }
   if (changed) saveSearchCache().catch(() => {});
+  // Also clean up rate limit map
+  for (const [ip, entry] of searchRateMap.entries()) {
+    if (now > entry.resetAt) searchRateMap.delete(ip);
+  }
 }, 10 * 60 * 1000).unref();
 
 // ─────────────────────────────────────────────────────────────
@@ -1061,16 +1111,21 @@ async function checkEmbeddable(videoId: string): Promise<boolean> {
 
 // Search YouTube using yt-dlp (same method as PiKaraoke).
 // Fetches extra results so we can filter/sort by embeddability via oEmbed.
+// Uses a semaphore to limit concurrent yt-dlp processes (CPU protection).
 async function searchWithYtDlp(
   query: string,
   cacheKey: string
 ): Promise<YouTubeSearchResult[]> {
-  const numResults = 40; // Fetch much more to have high chance of finding 12 embeddable ones
+  const numResults = 40;
   const safeQuery = query.replace(/[`$\\]/g, "\\$&").replace(/"/g, '\\"');
   const cmd = `yt-dlp -j --no-playlist --flat-playlist "ytsearch${numResults}:${safeQuery}"`;
 
+  // Wait for a slot in the concurrency limiter
+  await acquireYtDlpSlot();
+  console.log(`[yt-dlp] Slot acquired for "${query}" (${ytDlpActiveCount}/${YT_DLP_MAX_CONCURRENT} active)`);
+
   try {
-    const { stdout } = await execAsync(cmd, { timeout: 30000 });
+    const { stdout } = await execAsync(cmd, { timeout: 45000 });
 
     const raw: YouTubeSearchResult[] = [];
     for (const line of stdout.split("\n")) {
@@ -1121,6 +1176,8 @@ async function searchWithYtDlp(
     console.error("[yt-dlp search error]", err);
     return [];
   } finally {
+    // Release the semaphore slot
+    releaseYtDlpSlot();
     // Remove in-flight entry regardless of success/failure
     inFlightSearches.delete(cacheKey);
   }
@@ -1132,6 +1189,13 @@ app.get<{ Querystring: { q: string } }>(
   async (req, reply) => {
     const query = (req.query.q || "").trim();
     if (!query) return reply.code(400).send({ error: "missing_query" });
+
+    // Rate limit per IP
+    const clientIp = req.ip || "unknown";
+    if (isSearchRateLimited(clientIp)) {
+      console.log(`[search] RATE LIMITED: IP ${clientIp}`);
+      return reply.code(429).send({ error: "rate_limited", message: "Too many searches. Try again in a minute." });
+    }
 
     const searchTerm = query + " karaoke";
     const cacheKey = searchTerm.toLowerCase();
@@ -1496,6 +1560,56 @@ app.get<{ Params: { roomCode: string } }>(
   }
 );
 
+// ─────────────────────────────────────────────────────────────
+// Cache Pre-warming: Popular karaoke songs
+// Runs on startup to fill the cache so first searches are instant
+// ─────────────────────────────────────────────────────────────
+const PREWARM_QUERIES = [
+  "bohemian rhapsody karaoke",
+  "despacito karaoke",
+  "someone like you karaoke",
+  "shallow karaoke",
+  "dont stop believin karaoke",
+  "hotel california karaoke",
+  "sweet home alabama karaoke",
+  "take on me karaoke",
+  "africa toto karaoke",
+  "wonderwall karaoke",
+  "billie jean karaoke",
+  "sweet caroline karaoke",
+  "dancing queen abba karaoke",
+  "i will survive karaoke",
+  "dont stop me now queen karaoke",
+  "livin on a prayer karaoke",
+  "eye of the tiger karaoke",
+  "total eclipse of the heart karaoke",
+  "killing me softly karaoke",
+  "summer nights grease karaoke",
+];
+
+async function prewarmSearchCache() {
+  console.log(`[cache] Pre-warming cache with ${PREWARM_QUERIES.length} popular songs...`);
+  let warmed = 0;
+  for (const query of PREWARM_QUERIES) {
+    const cacheKey = query.toLowerCase();
+    // Skip if already cached
+    if (searchCache.has(cacheKey)) {
+      warmed++;
+      continue;
+    }
+    try {
+      await searchWithYtDlp(query, cacheKey);
+      warmed++;
+      console.log(`[cache] Pre-warmed ${warmed}/${PREWARM_QUERIES.length}: "${query}"`);
+      // Small delay between queries to avoid YouTube rate-limit
+      await new Promise(r => setTimeout(r, 3000));
+    } catch (err) {
+      console.error(`[cache] Failed to pre-warm: "${query}"`, err);
+    }
+  }
+  console.log(`[cache] Pre-warming complete: ${warmed}/${PREWARM_QUERIES.length} queries cached.`);
+}
+
 // Start
 const PORT = parseInt(process.env.PORT || "8787", 10);
 app.listen({ port: PORT, host: "0.0.0.0" }, err => {
@@ -1504,4 +1618,6 @@ app.listen({ port: PORT, host: "0.0.0.0" }, err => {
     process.exit(1);
   }
   console.log(`🎤 KaraokeFactory backend running on http://localhost:${PORT}`);
+  // Pre-warm cache in background (non-blocking)
+  setTimeout(() => prewarmSearchCache().catch(console.error), 5000);
 });

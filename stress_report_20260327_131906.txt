@@ -1,0 +1,94 @@
+====================================================================
+         🎤 KARAOKE FACTORY — STRESS TEST REPORT
+====================================================================
+  Date/Time   : 2026-03-27 13:19:06
+  Room        : F9J
+  Target Users: 50
+  Total Duration: 58.8s
+
+── REGISTRATION ──────────────────────────────────────────────
+  Successful  : 18 / 50  (36%)
+  Failed      : 32
+  Avg time    : 10.81s
+  P50/P90/P99 : 8.17s  /  23.80s  /  24.81s
+  Min / Max   : 0.29s  /  24.82s
+
+── WEBSOCKET ─────────────────────────────────────────────────
+  Connected   : 0 / 18  (0%)
+  WS Errors   : 18
+
+── YOUTUBE SEARCH ────────────────────────────────────────────
+  Completed   : 13 / 150  (9%)
+  Errors      : 41
+  Total Videos: 0 returned
+  Avg time    : 28.49s
+  P50/P90/P99 : 31.95s  /  34.39s  /  34.59s
+  Min / Max   : 1.93s  /  35.45s
+
+── ERROR LOG ─────────────────────────────────────────────────
+  [WS ERR #1] AttributeError: module 'asyncio' has no attribute 'timeout'
+  [WS ERR #3] AttributeError: module 'asyncio' has no attribute 'timeout'
+  [WS ERR #5] AttributeError: module 'asyncio' has no attribute 'timeout'
+  [REG ERR #2] HTTP 500
+  [REG ERR #4] HTTP 500
+  [REG ERR #6] HTTP 500
+  [WS ERR #9] AttributeError: module 'asyncio' has no attribute 'timeout'
+  [REG ERR #7] HTTP 500
+  [REG ERR #8] HTTP 500
+  [REG ERR #10] HTTP 500
+  [REG ERR #11] HTTP 500
+  [REG ERR #13] HTTP 500
+  [REG ERR #21] HTTP 500
+  [REG ERR #15] HTTP 500
+  [REG ERR #17] HTTP 500
+  [REG ERR #27] HTTP 500
+  [REG ERR #26] HTTP 500
+  [REG ERR #30] HTTP 500
+  [REG ERR #34] HTTP 500
+  [REG ERR #19] HTTP 500
+  [WS ERR #12] AttributeError: module 'asyncio' has no attribute 'timeout'
+  [REG ERR #35] HTTP 500
+  [REG ERR #36] HTTP 500
+  [REG ERR #20] HTTP 500
+  [REG ERR #37] HTTP 500
+  [REG ERR #41] HTTP 500
+  [WS ERR #14] AttributeError: module 'asyncio' has no attribute 'timeout'
+  [REG ERR #23] HTTP 500
+  [WS ERR #24] AttributeError: module 'asyncio' has no attribute 'timeout'
+  [REG ERR #29] HTTP 500
+  [WS ERR #16] AttributeError: module 'asyncio' has no attribute 'timeout'
+  [REG ERR #31] HTTP 500
+  [REG ERR #33] HTTP 500
+  [REG ERR #38] HTTP 500
+  [REG ERR #39] HTTP 500
+  [REG ERR #43] HTTP 500
+  [WS ERR #32] AttributeError: module 'asyncio' has no attribute 'timeout'
+  [WS ERR #18] AttributeError: module 'asyncio' has no attribute 'timeout'
+  [WS ERR #40] AttributeError: module 'asyncio' has no attribute 'timeout'
+  [WS ERR #22] AttributeError: module 'asyncio' has no attribute 'timeout'
+  ... and 51 more
+
+── ANALYSIS & RECOMMENDATIONS ────────────────────────────────
+  🔴 CRITICAL — Registration failure rate is very high.
+     Root cause: Supabase free tier limited to 30 simultaneous connections.
+     Fix: Add DATABASE_URL with ?connection_limit=5 or upgrade Supabase.
+  🟡 WARNING  — Avg registration time: 10.8s (too slow).
+     Cause: bcrypt CPU load + DB latency. Consider bcrypt rounds=8.
+  🔴 CRITICAL — Only 0% WebSocket connections succeeded.
+     Render free tier: 1 instance, ~512MB RAM, max ~25 stable WS conns.
+     Fix: Upgrade Render to Starter ($7/mo) for stable 50+ WS connections.
+  🔴 CRITICAL — Search extremely slow: 28.5s avg.
+     yt-dlp spawns a subprocess per query — at 50 concurrent users
+     this will queue up and timeout. Fix: Expand search cache or use pre-built index.
+  🔴 CRITICAL — High search error rate (>15%).
+     YouTube likely rate-limiting your Render IP.
+     Fix: Pre-populate cache with common queries at server startup.
+
+── TOP 6 IMPROVEMENTS FOR FREE INFRA ────────────────────────
+  1. 🔌 Add ?connection_limit=5 to DATABASE_URL (PgBouncer mode fix).
+  2. ⚡ Pre-warm search cache at startup (popular karaoke songs list).
+  3. 🔄 Add UptimeRobot pinging /health every 5min to prevent sleep.
+  4. 🌐 Upgrade Render to Starter ($7/mo) for stable 50 WS connections.
+  5. 📊 Add per-user search rate limiting (max 5 searches/min/user).
+  6. 🗃️  Cache search results in localStorage on frontend (reduce API calls).
+====================================================================

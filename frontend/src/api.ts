@@ -16,7 +16,7 @@ export const API_BASE =
     : "");
 
 // ─────────────────────────────────────────────────────────────
-// YouTube Search
+// YouTube Search (with localStorage cache)
 // ─────────────────────────────────────────────────────────────
 
 export interface YouTubeSearchResult {
@@ -27,16 +27,65 @@ export interface YouTubeSearchResult {
   isEmbeddable?: boolean;
 }
 
+const SEARCH_CACHE_TTL = 30 * 60 * 1000; // 30 minutes
+const SEARCH_CACHE_PREFIX = "yt_search_";
+const SEARCH_CACHE_MAX_ENTRIES = 50;
+
+function getCachedSearch(query: string): YouTubeSearchResult[] | null {
+  try {
+    const key = SEARCH_CACHE_PREFIX + query.toLowerCase().trim();
+    const raw = localStorage.getItem(key);
+    if (!raw) return null;
+    const { results, expiresAt } = JSON.parse(raw);
+    if (Date.now() > expiresAt) {
+      localStorage.removeItem(key);
+      return null;
+    }
+    return results;
+  } catch {
+    return null;
+  }
+}
+
+function setCachedSearch(query: string, results: YouTubeSearchResult[]): void {
+  try {
+    const key = SEARCH_CACHE_PREFIX + query.toLowerCase().trim();
+    const data = { results, expiresAt: Date.now() + SEARCH_CACHE_TTL };
+    localStorage.setItem(key, JSON.stringify(data));
+    // Evict oldest entries if over limit
+    const keys = Object.keys(localStorage).filter(k => k.startsWith(SEARCH_CACHE_PREFIX));
+    if (keys.length > SEARCH_CACHE_MAX_ENTRIES) {
+      keys.sort();
+      for (let i = 0; i < keys.length - SEARCH_CACHE_MAX_ENTRIES; i++) {
+        localStorage.removeItem(keys[i]);
+      }
+    }
+  } catch {
+    // localStorage full or unavailable — ignore
+  }
+}
+
 export async function searchYouTube(
   query: string,
   signal?: AbortSignal
 ): Promise<YouTubeSearchResult[]> {
+  // Check localStorage cache first
+  const cached = getCachedSearch(query);
+  if (cached && cached.length > 0) return cached;
+
   const res = await fetch(
     `${API_BASE}/api/youtube/search?q=${encodeURIComponent(query)}`,
     { signal }
   );
   if (!res.ok) return [];
-  return res.json();
+  const results = await res.json();
+
+  // Cache results for future use
+  if (Array.isArray(results) && results.length > 0) {
+    setCachedSearch(query, results);
+  }
+
+  return results;
 }
 
 export async function getVideoInfo(
