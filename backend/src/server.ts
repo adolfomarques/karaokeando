@@ -12,6 +12,7 @@ import roomRoutes, {
   recordRoomVisit,
 } from "./routes/rooms.js";
 import adminRoutes from "./routes/admin.js";
+import { Innertube, UniversalCache } from 'youtubei.js';
 import { verifyToken, UserTokenPayload, TvTokenPayload } from "./lib/auth.js";
 import prisma from "./lib/prisma.js";
 import {
@@ -23,6 +24,18 @@ import {
 } from "./lib/songs.js";
 
 const execAsync = promisify(exec);
+
+// Initialize Innertube client
+let youtube: Innertube;
+async function initYoutube() {
+  try {
+    youtube = await Innertube.create({ cache: new UniversalCache(false), generate_session_locally: true });
+    console.log("📺 Native YouTube client (youtubei.js) initialized.");
+  } catch (err) {
+    console.error("❌ Failed to initialize youtubei.js", err);
+  }
+}
+initYoutube();
 
 // ─────────────────────────────────────────────────────────────
 // YouTube Search Cache
@@ -67,10 +80,9 @@ loadSearchCache();
 const inFlightSearches = new Map<string, Promise<YouTubeSearchResult[]>>();
 
 // ─────────────────────────────────────────────────────────────
-// Concurrency Limiter: max 3 yt-dlp processes at once
-// Prevents CPU exhaustion on single-core Render free tier
+// Concurrency Limiter: Now much higher as youtubei.js is efficient
 // ─────────────────────────────────────────────────────────────
-const YT_DLP_MAX_CONCURRENT = 3;
+const YT_DLP_MAX_CONCURRENT = 10;
 let ytDlpActiveCount = 0;
 const ytDlpQueue: Array<{
   resolve: () => void;
@@ -1144,41 +1156,35 @@ async function checkEmbeddable(videoId: string): Promise<boolean> {
   }
 }
 
-// Search YouTube using yt-dlp (same method as PiKaraoke).
-// Fetches extra results so we can filter/sort by embeddability via oEmbed.
-// Uses a semaphore to limit concurrent yt-dlp processes (CPU protection).
-async function searchWithYtDlp(
+// Search YouTube using youtubei.js (InnerTube API).
+async function searchWithInnertube(
   query: string,
   cacheKey: string,
   userId?: string,
   roomCode?: string
 ): Promise<YouTubeSearchResult[]> {
-  const numResults = 40;
-  const safeQuery = query.replace(/[`$\\]/g, "\\$&").replace(/"/g, '\\"');
-  const cmd = `yt-dlp -j --no-playlist --flat-playlist "ytsearch${numResults}:${safeQuery}"`;
-
-  // Wait for a slot in the concurrency limiter
+  // Wait for a slot in the concurrency limiter (just to prevent absolute spam)
   await acquireYtDlpSlot(userId, roomCode);
-  console.log(`[yt-dlp] Slot acquired for "${query}" (${ytDlpActiveCount}/${YT_DLP_MAX_CONCURRENT} active)`);
+  console.log(`[youtubei] Slot acquired for "${query}" (${ytDlpActiveCount}/${YT_DLP_MAX_CONCURRENT} active)`);
 
   try {
-    const { stdout } = await execAsync(cmd, { timeout: 45000 });
+    if (!youtube) await initYoutube();
+    
+    const search = await youtube.search(query, { type: 'video' });
+    const results: YouTubeSearchResult[] = [];
 
-    const raw: YouTubeSearchResult[] = [];
-    for (const line of stdout.split("\n")) {
-      if (line.trim().length < 2) continue;
-      try {
-        const j = JSON.parse(line);
-        if (!j.id) continue;
-        raw.push({
-          videoId: j.id,
-          title: j.title || "(sem título)",
-          thumbnail: `https://i.ytimg.com/vi/${j.id}/mqdefault.jpg`,
-          channelTitle: j.channel || j.uploader || "",
-          channelId: j.channel_id || j.uploader_id || "",
+    // Filter and map results
+    const videos = search.videos.filter(v => v.type === 'Video').slice(0, 20);
+
+    for (const video of videos) {
+      if ('id' in video && video.id) {
+        results.push({
+          videoId: video.id,
+          title: (video as any).title?.text || "",
+          thumbnail: (video as any).thumbnails?.[0]?.url || `https://i.ytimg.com/vi/${video.id}/mqdefault.jpg`,
+          channelTitle: (video as any).author?.name || "",
+          channelId: (video as any).author?.id || "",
         });
-      } catch {
-        // skip invalid JSON lines
       }
     }
 
@@ -1192,25 +1198,24 @@ async function searchWithYtDlp(
     }
     const blockedIds = new Set(blockedChannels);
 
-    // Check embeddability for all results in parallel (filtering out blocked channels first)
-    const filteredRaw = raw.filter(r => !r.channelId || !blockedIds.has(r.channelId));
+    // Filter blocked and check embeddability
+    const filteredResults = results.filter(r => !r.channelId || !blockedIds.has(r.channelId));
     
-    const embeddableFlags = await Promise.all(filteredRaw.map(r => checkEmbeddable(r.videoId)));
+    // oEmbed check still needed for strict licensing/embed policy verification
+    const embeddableFlags = await Promise.all(filteredResults.map(r => checkEmbeddable(r.videoId)));
 
-    const results: YouTubeSearchResult[] = filteredRaw.map((r, i) => ({
+    const final = filteredResults.map((r, i) => ({
       ...r,
       isEmbeddable: embeddableFlags[i],
-    }));
-
-    // Filter out non-embeddable videos and return top 12
-    const final = results.filter(r => r.isEmbeddable === true).slice(0, 12);
+    })).filter(r => r.isEmbeddable === true).slice(0, 12);
 
     // Store in cache before returning
     searchCache.set(cacheKey, { results: final, expiresAt: Date.now() + CACHE_TTL_MS });
     saveSearchCache().catch(() => {});
     return final;
   } catch (err) {
-    console.error("[yt-dlp search error]", err);
+    console.error("[youtubei search error]", err);
+    // Fallback to yt-dlp if youtubei fails? (optional)
     return [];
   } finally {
     // Release the semaphore slot
@@ -1262,9 +1267,9 @@ app.get<{ Querystring: { q: string; userId?: string; roomCode?: string } }>(
       }
     }
 
-    // 3) New search — spawn yt-dlp and register as in-flight
-    console.log(`[search] NEW SEARCH: "${query}" (userId: ${userId}, room: ${roomCode})`);
-    const promise = searchWithYtDlp(searchTerm, cacheKey, userId, roomCode);
+    // 3) New search — use native youtubei and register as in-flight
+    console.log(`[search] NEW NATIVE SEARCH: "${query}" (userId: ${userId}, room: ${roomCode})`);
+    const promise = searchWithInnertube(searchTerm, cacheKey, userId, roomCode);
     inFlightSearches.set(cacheKey, promise);
 
     try {
@@ -1295,17 +1300,14 @@ app.get<{ Querystring: { videoId: string } }>(
     }
 
     try {
-      // Use yt-dlp to get video title
-      const cmd = `yt-dlp -j --no-playlist "https://www.youtube.com/watch?v=${videoId}"`;
-
-      const { stdout } = await execAsync(cmd, { timeout: 12000 });
-      const info = JSON.parse(stdout);
+      if (!youtube) await initYoutube();
+      const info = await youtube.getInfo(videoId);
 
       const result = {
         videoId,
-        title: info.title || "",
-        thumbnail: `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`,
-        channelTitle: info.channel || info.uploader || "",
+        title: info.basic_info.title || "",
+        thumbnail: info.basic_info.thumbnail?.[0]?.url || `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`,
+        channelTitle: info.basic_info.author || "",
       };
 
       // Cache for 1 hour
@@ -1313,7 +1315,7 @@ app.get<{ Querystring: { videoId: string } }>(
       reply.header("Cache-Control", "public, max-age=3600");
       return result;
     } catch {
-      // Return basic info even if yt-dlp fails (not cached)
+      // Fallback basic info
       return {
         videoId,
         title: "",
@@ -1637,7 +1639,7 @@ async function prewarmSearchCache() {
       continue;
     }
     try {
-      await searchWithYtDlp(query, cacheKey);
+      await searchWithInnertube(query, cacheKey);
       warmed++;
       console.log(`[cache] Pre-warmed ${warmed}/${PREWARM_QUERIES.length}: "${query}"`);
       // Small delay between queries to avoid YouTube rate-limit
