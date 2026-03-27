@@ -152,7 +152,9 @@
     "playTime": "play",
     "playTimes": "plays",
     "addedBy": "by",
-    "embedDisabledWarning": "This video may not play in the app"
+    "embedDisabledWarning": "This video may not play in the app",
+    "manySearching": "Many people searching now...",
+    "searchQueuePosition": "You are position {{position}} of {{total}} in the search queue."
   },
   "tvLogin": {
     "title": "📺 TV Mode",

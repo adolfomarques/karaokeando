@@ -152,7 +152,9 @@
     "playTime": "vez",
     "playTimes": "vezes",
     "addedBy": "por",
-    "embedDisabledWarning": "Este vídeo pode não funcionar no app"
+    "embedDisabledWarning": "Este vídeo pode não funcionar no app",
+    "manySearching": "Muitas pessoas pesquisando agora...",
+    "searchQueuePosition": "Você é o {{position}}º de {{total}} na fila de busca."
   },
   "tvLogin": {
     "title": "📺 Modo TV",

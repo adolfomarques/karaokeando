@@ -366,6 +366,8 @@ export default function RoomMobile() {
   const [modalPartner, setModalPartner] = useState<string>(""); // Partner ID selected in modal
   const [cooldownRemaining, setCooldownRemaining] = useState<number>(0);
   const [reconnectKey, setReconnectKey] = useState(0); // Para forçar reconexão do WS
+  const [searchQueuePosition, setSearchQueuePosition] = useState<number | null>(null);
+  const [searchQueueTotal, setSearchQueueTotal] = useState<number | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchAbortRef = useRef<AbortController | null>(null);
@@ -397,6 +399,7 @@ export default function RoomMobile() {
           type: "REACTION",
           reaction: emoji,
           name: nickname || user?.name || "Anônimo",
+          userId: myUserId
         })
       );
     }
@@ -530,6 +533,10 @@ export default function RoomMobile() {
           });
         } else if (m.type === "PARTICIPANTS" && m.participants) {
           setParticipants(m.participants);
+        } else if (m.type === "SEARCH_QUEUE_POSITION") {
+          const mq = m as any as { position: number, total: number };
+          setSearchQueuePosition(mq.position);
+          setSearchQueueTotal(mq.total);
         } else if (m.type === "NICKNAME_ASSIGNED" && m.nickname) {
           setNickname(m.nickname);
           if (m.wasModified) {
@@ -649,6 +656,7 @@ export default function RoomMobile() {
     if (!query) return;
 
     setSearchError(null);
+    setSearchQueuePosition(null);
     setSearching(true);
 
     // Check if it's a YouTube link
@@ -683,6 +691,7 @@ export default function RoomMobile() {
         ]);
       }
       setSearching(false);
+      setSearchQueuePosition(null);
       return;
     }
 
@@ -694,13 +703,14 @@ export default function RoomMobile() {
     if (libMatches.length > 0) {
       setSearchResults([]);
       setSearching(false);
+      setSearchQueuePosition(null);
       return;
     }
 
     // No saved songs match - search YouTube
     setSearchResults([]);
     try {
-      const results = await searchYouTube(query, abortSignal);
+      const results = await searchYouTube(query, abortSignal, myUserId, code);
       if (abortSignal.aborted) return;
       if (results.length === 0) {
         setSearchError(
@@ -716,7 +726,8 @@ export default function RoomMobile() {
       );
     }
     setSearching(false);
-  }, [customTitle, songLibrary, t]);
+    setSearchQueuePosition(null);
+  }, [customTitle, songLibrary, t, myUserId, code]);
 
   const triggerDebouncedSearch = useCallback((query: string) => {
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
@@ -744,12 +755,13 @@ export default function RoomMobile() {
     if (!query) return;
 
     setSearchError(null);
+    setSearchQueuePosition(null);
     setSearching(true);
     setSearchResults([]);
 
     searchAbortRef.current = new AbortController();
     try {
-      const results = await searchYouTube(query, searchAbortRef.current.signal);
+      const results = await searchYouTube(query, searchAbortRef.current.signal, myUserId, code);
       if (results.length === 0) {
         setSearchError(t("mobile.noSongFound", "No song found on YouTube."));
       }
@@ -759,6 +771,7 @@ export default function RoomMobile() {
       setSearchError(t("mobile.searchError", "Search error. Try again."));
     }
     setSearching(false);
+    setSearchQueuePosition(null);
   };
 
   // Opens modal to choose solo/duet for search result
@@ -1585,9 +1598,31 @@ export default function RoomMobile() {
             {/* Resultados da busca */}
             {searching && (
               <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 8 }}>
-                <p className="pulse-text" style={{ color: "var(--accent)", textAlign: "center", marginBottom: 8, fontWeight: 500 }}>
-                  {loadingMessages[loadingStep]}
-                </p>
+                {searchQueuePosition && searchQueuePosition > 1 ? (
+                  <div style={{ 
+                    padding: "16px", 
+                    background: "rgba(230, 126, 34, 0.1)", 
+                    border: "1px solid rgba(230, 126, 34, 0.3)", 
+                    borderRadius: "12px",
+                    textAlign: "center",
+                    marginBottom: 8,
+                    animation: "pulse 2s infinite"
+                  }}>
+                    <p style={{ color: "#e67e22", margin: 0, fontWeight: 700, fontSize: "0.95rem" }}>
+                      ⚠️ {t("mobile.manySearching", "Many people searching...")}
+                    </p>
+                    <p style={{ color: "rgba(255,255,255,0.7)", margin: "4px 0 0", fontSize: "0.85rem" }}>
+                      {t("mobile.searchQueuePosition", { 
+                        position: searchQueuePosition, 
+                        total: searchQueueTotal 
+                      })}
+                    </p>
+                  </div>
+                ) : (
+                  <p className="pulse-text" style={{ color: "var(--accent)", textAlign: "center", marginBottom: 8, fontWeight: 500 }}>
+                    {loadingMessages[loadingStep]}
+                  </p>
+                )}
                 {[1, 2, 3].map((i) => (
                   <div key={i} className="shimmer" style={{ height: 80, width: "100%" }} />
                 ))}

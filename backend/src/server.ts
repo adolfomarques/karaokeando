@@ -72,15 +72,23 @@ const inFlightSearches = new Map<string, Promise<YouTubeSearchResult[]>>();
 // ─────────────────────────────────────────────────────────────
 const YT_DLP_MAX_CONCURRENT = 3;
 let ytDlpActiveCount = 0;
-const ytDlpQueue: Array<{ resolve: () => void }> = [];
+const ytDlpQueue: Array<{
+  resolve: () => void;
+  userId?: string;
+  roomCode?: string;
+}> = [];
 
-async function acquireYtDlpSlot(): Promise<void> {
+async function acquireYtDlpSlot(userId?: string, roomCode?: string): Promise<void> {
   if (ytDlpActiveCount < YT_DLP_MAX_CONCURRENT) {
     ytDlpActiveCount++;
     return;
   }
   return new Promise<void>((resolve) => {
-    ytDlpQueue.push({ resolve });
+    ytDlpQueue.push({ resolve, userId, roomCode });
+    // Notify immediate position after joining queue
+    if (userId && roomCode) {
+      sendSearchQueueUpdate(roomCode, userId, ytDlpQueue.length);
+    }
   });
 }
 
@@ -88,8 +96,35 @@ function releaseYtDlpSlot(): void {
   if (ytDlpQueue.length > 0) {
     const next = ytDlpQueue.shift()!;
     next.resolve();
+    // Update everyone still in the queue
+    notifyQueuePositions();
   } else {
     ytDlpActiveCount--;
+  }
+}
+
+function notifyQueuePositions() {
+  ytDlpQueue.forEach((item, index) => {
+    if (item.userId && item.roomCode) {
+      sendSearchQueueUpdate(item.roomCode, item.userId, index + 1);
+    }
+  });
+}
+
+function sendSearchQueueUpdate(roomCode: string, userId: string, position: number) {
+  const conns = connections.get(roomCode);
+  if (!conns) return;
+
+  const payload = JSON.stringify({
+    type: "SEARCH_QUEUE_POSITION",
+    position,
+    total: ytDlpQueue.length
+  });
+
+  for (const [socket, info] of conns.participants.entries()) {
+    if (info.id === userId && socket.readyState === 1) {
+      socket.send(payload);
+    }
   }
 }
 
@@ -1114,14 +1149,16 @@ async function checkEmbeddable(videoId: string): Promise<boolean> {
 // Uses a semaphore to limit concurrent yt-dlp processes (CPU protection).
 async function searchWithYtDlp(
   query: string,
-  cacheKey: string
+  cacheKey: string,
+  userId?: string,
+  roomCode?: string
 ): Promise<YouTubeSearchResult[]> {
   const numResults = 40;
   const safeQuery = query.replace(/[`$\\]/g, "\\$&").replace(/"/g, '\\"');
   const cmd = `yt-dlp -j --no-playlist --flat-playlist "ytsearch${numResults}:${safeQuery}"`;
 
   // Wait for a slot in the concurrency limiter
-  await acquireYtDlpSlot();
+  await acquireYtDlpSlot(userId, roomCode);
   console.log(`[yt-dlp] Slot acquired for "${query}" (${ytDlpActiveCount}/${YT_DLP_MAX_CONCURRENT} active)`);
 
   try {
@@ -1184,10 +1221,12 @@ async function searchWithYtDlp(
 }
 
 // Search YouTube (with cache + in-flight deduplication)
-app.get<{ Querystring: { q: string } }>(
+app.get<{ Querystring: { q: string; userId?: string; roomCode?: string } }>(
   "/api/youtube/search",
   async (req, reply) => {
     const query = (req.query.q || "").trim();
+    const userId = req.query.userId;
+    const roomCode = req.query.roomCode;
     if (!query) return reply.code(400).send({ error: "missing_query" });
 
     // Rate limit per IP
@@ -1224,8 +1263,8 @@ app.get<{ Querystring: { q: string } }>(
     }
 
     // 3) New search — spawn yt-dlp and register as in-flight
-    console.log(`[search] NEW SEARCH: "${query}"`);
-    const promise = searchWithYtDlp(searchTerm, cacheKey);
+    console.log(`[search] NEW SEARCH: "${query}" (userId: ${userId}, room: ${roomCode})`);
+    const promise = searchWithYtDlp(searchTerm, cacheKey, userId, roomCode);
     inFlightSearches.set(cacheKey, promise);
 
     try {

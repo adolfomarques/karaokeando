@@ -67,16 +67,20 @@ function setCachedSearch(query: string, results: YouTubeSearchResult[]): void {
 
 export async function searchYouTube(
   query: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  userId?: string,
+  roomCode?: string
 ): Promise<YouTubeSearchResult[]> {
   // Check localStorage cache first
   const cached = getCachedSearch(query);
   if (cached && cached.length > 0) return cached;
 
-  const res = await fetch(
-    `${API_BASE}/api/youtube/search?q=${encodeURIComponent(query)}`,
-    { signal }
-  );
+  const url = new URL(`${API_BASE}/api/youtube/search`);
+  url.searchParams.set("q", query);
+  if (userId) url.searchParams.set("userId", userId);
+  if (roomCode) url.searchParams.set("roomCode", roomCode);
+
+  const res = await fetch(url.toString(), { signal });
   if (!res.ok) return [];
   const results = await res.json();
 
