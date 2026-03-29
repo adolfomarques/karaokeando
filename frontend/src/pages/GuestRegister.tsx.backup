@@ -108,27 +108,19 @@ export default function GuestRegister() {
           disabled={loading}
           style={{
             width: "100%", marginBottom: "20px",
-            background: "rgba(255, 255, 255, 0.07)",
-            backdropFilter: "blur(24px) saturate(180%)",
-            WebkitBackdropFilter: "blur(24px) saturate(180%)",
-            border: "1px solid rgba(255, 255, 255, 0.15)",
-            borderTopColor: "rgba(255, 255, 255, 0.25)",
-            boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)",
-            color: "#fff",
-            fontWeight: 500, fontSize: "0.98rem",
+            background: "#fff", color: "#333",
+            fontWeight: 600, fontSize: "0.95rem",
             display: "flex", alignItems: "center", justifyContent: "center", gap: "12px",
-            padding: "14px 24px", borderRadius: "20px",
-            transition: "all 0.35s cubic-bezier(0.16, 1, 0.3, 1)",
+            border: "none", padding: "14px 24px", borderRadius: "999px",
+            boxShadow: "none",
           }}
           onMouseEnter={e => {
-            e.currentTarget.style.background = "rgba(255, 255, 255, 0.12)";
-            e.currentTarget.style.transform = "scale(1.02) translateY(-2px)";
-            e.currentTarget.style.boxShadow = "0 12px 40px rgba(0, 0, 0, 0.25)";
+            e.currentTarget.style.background = "#f0f0f0";
+            e.currentTarget.style.transform = "scale(1.03)";
           }}
           onMouseLeave={e => {
-            e.currentTarget.style.background = "rgba(255, 255, 255, 0.07)";
-            e.currentTarget.style.transform = "scale(1) translateY(0)";
-            e.currentTarget.style.boxShadow = "0 8px 32px rgba(0, 0, 0, 0.2)";
+            e.currentTarget.style.background = "#fff";
+            e.currentTarget.style.transform = "scale(1)";
           }}
         >
           <GoogleIcon />
@@ -164,27 +156,19 @@ export default function GuestRegister() {
               onClick={onClick}
               style={{
                 width: "100%", marginBottom: "20px",
-                background: "rgba(255, 255, 255, 0.07)",
-                backdropFilter: "blur(24px) saturate(180%)",
-                WebkitBackdropFilter: "blur(24px) saturate(180%)",
-                border: "1px solid rgba(255, 255, 255, 0.15)",
-                borderTopColor: "rgba(255, 255, 255, 0.25)",
-                boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)",
-                color: "#fff",
-                fontWeight: 500, fontSize: "0.98rem",
+                background: "#1877F2", color: "#fff",
+                fontWeight: 600, fontSize: "0.95rem",
                 display: "flex", alignItems: "center", justifyContent: "center", gap: "10px",
-                padding: "14px 24px", borderRadius: "20px",
-                transition: "all 0.35s cubic-bezier(0.16, 1, 0.3, 1)",
+                border: "none", padding: "12px 24px", borderRadius: "999px",
+                boxShadow: "none",
               }}
               onMouseEnter={e => {
-                e.currentTarget.style.background = "rgba(255, 255, 255, 0.12)";
-                e.currentTarget.style.transform = "scale(1.02) translateY(-2px)";
-                e.currentTarget.style.boxShadow = "0 12px 40px rgba(0, 0, 0, 0.25)";
+                e.currentTarget.style.background = "#166fe5";
+                e.currentTarget.style.transform = "scale(1.03)";
               }}
               onMouseLeave={e => {
-                e.currentTarget.style.background = "rgba(255, 255, 255, 0.07)";
-                e.currentTarget.style.transform = "scale(1) translateY(0)";
-                e.currentTarget.style.boxShadow = "0 8px 32px rgba(0, 0, 0, 0.2)";
+                e.currentTarget.style.background = "#1877F2";
+                e.currentTarget.style.transform = "scale(1)";
               }}
             >
               <FacebookIcon />
