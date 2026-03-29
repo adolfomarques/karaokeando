@@ -149,20 +149,42 @@ setInterval(async () => {
 // Pre-warm Cache Hits (Popular Songs)
 // ─────────────────────────────────────────────────────────────
 const KARAOKE_HITS = [
-  // Brazilian Hits
-  "Evidências", "Boate Azul", "Sandra Rosa Madalena", "Borbulhas de Amor", 
-  "Anna Julia", "Pelados em Santos", "Primeiros Erros", "Garçon",
-  "O Sol", "A Lenda", "Infiel", "Cerveja de Garrafa", "Regime Fechado",
-  "Todo Mundo", "Chora, Me Liga", "Sutilmente", "Amor e Sexo",
-  "Acelerou", "Contando Lunetas", "Cidade Nova", "Deixa Estar",
-  "Tenho Interesse", "Quando a Gira Baleia", "Caixa de Outro",
-  // International Hits
+  // Brazilian Sertanejo / Arrocha
+  "Evidências Chitãozinho e Xororó", "Boate Azul", "Sandra Rosa Madalena", "Borbulhas de Amor", 
+  "Infiel Marília Mendonça", "Cerveja de Garrafa", "Regime Fechado", "Chora, Me Liga", "Amo Noite e Dia",
+  "Dormi na Praça", "Nuvem de Lágrimas", "Fio de Cabelo", "Pense em Mim", "Galopeira", "Meu Ex-Amor Amado Batista",
+  "Telefone Mudo", "Ainda Ontem Chorei de Saudade", "Um Sonhador Leandro e Leonardo", "Não Aprendi a Dizer Adeus",
+  "Decida", "Fuscão Preto", "Convite de Casamento", "Notificação Preferida Zé Neto", "Largado as Traças",
+  "Romance com Safadeza", "Camarote Wesley Safadão", "Apelido Carinhoso Gusttavo Lima", "Homem de Família Gusttavo Lima",
+
+  // Brazilian Pop / Rock / MPB
+  "Anna Julia Los Hermanos", "Pelados em Santos", "Primeiros Erros", "Garçon Reginaldo Rossi",
+  "O Sol Jota Quest", "A Lenda Sandy e Junior", "Sutilmente Skank", "Amor e Sexo Rita Lee",
+  "Acelerou Banda Eva", "Tempo Perdido Legião Urbana", "Faroeste Caboclo", "Pais e Filhos", "Exagerado Cazuza",
+  "Menina Veneno", "Cheia de Manias", "Sozinho Caetano Veloso", "Lanterna dos Afogados", "Epitáfio Titãs",
+  "Pro Dia Nascer Feliz", "Como Nossos Pais", "Malandragem Cássia Eller", "Por Você Barão Vermelho",
+  "Me Chama Lobão", "Vou Deixar Skank", "Garota de Ipanema", "Aquele Abraço", "Oceano Djavan",
+  "Se Eu Não Te Amasse Tanto Assim", "Fogo e Paixão Wando", "Alma Gêmea Fabio Jr", "Pai Fabio Jr",
+  
+  // Pagode e Axé
+  "Cheia de Manias Raça Negra", "É Tarde Demais Raça Negra", "Deus Me Livre Raça Negra",
+  "Me Apaixonei Pela Pessoa Errada", "Cilada Molejo", "Dança da Vassoura", "Pimpolho",
+  "Eva Banda Eva", "Araketu é Bom Demais", "O Canto da Cidade", "Milla Netinho",
+
+  // International Rock / Pop / Classics
   "Tears in Heaven", "Let It Go", "My Heart Will Go On", "Shallow",
   "Bohemian Rhapsody", "Thriller", "Imagine", "Don't Stop Believin'",
   "Sweet Child O' Mine", "Hotel California", "Smells Like Teen Spirit",
   "Billie Jean", "Like a Prayer", "Rolling in the Deep", "Uptown Funk",
   "Despacito", "Shape of You", "Perfect", "Someone Like You",
-  "Hello", "Counting Stars", "Radioactive", "Thinking Out Loud"
+  "Hello", "Counting Stars", "Radioactive", "Thinking Out Loud",
+  "I Want It That Way", "Wonderwall", "Take On Me", "Livin' on a Prayer",
+  "I Will Always Love You", "Careless Whisper", "Dancing Queen",
+  "Hey Jude", "Let It Be", "Yesterday", "Hallelujah", "Total Eclipse of the Heart",
+  "Girls Just Want to Have Fun", "Zombie Cranberries", "Creep Radiohead", "Losing My Religion",
+  "Every Breath You Take", "Africa Toto", "Wannabe Spice Girls", "Toxic Britney Spears",
+  "Bad Romance Lady Gaga", "Blank Space Taylor Swift", "Watermelon Sugar", "Blinding Lights",
+  "Believer Imagine Dragons", "As It Was Harry Styles"
 ];
 
 // ─────────────────────────────────────────────────────────────
@@ -1445,28 +1467,55 @@ app.post("/api/admin/prewarm", async (req, reply) => {
   }
 
   const { quantity } = req.body as { quantity?: number };
-  const songsToProcess = quantity && quantity > 0 ? KARAOKE_HITS.slice(0, quantity) : KARAOKE_HITS;
+  const requestedQty = quantity && quantity > 0 ? quantity : 50;
 
-  console.log(`[prewarm] STARTING AUTO-WARM for ${songsToProcess.length} queries...`);
-  
-  // Run searches in background (or wait if we want feedback)
-  // We'll run them sequentially to avoid overwhelming IP at once
-  let count = 0;
-  const addedSongs: string[] = [];
+  // 1. Identify which hits are missing from cache
+  const missingHits: string[] = [];
   const skippedSongs: string[] = [];
   
-  for (const hit of songsToProcess) {
+  for (const hit of KARAOKE_HITS) {
     const searchTerm = hit + " karaoke";
     const cacheKey = searchTerm.toLowerCase();
     
-    // Check if already in DB cache
     try {
       const existing = await prisma.searchCache.findUnique({ where: { query: cacheKey } });
       if (existing && new Date() < existing.expiresAt) {
         skippedSongs.push(hit);
-        continue;
+      } else {
+        missingHits.push(hit);
       }
-      
+    } catch {
+      // Treat as missing if DB check fails
+      missingHits.push(hit);
+    }
+  }
+
+  // 2. Randomly select the needed amount of missing songs to process
+  const shuffledMissing = [...missingHits].sort(() => 0.5 - Math.random());
+  const songsToProcess = shuffledMissing.slice(0, requestedQty);
+
+  if (songsToProcess.length === 0) {
+    return { 
+      success: true, 
+      count: 0,
+      addedSongs: [],
+      skippedSongs,
+      totalAvailable: KARAOKE_HITS.length,
+      message: `O cache já possui as ${KARAOKE_HITS.length} músicas configuradas! Nenhuma nova foi adicionada.`
+    };
+  }
+
+  console.log(`[prewarm] STARTING AUTO-WARM for ${songsToProcess.length} queries...`);
+  
+  let count = 0;
+  const addedSongs: string[] = [];
+  
+  // 3. Search and cache
+  for (const hit of songsToProcess) {
+    const searchTerm = hit + " karaoke";
+    const cacheKey = searchTerm.toLowerCase();
+    
+    try {
       console.log(`[prewarm] Warming up: "${hit}"`);
       await searchWithInnertube(searchTerm, cacheKey);
       count++;
@@ -1486,7 +1535,7 @@ app.post("/api/admin/prewarm", async (req, reply) => {
     addedSongs,
     skippedSongs,
     totalAvailable: KARAOKE_HITS.length,
-    message: `Aquecimento concluído! ${count} músicas adicionadas ao cache. ${skippedSongs.length} já estavam em cache.`
+    message: `Aquecimento concluído! ${count} músicas adicionadas ao cache de um total de ${KARAOKE_HITS.length} disponíveis.`
   };
 });
 

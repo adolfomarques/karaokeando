@@ -114,16 +114,16 @@ export default function AdminDashboard() {
               {t("admin.prewarmDesc", "Faz a busca automática das músicas mais populares para deixar o sistema rápido antes do evento.")}
             </p>
             <p className="text-gray-500 text-xs mt-1">
-              Total disponível: 50 músicas
+              Total configurado no sistema: 100+ músicas
             </p>
           </div>
           <div className="flex items-center gap-4">
             <div className="flex flex-col items-end">
-              <label className="text-[10px] text-gray-500 uppercase tracking-wider mb-1">Quantidade</label>
+              <label className="text-[10px] text-gray-500 uppercase tracking-wider mb-1">Qtd Novas</label>
               <input
                 type="number"
                 min="1"
-                max="50"
+                max="100"
                 value={prewarmQty}
                 onChange={(e) => {
                   const val = e.target.value;
@@ -131,7 +131,7 @@ export default function AdminDashboard() {
                     setPrewarmQty("");
                   } else {
                     const num = parseInt(val);
-                    if (num >= 1 && num <= 18) {
+                    if (num >= 1 && num <= 100) {
                       setPrewarmQty(num);
                     }
                   }
