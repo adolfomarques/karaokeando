@@ -30,14 +30,30 @@ export default function AdminDashboard() {
   }, [t]);
 
   const [prewarming, setPrewarming] = useState(false);
+  const [prewarmQty, setPrewarmQty] = useState<number | "">("");
 
   const handlePrewarm = async () => {
-    if (!window.confirm(t("admin.prewarmConfirm", "Deseja iniciar o aquecimento automático do cache? Isso pode levar alguns minutos."))) return;
+    const qty = prewarmQty === "" ? undefined : Number(prewarmQty);
+    const confirmMsg = qty 
+      ? `Deseja aquecer o cache com ${qty} músicas? Isso pode levar alguns minutos.`
+      : "Deseja iniciar o aquecimento automático do cache? Isso pode levar alguns minutos.";
+    
+    if (!window.confirm(confirmMsg)) return;
     setPrewarming(true);
     try {
-      const res = await runAdminPrewarm();
+      const res = await runAdminPrewarm(qty);
       if (res.success) {
-        toast.success(t("admin.prewarmSuccess", "Aquecimento concluído com sucesso!"));
+        const message = res.message || `Aquecimento concluído! ${res.count} músicas adicionadas ao cache.`;
+        toast.success(message);
+        
+        // Show detailed result in console for admin review
+        if (res.addedSongs && res.addedSongs.length > 0) {
+          console.log('🎵 Músicas adicionadas ao cache:', res.addedSongs);
+        }
+        if (res.skippedSongs && res.skippedSongs.length > 0) {
+          console.log('⏭️ Músicas já estavam em cache:', res.skippedSongs);
+        }
+        
         // Refresh stats
         const statsData = await getAdminStats();
         setStats(statsData);
@@ -97,18 +113,45 @@ export default function AdminDashboard() {
             <p className="text-gray-400 text-sm">
               {t("admin.prewarmDesc", "Faz a busca automática das músicas mais populares para deixar o sistema rápido antes do evento.")}
             </p>
+            <p className="text-gray-500 text-xs mt-1">
+              Total disponível: 50 músicas
+            </p>
           </div>
-          <button
-            onClick={handlePrewarm}
-            disabled={prewarming}
-            className={`px-8 py-3 rounded font-bold uppercase tracking-widest text-xs transition-all ${
-              prewarming 
-                ? "bg-gray-800 text-gray-500 cursor-not-allowed" 
-                : "bg-[#00f5ff] text-black hover:bg-white shadow-[0_0_20px_rgba(0,245,255,0.3)]"
-            }`}
-          >
-            {prewarming ? "WARMING_UP..." : t("admin.prewarmStart", "Começar Aquecimento")}
-          </button>
+          <div className="flex items-center gap-4">
+            <div className="flex flex-col items-end">
+              <label className="text-[10px] text-gray-500 uppercase tracking-wider mb-1">Quantidade</label>
+              <input
+                type="number"
+                min="1"
+                max="50"
+                value={prewarmQty}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val === "") {
+                    setPrewarmQty("");
+                  } else {
+                    const num = parseInt(val);
+                    if (num >= 1 && num <= 18) {
+                      setPrewarmQty(num);
+                    }
+                  }
+                }}
+                placeholder="50"
+                className="w-20 px-3 py-2 bg-black/50 border border-white/10 rounded text-white text-sm focus:border-[#00f5ff] focus:outline-none"
+              />
+            </div>
+            <button
+              onClick={handlePrewarm}
+              disabled={prewarming}
+              className={`px-8 py-3 rounded font-bold uppercase tracking-widest text-xs transition-all ${
+                prewarming 
+                  ? "bg-gray-800 text-gray-500 cursor-not-allowed" 
+                  : "bg-[#00f5ff] text-black hover:bg-white shadow-[0_0_20px_rgba(0,245,255,0.3)]"
+              }`}
+            >
+              {prewarming ? "WARMING_UP..." : t("admin.prewarmStart", "Começar")}
+            </button>
+          </div>
         </div>
 
         {/* Recent Activity */}

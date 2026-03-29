@@ -149,11 +149,20 @@ setInterval(async () => {
 // Pre-warm Cache Hits (Popular Songs)
 // ─────────────────────────────────────────────────────────────
 const KARAOKE_HITS = [
+  // Brazilian Hits
   "Evidências", "Boate Azul", "Sandra Rosa Madalena", "Borbulhas de Amor", 
   "Anna Julia", "Pelados em Santos", "Primeiros Erros", "Garçon",
   "O Sol", "A Lenda", "Infiel", "Cerveja de Garrafa", "Regime Fechado",
+  "Todo Mundo", "Chora, Me Liga", "Sutilmente", "Amor e Sexo",
+  "Acelerou", "Contando Lunetas", "Cidade Nova", "Deixa Estar",
+  "Tenho Interesse", "Quando a Gira Baleia", "Caixa de Outro",
+  // International Hits
   "Tears in Heaven", "Let It Go", "My Heart Will Go On", "Shallow",
-  "Bohemian Rhapsody", "Thriller", "Imagine"
+  "Bohemian Rhapsody", "Thriller", "Imagine", "Don't Stop Believin'",
+  "Sweet Child O' Mine", "Hotel California", "Smells Like Teen Spirit",
+  "Billie Jean", "Like a Prayer", "Rolling in the Deep", "Uptown Funk",
+  "Despacito", "Shape of You", "Perfect", "Someone Like You",
+  "Hello", "Counting Stars", "Radioactive", "Thinking Out Loud"
 ];
 
 // ─────────────────────────────────────────────────────────────
@@ -1435,12 +1444,18 @@ app.post("/api/admin/prewarm", async (req, reply) => {
     return reply.status(403).send({ error: "forbidden_admin_only" });
   }
 
-  console.log(`[prewarm] STARTING AUTO-WARM for ${KARAOKE_HITS.length} queries...`);
+  const { quantity } = req.body as { quantity?: number };
+  const songsToProcess = quantity && quantity > 0 ? KARAOKE_HITS.slice(0, quantity) : KARAOKE_HITS;
+
+  console.log(`[prewarm] STARTING AUTO-WARM for ${songsToProcess.length} queries...`);
   
   // Run searches in background (or wait if we want feedback)
   // We'll run them sequentially to avoid overwhelming IP at once
   let count = 0;
-  for (const hit of KARAOKE_HITS) {
+  const addedSongs: string[] = [];
+  const skippedSongs: string[] = [];
+  
+  for (const hit of songsToProcess) {
     const searchTerm = hit + " karaoke";
     const cacheKey = searchTerm.toLowerCase();
     
@@ -1448,12 +1463,14 @@ app.post("/api/admin/prewarm", async (req, reply) => {
     try {
       const existing = await prisma.searchCache.findUnique({ where: { query: cacheKey } });
       if (existing && new Date() < existing.expiresAt) {
+        skippedSongs.push(hit);
         continue;
       }
       
       console.log(`[prewarm] Warming up: "${hit}"`);
       await searchWithInnertube(searchTerm, cacheKey);
       count++;
+      addedSongs.push(hit);
       
       // Small delay between searches to be safe
       await new Promise(r => setTimeout(r, 1000));
@@ -1463,7 +1480,14 @@ app.post("/api/admin/prewarm", async (req, reply) => {
   }
 
   console.log(`[prewarm] COMPLETED. Warmer added ${count} new queries to cache.`);
-  return { success: true, count };
+  return { 
+    success: true, 
+    count,
+    addedSongs,
+    skippedSongs,
+    totalAvailable: KARAOKE_HITS.length,
+    message: `Aquecimento concluído! ${count} músicas adicionadas ao cache. ${skippedSongs.length} já estavam em cache.`
+  };
 });
 
 // WebSocket

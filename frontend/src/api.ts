@@ -618,11 +618,15 @@ export async function getPublicScoreMeta(): Promise<{ backgrounds: AdminBackgrou
   return res.json();
 }
 
-export async function runAdminPrewarm(): Promise<{ success: boolean; count?: number; error?: string }> {
+export async function runAdminPrewarm(quantity?: number): Promise<{ success: boolean; count?: number; addedSongs?: string[]; skippedSongs?: string[]; totalAvailable?: number; message?: string; error?: string }> {
   const token = localStorage.getItem("karaokefactory_token");
   const res = await fetch(`${API_BASE}/api/admin/prewarm`, {
     method: "POST",
-    headers: { Authorization: `Bearer ${token}` },
+    headers: { 
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: quantity ? JSON.stringify({ quantity }) : undefined,
   });
   return res.json();
 }
