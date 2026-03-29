@@ -9,6 +9,13 @@ export default function AdminSongs() {
   const [songs, setSongs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [sortBy, setSortBy] = useState<"newest"|"oldest"|"most_played"|"az">("newest");
+  const itemsPerPage = 20;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, sortBy]);
 
   const loadSongs = async () => {
     try {
@@ -41,6 +48,17 @@ export default function AdminSongs() {
     s.id.toLowerCase().includes(search.toLowerCase())
   );
 
+  const sortedSongs = [...filteredSongs].sort((a, b) => {
+    if (sortBy === "newest") return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    if (sortBy === "oldest") return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+    if (sortBy === "most_played") return (b.playCount || 0) - (a.playCount || 0);
+    if (sortBy === "az") return a.title.localeCompare(b.title);
+    return 0;
+  });
+
+  const totalPages = Math.max(1, Math.ceil(sortedSongs.length / itemsPerPage));
+  const currentSongs = sortedSongs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
   if (loading) return <AdminLayout><div className="text-[#00f5ff] font-mono animate-pulse uppercase tracking-widest text-xs">{t("admin.downloadingRegistry", "Downloading_Registry...")}</div></AdminLayout>;
 
   return (
@@ -55,15 +73,30 @@ export default function AdminSongs() {
           </p>
         </header>
 
-        <div className="mb-8 relative group">
-          <input 
-            type="text" 
-            placeholder={t("admin.searchPlaceholder", "PESQUISAR_IDENTIFICADOR_OU_TITULO...")}
-            className="w-full bg-[#0d0d12] border border-white/5 px-6 py-4 text-xs font-mono tracking-widest placeholder:text-gray-700 focus:outline-none focus:border-[#00f5ff]/30 transition-all"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          <div className="absolute right-6 top-1/2 -translate-y-1/2 text-[10px] text-gray-700 font-mono hidden group-focus-within:block uppercase tracking-widest">Searching_Now...</div>
+        <div className="mb-8 flex flex-col md:flex-row gap-4">
+          <div className="relative group flex-1">
+            <input 
+              type="text" 
+              placeholder={t("admin.searchPlaceholder", "PESQUISAR_IDENTIFICADOR_OU_TITULO...")}
+              className="w-full bg-[#0d0d12] border border-white/5 px-6 py-4 text-xs font-mono tracking-widest placeholder:text-gray-700 focus:outline-none focus:border-[#00f5ff]/30 transition-all"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            <div className="absolute right-6 top-1/2 -translate-y-1/2 text-[10px] text-gray-700 font-mono hidden group-focus-within:block uppercase tracking-widest">Searching_Now...</div>
+          </div>
+          
+          <div className="flex-none">
+            <select 
+              className="w-full md:w-auto bg-[#0d0d12] text-gray-400 border border-white/5 px-6 py-4 h-full text-xs font-mono tracking-widest uppercase focus:outline-none focus:border-[#00f5ff]/30 transition-all cursor-pointer appearance-none"
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as any)}
+            >
+              <option value="newest">Últimas Adicionadas</option>
+              <option value="oldest">Mais Antigas</option>
+              <option value="most_played">Mais Tocadas</option>
+              <option value="az">A-Z</option>
+            </select>
+          </div>
         </div>
 
         <div className="admin-card border border-white/5 bg-[#0d0d12]">
@@ -78,7 +111,7 @@ export default function AdminSongs() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5 text-sm">
-                {filteredSongs.map((song) => (
+                {currentSongs.map((song) => (
                   <tr key={song.id} className="hover:bg-[#00f5ff]/[0.02] transition-colors group">
                     <td className="px-10 py-5">
                       <div className="w-24 aspect-video bg-[#050507] border border-white/5 overflow-hidden relative">
@@ -99,7 +132,7 @@ export default function AdminSongs() {
                     </td>
                     <td className="px-10 py-5">
                        <span className="font-mono text-xs font-black text-gray-500 group-hover:text-white transition-colors">
-                        {String(song.playCount).padStart(4, '0')} PLAYS
+                        {String(song.playCount || 0).padStart(4, '0')} PLAYS
                        </span>
                     </td>
                     <td className="px-10 py-5 text-right">
@@ -133,6 +166,29 @@ export default function AdminSongs() {
             </table>
           </div>
         </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center gap-6 mt-8">
+            <button 
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              className="px-4 py-2 border border-white/10 bg-[#0d0d12] text-[10px] font-mono tracking-widest uppercase text-gray-400 hover:text-[#00f5ff] hover:border-[#00f5ff]/30 disabled:opacity-20 disabled:cursor-not-allowed transition-all"
+            >
+              [ ANTERIOR ]
+            </button>
+            <div className="text-[10px] font-mono tracking-widest text-[#00f5ff]">
+              PAGE {String(currentPage).padStart(2, '0')} <span className="text-gray-600 mx-2">/</span> {String(totalPages).padStart(2, '0')}
+            </div>
+            <button 
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              className="px-4 py-2 border border-white/10 bg-[#0d0d12] text-[10px] font-mono tracking-widest uppercase text-gray-400 hover:text-[#00f5ff] hover:border-[#00f5ff]/30 disabled:opacity-20 disabled:cursor-not-allowed transition-all"
+            >
+              [ PRÓXIMA ]
+            </button>
+          </div>
+        )}
       </div>
     </AdminLayout>
   );
