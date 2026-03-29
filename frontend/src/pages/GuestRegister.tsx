@@ -4,6 +4,9 @@ import { useState } from "react";
 import { useNavigate, useLocation, useSearchParams, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useGoogleLogin } from '@react-oauth/google';
+import FacebookLogin from '@greatsumini/react-facebook-login';
+
+const FACEBOOK_APP_ID = import.meta.env.VITE_FACEBOOK_APP_ID || "YOUR_FACEBOOK_APP_ID";
 
 const GoogleIcon = () => (
   <svg viewBox="0 0 24 24" width="18" height="18" xmlns="http://www.w3.org/2000/svg">
@@ -16,12 +19,18 @@ const GoogleIcon = () => (
   </svg>
 );
 
+const FacebookIcon = () => (
+  <svg viewBox="0 0 24 24" width="18" height="18" xmlns="http://www.w3.org/2000/svg">
+    <path fill="#ffffff" d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+  </svg>
+);
+
 export default function GuestRegister() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
-  const { registerGuest, loginWithGoogle } = useAuth();
+  const { registerGuest, loginWithGoogle, loginWithFacebook } = useAuth();
 
   const roomCode = searchParams.get("redirect") || (location.state as any)?.roomCode || null;
   const redirectTo = roomCode ? `/room/${roomCode}` : (location.state as any)?.redirectTo || "/";
@@ -117,6 +126,56 @@ export default function GuestRegister() {
           <GoogleIcon />
           {t("guestReg.googleBtn", "Sign in with Google")}
         </button>
+
+        {/* Facebook button */}
+        <FacebookLogin
+          appId={FACEBOOK_APP_ID}
+          onSuccess={async (response) => {
+            try {
+              setLoading(true);
+              const result = await loginWithFacebook(response.accessToken);
+              if (result.success) {
+                navigate(redirectTo);
+              } else {
+                setError(result.error || "Facebook login error");
+              }
+            } catch {
+              setError("Error authenticating via Facebook.");
+            } finally {
+              setLoading(false);
+            }
+          }}
+          onFail={(error) => {
+            setError("Failed to login with Facebook.");
+            console.error(error);
+          }}
+          render={({ onClick }) => (
+            <button
+              type="button"
+              disabled={loading}
+              onClick={onClick}
+              style={{
+                width: "100%", marginBottom: "20px",
+                background: "#1877F2", color: "#fff",
+                fontWeight: 600, fontSize: "0.95rem",
+                display: "flex", alignItems: "center", justifyContent: "center", gap: "10px",
+                border: "none", padding: "12px 24px", borderRadius: "999px",
+                boxShadow: "none",
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.background = "#166fe5";
+                e.currentTarget.style.transform = "scale(1.03)";
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = "#1877F2";
+                e.currentTarget.style.transform = "scale(1)";
+              }}
+            >
+              <FacebookIcon />
+              {t("guestReg.facebookBtn", "Sign in with Facebook")}
+            </button>
+          )}
+        />
 
         <div style={{ display: "flex", alignItems: "center", marginBottom: "24px", gap: "12px" }}>
           <div style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.08)" }} />
