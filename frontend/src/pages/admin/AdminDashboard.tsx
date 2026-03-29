@@ -99,7 +99,7 @@ export default function AdminDashboard() {
           <div className="admin-card admin-stat-card p-10 relative group">
             <div className="absolute top-4 right-4 text-[10px] font-mono text-gray-700 uppercase group-hover:text-[#00f5ff] transition-colors">LIB_INF</div>
             <div className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-4">Músicas no Cache</div>
-            <div className="text-6xl font-black text-white admin-stat-value">{stats?.songCount}</div>
+            <div className="text-6xl font-black text-white admin-stat-value">{stats?.cacheCount ?? stats?.songCount}</div>
             <div className="mt-4 h-1 w-12 bg-white/10"></div>
           </div>
         </div>

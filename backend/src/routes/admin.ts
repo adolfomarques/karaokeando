@@ -33,10 +33,11 @@ export default async function adminRoutes(app: FastifyInstance) {
 
   // All other routes require admin
   app.get("/api/admin/stats", { preHandler: [requireAdmin] }, async () => {
-    const [userCount, roomCount, songCount] = await Promise.all([
+    const [userCount, roomCount, songCount, cacheCount] = await Promise.all([
       prisma.user.count(),
       prisma.room.count(),
       prisma.song.count(),
+      prisma.searchCache.count(),
     ]);
     
     // Get some recent rooms
@@ -50,6 +51,7 @@ export default async function adminRoutes(app: FastifyInstance) {
       userCount, 
       roomCount, 
       songCount,
+      cacheCount,
       recentRooms: recentRooms.map(r => ({
         code: r.code,
         owner: r.owner.name,

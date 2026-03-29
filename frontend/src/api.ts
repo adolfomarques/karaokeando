@@ -408,6 +408,7 @@ export interface AdminStats {
   userCount: number;
   roomCount: number;
   songCount: number;
+  cacheCount: number;
   recentRooms: {
     code: string;
     owner: string;
