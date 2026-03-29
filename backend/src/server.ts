@@ -1218,10 +1218,10 @@ app.get<{ Querystring: { q: string; userId?: string; roomCode?: string } }>(
 
     // Rate limit per IP
     const clientIp = req.ip || "unknown";
-    if (isSearchRateLimited(clientIp)) {
+    /* if (isSearchRateLimited(clientIp)) {
       console.log(`[search] RATE LIMITED: IP ${clientIp}`);
       return reply.code(429).send({ error: "rate_limited", message: "Too many searches. Try again in a minute." });
-    }
+    } */
 
     const searchTerm = query + " karaoke";
     const cacheKey = searchTerm.toLowerCase();
