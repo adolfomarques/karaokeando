@@ -1,0 +1,13 @@
+{
+  "name": "karaoke-relay-search",
+  "version": "1.0.0",
+  "description": "Satellite Search Relay for Karaokeando",
+  "main": "api/search.js",
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "youtubei.js": "latest"
+  }
+}

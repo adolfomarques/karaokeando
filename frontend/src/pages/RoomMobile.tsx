@@ -267,6 +267,24 @@ const IconLibrary = ({ size = 16 }: { size?: number }) => (
   </svg>
 );
 
+const IconAlertTriangle = ({ size = 16, style }: { size?: number; style?: React.CSSProperties }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    style={style}
+  >
+    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+    <line x1="12" y1="9" x2="12" y2="13"></line>
+    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+  </svg>
+);
+
 // Truncated text with tooltip on click/tap
 const TruncatedText = ({
   text,
@@ -341,6 +359,7 @@ export default function RoomMobile() {
   const [searchResults, setSearchResults] = useState<YouTubeSearchResult[]>([]);
   const [searching, setSearching] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
+  const [isSearchCongested, setIsSearchCongested] = useState(false);
   const [customTitle, setCustomTitle] = useState(""); // For when pasting a link
   const [adding, setAdding] = useState<string | null>(null); // videoId being added
   const [songLibrary, setSongLibrary] = useState<SavedSong[]>([]);
@@ -656,6 +675,7 @@ export default function RoomMobile() {
     if (!query) return;
 
     setSearchError(null);
+    setIsSearchCongested(false);
     setSearchQueuePosition(null);
     setSearching(true);
 
@@ -718,12 +738,16 @@ export default function RoomMobile() {
         );
       }
       setSearchResults(results);
-    } catch (err) {
+    } catch (err: any) {
       if (abortSignal.aborted) return;
       console.error("Search error:", err);
-      setSearchError(
-        t("mobile.searchError", "Search error. Try again or paste YouTube link.")
-      );
+      if (err.message?.includes("SEARCH_FAILED_429")) {
+        setIsSearchCongested(true);
+      } else {
+        setSearchError(
+          t("mobile.searchError", "Search error. Try again or paste YouTube link.")
+        );
+      }
     }
     setSearching(false);
     setSearchQueuePosition(null);
@@ -755,6 +779,7 @@ export default function RoomMobile() {
     if (!query) return;
 
     setSearchError(null);
+    setIsSearchCongested(false);
     setSearchQueuePosition(null);
     setSearching(true);
     setSearchResults([]);
@@ -768,7 +793,11 @@ export default function RoomMobile() {
       setSearchResults(results);
     } catch (err: any) {
       if (err.name === 'AbortError') return;
-      setSearchError(t("mobile.searchError", "Search error. Try again."));
+      if (err.message?.includes("SEARCH_FAILED_429")) {
+        setIsSearchCongested(true);
+      } else {
+        setSearchError(t("mobile.searchError", "Search error. Try again."));
+      }
     }
     setSearching(false);
     setSearchQueuePosition(null);
@@ -1626,6 +1655,24 @@ export default function RoomMobile() {
                 {[1, 2, 3].map((i) => (
                   <div key={i} className="shimmer" style={{ height: 80, width: "100%" }} />
                 ))}
+              </div>
+            )}
+            {isSearchCongested && (
+              <div style={{ 
+                padding: "20px", 
+                background: "rgba(231, 76, 60, 0.1)", 
+                border: "1px solid rgba(231, 76, 60, 0.3)", 
+                borderRadius: "16px",
+                textAlign: "center",
+                marginBottom: "20px"
+              }}>
+                <IconAlertTriangle size={32} style={{ color: "#e74c3c", marginBottom: "12px", margin: "0 auto" }} />
+                <h4 style={{ color: "#e74c3c", margin: "0 0 8px", fontWeight: "900", fontSize: "1.05rem" }}>
+                  {t("mobile.searchCongested", "Busca Congestionada")}
+                </h4>
+                <p style={{ color: "rgba(255,255,255,0.7)", margin: 0, fontSize: "0.9rem", lineHeight: 1.5 }}>
+                  {t("mobile.searchCongestedDesc", "Muitas pessoas estão buscando música agora. Para ir mais rápido, cole o link do YouTube diretamente no campo de busca.")}
+                </p>
               </div>
             )}
             {searchError && (

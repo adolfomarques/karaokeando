@@ -93,6 +93,37 @@ export default function GuestRegister() {
       </p>
 
       <div className="glass-card" style={{ padding: "36px", width: "100%", maxWidth: "420px" }}>
+        <button
+          type="button"
+          onClick={() => handleGoogleLogin()}
+          disabled={loading}
+          style={{
+            width: "100%", marginBottom: "20px",
+            background: "#fff", color: "#333",
+            fontWeight: 600, fontSize: "0.95rem",
+            display: "flex", alignItems: "center", justifyContent: "center", gap: "12px",
+            border: "none", padding: "14px 24px", borderRadius: "999px",
+            boxShadow: "none",
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.background = "#f0f0f0";
+            e.currentTarget.style.transform = "scale(1.03)";
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.background = "#fff";
+            e.currentTarget.style.transform = "scale(1)";
+          }}
+        >
+          <GoogleIcon />
+          {t("guestReg.googleBtn", "Sign in with Google")}
+        </button>
+
+        <div style={{ display: "flex", alignItems: "center", marginBottom: "24px", gap: "12px" }}>
+          <div style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.08)" }} />
+          <span style={{ color: "rgba(255,255,255,0.3)", fontSize: "0.78rem", textTransform: "uppercase", letterSpacing: "1.5px" }}>{t("guestReg.or", "OR")}</span>
+          <div style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.08)" }} />
+        </div>
+
         <form onSubmit={handleSubmit}>
           {error && (
             <div style={{
@@ -148,36 +179,6 @@ export default function GuestRegister() {
               : t("common.continue", "Continue")}
           </button>
         </form>
-
-        <div style={{ display: "flex", alignItems: "center", marginBottom: "20px", gap: "12px" }}>
-          <div style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.08)" }} />
-          <span style={{ color: "rgba(255,255,255,0.3)", fontSize: "0.78rem", textTransform: "uppercase", letterSpacing: "1.5px" }}>{t("guestReg.or", "OR")}</span>
-          <div style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.08)" }} />
-        </div>
-
-        <button
-          type="button"
-          onClick={() => handleGoogleLogin()}
-          style={{
-            width: "100%", marginBottom: "20px",
-            background: "#fff", color: "#333",
-            fontWeight: 600, fontSize: "0.95rem",
-            display: "flex", alignItems: "center", justifyContent: "center", gap: "12px",
-            border: "none", padding: "12px 24px", borderRadius: "999px",
-            boxShadow: "none",
-          }}
-          onMouseEnter={e => {
-            e.currentTarget.style.background = "#f0f0f0";
-            e.currentTarget.style.transform = "scale(1.03)";
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.background = "#fff";
-            e.currentTarget.style.transform = "scale(1)";
-          }}
-        >
-          <GoogleIcon />
-          {t("guestReg.googleBtn", "Sign in with Google")}
-        </button>
 
         <p style={{ textAlign: "center", marginBottom: "12px" }}>
           <span

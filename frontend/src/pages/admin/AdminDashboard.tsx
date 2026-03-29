@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import AdminLayout from "./AdminLayout";
-import { getAdminStats, getAdminUsers, AdminUser } from "../../api";
+import { getAdminStats, getAdminUsers, AdminUser, runAdminPrewarm } from "../../api";
 import { useTranslation } from "react-i18next";
+import { toast } from "react-hot-toast";
 
 export default function AdminDashboard() {
   const { t } = useTranslation();
@@ -27,6 +28,28 @@ export default function AdminDashboard() {
     }
     loadData();
   }, [t]);
+
+  const [prewarming, setPrewarming] = useState(false);
+
+  const handlePrewarm = async () => {
+    if (!window.confirm(t("admin.prewarmConfirm", "Deseja iniciar o aquecimento automático do cache? Isso pode levar alguns minutos."))) return;
+    setPrewarming(true);
+    try {
+      const res = await runAdminPrewarm();
+      if (res.success) {
+        toast.success(t("admin.prewarmSuccess", "Aquecimento concluído com sucesso!"));
+        // Refresh stats
+        const statsData = await getAdminStats();
+        setStats(statsData);
+      } else {
+        toast.error(res.error || t("admin.prewarmError", "Erro ao realizar aquecimento"));
+      }
+    } catch (err) {
+      toast.error(t("admin.prewarmError", "Erro ao realizar aquecimento"));
+    } finally {
+      setPrewarming(false);
+    }
+  };
 
   if (loading) return <AdminLayout><div className="text-[#00f5ff] font-mono animate-pulse uppercase tracking-widest text-xs">Loading_System_Metrics...</div></AdminLayout>;
   if (error) return <AdminLayout><div className="text-red-500 font-mono text-xs border border-red-500/20 p-4 bg-red-500/5">{error}</div></AdminLayout>;
@@ -63,6 +86,29 @@ export default function AdminDashboard() {
             <div className="text-6xl font-black text-white admin-stat-value">{stats?.songCount}</div>
             <div className="mt-4 h-1 w-12 bg-white/10"></div>
           </div>
+        </div>
+
+        {/* Pre-warm Control */}
+        <div className="admin-card border border-[#00f5ff]/20 bg-[#00f5ff]/5 p-8 mb-8 flex flex-col md:flex-row items-center justify-between gap-6 stagger-in">
+          <div className="flex-1">
+            <h2 className="text-[#00f5ff] font-bold uppercase tracking-wider mb-2 flex items-center gap-2">
+              🔥 {t("admin.prewarmTitle", "Aquecimento de Cache (Pre-warm)")}
+            </h2>
+            <p className="text-gray-400 text-sm">
+              {t("admin.prewarmDesc", "Faz a busca automática das músicas mais populares para deixar o sistema rápido antes do evento.")}
+            </p>
+          </div>
+          <button
+            onClick={handlePrewarm}
+            disabled={prewarming}
+            className={`px-8 py-3 rounded font-bold uppercase tracking-widest text-xs transition-all ${
+              prewarming 
+                ? "bg-gray-800 text-gray-500 cursor-not-allowed" 
+                : "bg-[#00f5ff] text-black hover:bg-white shadow-[0_0_20px_rgba(0,245,255,0.3)]"
+            }`}
+          >
+            {prewarming ? "WARMING_UP..." : t("admin.prewarmStart", "Começar Aquecimento")}
+          </button>
         </div>
 
         {/* Recent Activity */}

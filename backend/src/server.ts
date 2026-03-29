@@ -146,6 +146,17 @@ setInterval(async () => {
 }, 30 * 60 * 1000).unref();
 
 // ─────────────────────────────────────────────────────────────
+// Pre-warm Cache Hits (Popular Songs)
+// ─────────────────────────────────────────────────────────────
+const KARAOKE_HITS = [
+  "Evidências", "Boate Azul", "Sandra Rosa Madalena", "Borbulhas de Amor", 
+  "Anna Julia", "Pelados em Santos", "Primeiros Erros", "Garçon",
+  "O Sol", "A Lenda", "Infiel", "Cerveja de Garrafa", "Regime Fechado",
+  "Tears in Heaven", "Let It Go", "My Heart Will Go On", "Shallow",
+  "Bohemian Rhapsody", "Thriller", "Imagine"
+];
+
+// ─────────────────────────────────────────────────────────────
 
 interface Singer {
   id: string; // Unique user ID
@@ -1407,6 +1418,53 @@ app.get<{ Querystring: { key?: string } }>(
 );
 
 // Blocked Channels routes moved to routes/admin.ts
+
+// ─────────────────────────────────────────────────────────────
+// Admin Pre-warm Endpoint
+// ─────────────────────────────────────────────────────────────
+app.post("/api/admin/prewarm", async (req, reply) => {
+  // Simple check for admin token (JWT)
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return reply.status(401).send({ error: "missing_token" });
+  }
+
+  const token = authHeader.split(" ")[1];
+  const decoded = verifyToken(token);
+  if (!decoded || !("isAdmin" in decoded) || !decoded.isAdmin) {
+    return reply.status(403).send({ error: "forbidden_admin_only" });
+  }
+
+  console.log(`[prewarm] STARTING AUTO-WARM for ${KARAOKE_HITS.length} queries...`);
+  
+  // Run searches in background (or wait if we want feedback)
+  // We'll run them sequentially to avoid overwhelming IP at once
+  let count = 0;
+  for (const hit of KARAOKE_HITS) {
+    const searchTerm = hit + " karaoke";
+    const cacheKey = searchTerm.toLowerCase();
+    
+    // Check if already in DB cache
+    try {
+      const existing = await prisma.searchCache.findUnique({ where: { query: cacheKey } });
+      if (existing && new Date() < existing.expiresAt) {
+        continue;
+      }
+      
+      console.log(`[prewarm] Warming up: "${hit}"`);
+      await searchWithInnertube(searchTerm, cacheKey);
+      count++;
+      
+      // Small delay between searches to be safe
+      await new Promise(r => setTimeout(r, 1000));
+    } catch (err) {
+      console.error(`[prewarm] Failed for "${hit}":`, err);
+    }
+  }
+
+  console.log(`[prewarm] COMPLETED. Warmer added ${count} new queries to cache.`);
+  return { success: true, count };
+});
 
 // WebSocket
 app.get<{ Params: { roomCode: string } }>(

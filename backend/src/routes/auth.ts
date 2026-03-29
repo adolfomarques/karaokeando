@@ -427,6 +427,85 @@ export default async function authRoutes(app: FastifyInstance) {
     }
   );
 
+  // Login via Facebook
+  app.post<{ Body: { accessToken: string } }>(
+    "/api/auth/facebook",
+    async (request, reply) => {
+      const { accessToken } = request.body;
+      if (!accessToken) {
+        return reply.code(400).send({ error: "validation_error", message: "Token ausente" });
+      }
+
+      try {
+        const userInfoRes = await fetch(
+          `https://graph.facebook.com/me?fields=id,name,email&access_token=${accessToken}`
+        );
+
+        if (!userInfoRes.ok) {
+          throw new Error("Facebook token inválido");
+        }
+
+        const data = await userInfoRes.json();
+
+        if (data.error) {
+          throw new Error(data.error.message || "Erro do Facebook");
+        }
+
+        if (!data.email) {
+          return reply.code(400).send({
+            error: "no_email",
+            message: "Sua conta do Facebook não tem email público. Tente outro método de login.",
+          });
+        }
+
+        const email = data.email.toLowerCase().trim();
+        const name = data.name || "Usuário Facebook";
+
+        let user = await prisma.user.findUnique({ where: { email } });
+
+        const isOwnerEmail = email === "adolfomarques@gmail.com";
+
+        if (!user) {
+          user = await prisma.user.create({
+            data: { name, email, canHost: true, isAdmin: isOwnerEmail },
+          });
+        } else {
+          const updateData: any = { canHost: true };
+          if (isOwnerEmail && !user.isAdmin) updateData.isAdmin = true;
+          user = await prisma.user.update({ where: { id: user.id }, data: updateData });
+        }
+
+        const token = generateUserToken({
+          userId: user.id,
+          email: user.email,
+          name: user.name,
+          canHost: true,
+          isAdmin: user.isAdmin,
+        });
+
+        return {
+          token,
+          user: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            phone: user.phone,
+            city: user.city,
+            canHost: true,
+            isAdmin: user.isAdmin,
+            isComplete: true,
+          },
+        };
+      } catch (err: any) {
+        console.error("ERRO FACEBOOK LOGIN:", err);
+        return reply.code(401).send({
+          error: "invalid_credentials",
+          message: "Acesso via Facebook falhou: " + (err.message || "Erro desconhecido"),
+        });
+      }
+    }
+  );
+
   // Login (email + password)
   app.post<{ Body: { email: string; password: string } }>(
     "/api/auth/login",

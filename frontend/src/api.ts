@@ -80,16 +80,29 @@ export async function searchYouTube(
   if (userId) url.searchParams.set("userId", userId);
   if (roomCode) url.searchParams.set("roomCode", roomCode);
 
-  const res = await fetch(url.toString(), { signal });
-  if (!res.ok) return [];
-  const results = await res.json();
-
-  // Cache results for future use
-  if (Array.isArray(results) && results.length > 0) {
-    setCachedSearch(query, results);
+  try {
+    const res = await fetch(url.toString(), { signal });
+    if (res.ok) {
+      const results = await res.json();
+      if (Array.isArray(results) && results.length > 0) {
+        setCachedSearch(query, results);
+      }
+      return results;
+    }
+    
+    // If we get an error (like 429) and we're not already retrying, throw to let the UI handle or fallback
+    if (res.status === 429 || !res.ok) {
+       throw new Error(`SEARCH_FAILED_${res.status}`);
+    }
+  } catch (err: any) {
+    if (err.name === 'AbortError') throw err;
+    
+    // If it failed and we haven't retried yet, the UI might try to call a relay directly if we had them.
+    // For now, we propagate the error so RoomMobile can show the "Congestion" warning.
+    throw err;
   }
 
-  return results;
+  return [];
 }
 
 export async function getVideoInfo(
@@ -602,5 +615,14 @@ export async function deleteAdminBlockedChannel(id: string) {
 
 export async function getPublicScoreMeta(): Promise<{ backgrounds: AdminBackground[], phrases: AdminPhrase[] }> {
   const res = await fetch(`${API_BASE}/api/public/score-meta`);
+  return res.json();
+}
+
+export async function runAdminPrewarm(): Promise<{ success: boolean; count?: number; error?: string }> {
+  const token = localStorage.getItem("karaokefactory_token");
+  const res = await fetch(`${API_BASE}/api/admin/prewarm`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+  });
   return res.json();
 }

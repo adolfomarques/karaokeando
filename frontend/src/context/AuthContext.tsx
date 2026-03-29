@@ -65,6 +65,9 @@ interface AuthContextType {
   loginWithGoogle: (
     accessToken: string
   ) => Promise<{ success: boolean; error?: string }>;
+  loginWithFacebook: (
+    accessToken: string
+  ) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   refreshUser: () => Promise<void>;
 }
@@ -186,6 +189,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // Login with Facebook
+  const loginWithFacebook = async (accessToken: string) => {
+    try {
+      const res = await fetch(`${API_BASE}/api/auth/facebook`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ accessToken }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        localStorage.setItem(TOKEN_KEY, data.token);
+        setToken(data.token);
+        setUser(data.user);
+        return { success: true };
+      } else {
+        return { success: false, error: data.message || "Erro no Facebook Login" };
+      }
+    } catch {
+      return { success: false, error: "Erro de conexão" };
+    }
+  };
+
   // Register as guest (name + email + phone)
   const registerGuest = async (name: string, email: string, phone: string) => {
     try {
@@ -291,6 +318,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         loading,
         login,
         loginWithGoogle,
+        loginWithFacebook,
         registerGuest,
         registerHost,
         completeRegistration,

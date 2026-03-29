@@ -154,7 +154,9 @@
     "addedBy": "por",
     "embedDisabledWarning": "Este vídeo pode não funcionar no app",
     "manySearching": "Muitas pessoas pesquisando agora...",
-    "searchQueuePosition": "Você é o {{position}}º de {{total}} na fila de busca."
+    "searchQueuePosition": "Você é o {{position}}º de {{total}} na fila de busca.",
+    "searchCongested": "Busca Congestionada",
+    "searchCongestedDesc": "Muitas pessoas estão buscando música agora. Para ir mais rápido, cole o link do YouTube diretamente no campo de busca."
   },
   "tvLogin": {
     "title": "📺 Modo TV",
@@ -586,6 +588,11 @@
     "backgroundCreated": "Background adicionado",
     "backgroundDeleted": "Background removido",
     "phraseCreated": "Frase adicionada",
-    "phraseDeleted": "Frase removida"
+    "phraseDeleted": "Frase removida",
+    "prewarmTitle": "Aquecimento de Cache (Pre-warm)",
+    "prewarmDesc": "Faz a busca automática das músicas mais populares para deixar o sistema rápido antes do evento.",
+    "prewarmStart": "Começar Aquecimento",
+    "prewarmSuccess": "Aquecimento concluído com sucesso!",
+    "prewarmError": "Erro ao realizar aquecimento"
   }
 }
