@@ -21,6 +21,10 @@ const phraseSchema = z.object({
   active: z.boolean().optional(),
 });
 
+const bulkDeleteUsersSchema = z.object({
+  ids: z.array(z.string().min(1)).min(1).max(500),
+});
+
 export default async function adminRoutes(app: FastifyInstance) {
   // Helper for public consumption of score metals
   app.get("/api/public/score-meta", async () => {
@@ -96,6 +100,76 @@ export default async function adminRoutes(app: FastifyInstance) {
       createdAt: user.createdAt,
       roomsCreated: user._count.ownedRooms
     }));
+  });
+
+  app.delete("/api/admin/users/:id", { preHandler: [requireAdmin] }, async (request, reply) => {
+    const { id } = request.params as { id: string };
+    const currentUser = (request as any).user as { userId: string };
+
+    const userToDelete = await prisma.user.findUnique({
+      where: { id },
+      select: { id: true, isAdmin: true }
+    });
+
+    if (!userToDelete) {
+      return reply.code(404).send({ error: "user_not_found" });
+    }
+
+    if (userToDelete.id === currentUser.userId) {
+      return reply.code(400).send({ error: "cannot_delete_self" });
+    }
+
+    if (userToDelete.isAdmin) {
+      return reply.code(400).send({ error: "cannot_delete_admin" });
+    }
+
+    await prisma.$transaction([
+      prisma.room.deleteMany({ where: { ownerId: id } }),
+      prisma.user.delete({ where: { id } })
+    ]);
+
+    return { success: true };
+  });
+
+  app.post("/api/admin/users/bulk-delete", { preHandler: [requireAdmin] }, async (request, reply) => {
+    const parsed = bulkDeleteUsersSchema.safeParse(request.body);
+    if (!parsed.success) {
+      return reply.code(400).send({ error: "invalid_payload" });
+    }
+
+    const currentUser = (request as any).user as { userId: string };
+    const requestedIds = Array.from(new Set(parsed.data.ids));
+
+    const usersFound = await prisma.user.findMany({
+      where: { id: { in: requestedIds } },
+      select: { id: true, isAdmin: true },
+    });
+
+    const foundIds = new Set(usersFound.map((user) => user.id));
+    const adminIds = usersFound.filter((user) => user.isAdmin).map((user) => user.id);
+    const selfIds = usersFound.filter((user) => user.id === currentUser.userId).map((user) => user.id);
+    const notFoundIds = requestedIds.filter((id) => !foundIds.has(id));
+    const deletableIds = usersFound
+      .filter((user) => !user.isAdmin && user.id !== currentUser.userId)
+      .map((user) => user.id);
+
+    if (deletableIds.length > 0) {
+      await prisma.$transaction([
+        prisma.room.deleteMany({ where: { ownerId: { in: deletableIds } } }),
+        prisma.user.deleteMany({ where: { id: { in: deletableIds } } }),
+      ]);
+    }
+
+    return {
+      success: true,
+      requestedCount: requestedIds.length,
+      deletedCount: deletableIds.length,
+      skipped: {
+        adminIds,
+        selfIds,
+        notFoundIds,
+      },
+    };
   });
 
   // --- SONGS MANAGEMENT ---

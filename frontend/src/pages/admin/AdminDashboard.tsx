@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import AdminLayout from "./AdminLayout";
-import { getAdminStats, getAdminUsers, AdminUser, runAdminPrewarm } from "../../api";
+import { getAdminStats, getAdminUsers, deleteAdminUser, bulkDeleteAdminUsers, AdminUser, runAdminPrewarm } from "../../api";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-hot-toast";
 
@@ -31,6 +31,93 @@ export default function AdminDashboard() {
 
   const [prewarming, setPrewarming] = useState(false);
   const [prewarmQty, setPrewarmQty] = useState<number | "">("");
+  const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
+  const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
+
+  const selectableUsers = users.filter((user) => !user.isAdmin);
+  const selectableUserIds = selectableUsers.map((user) => user.id);
+  const allSelectableChecked = selectableUserIds.length > 0 && selectableUserIds.every((id) => selectedUserIds.includes(id));
+
+  const toggleUserSelection = (user: AdminUser) => {
+    if (user.isAdmin) return;
+    setSelectedUserIds((prev) => prev.includes(user.id) ? prev.filter((id) => id !== user.id) : [...prev, user.id]);
+  };
+
+  const toggleSelectAllUsers = () => {
+    if (allSelectableChecked) {
+      setSelectedUserIds([]);
+      return;
+    }
+    setSelectedUserIds(selectableUserIds);
+  };
+
+  const handleDeleteUser = async (user: AdminUser) => {
+    if (user.isAdmin) {
+      toast.error("Não é permitido excluir outro administrador.");
+      return;
+    }
+
+    const confirmed = window.confirm(`Excluir o usuário ${user.name} (${user.email})? Esta ação não pode ser desfeita.`);
+    if (!confirmed) return;
+
+    setDeletingUserId(user.id);
+    try {
+      const res = await deleteAdminUser(user.id);
+      if (res.success) {
+        setUsers((prev) => prev.filter((u) => u.id !== user.id));
+        setSelectedUserIds((prev) => prev.filter((id) => id !== user.id));
+        setStats((prev: any) => prev ? { ...prev, userCount: Math.max((prev.userCount || 1) - 1, 0) } : prev);
+        toast.success("Usuário excluído com sucesso.");
+      } else {
+        const msg = res.error === "cannot_delete_admin"
+          ? "Não é permitido excluir administrador."
+          : res.error === "cannot_delete_self"
+            ? "Você não pode excluir seu próprio usuário."
+            : "Erro ao excluir usuário.";
+        toast.error(msg);
+      }
+    } catch {
+      toast.error("Erro ao excluir usuário.");
+    } finally {
+      setDeletingUserId(null);
+    }
+  };
+
+  const handleBulkDeleteUsers = async () => {
+    if (selectedUserIds.length === 0) {
+      toast.error("Selecione pelo menos um usuário.");
+      return;
+    }
+
+    const confirmed = window.confirm(`Excluir ${selectedUserIds.length} usuários selecionados? Esta ação não pode ser desfeita.`);
+    if (!confirmed) return;
+
+    setBulkDeleting(true);
+    try {
+      const res = await bulkDeleteAdminUsers(selectedUserIds);
+      if (!res.success) {
+        toast.error("Erro ao excluir usuários em lote.");
+        return;
+      }
+
+      const deletedIds = selectedUserIds.filter((id) => !(res.skipped?.adminIds || []).includes(id) && !(res.skipped?.selfIds || []).includes(id));
+      setUsers((prev) => prev.filter((user) => !deletedIds.includes(user.id)));
+      setSelectedUserIds([]);
+      setStats((prev: any) => prev ? { ...prev, userCount: Math.max((prev.userCount || 0) - (res.deletedCount || 0), 0) } : prev);
+
+      const skippedCount = (res.skipped?.adminIds?.length || 0) + (res.skipped?.selfIds?.length || 0) + (res.skipped?.notFoundIds?.length || 0);
+      if ((res.deletedCount || 0) > 0) {
+        toast.success(`${res.deletedCount} usuário(s) excluído(s) com sucesso.${skippedCount > 0 ? ` ${skippedCount} item(ns) ignorado(s).` : ""}`);
+      } else {
+        toast.error("Nenhum usuário elegível para exclusão em lote.");
+      }
+    } catch {
+      toast.error("Erro ao excluir usuários em lote.");
+    } finally {
+      setBulkDeleting(false);
+    }
+  };
 
   const handlePrewarm = async () => {
     const qty = prewarmQty === "" ? undefined : Number(prewarmQty);
@@ -117,8 +204,8 @@ export default function AdminDashboard() {
               Total configurado no sistema: 100+ músicas
             </p>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="flex flex-col items-end">
+          <div className="flex items-end gap-4">
+            <div className="flex flex-col">
               <label className="text-[10px] text-gray-500 uppercase tracking-wider mb-1">Qtd Novas</label>
               <input
                 type="number"
@@ -208,12 +295,35 @@ export default function AdminDashboard() {
         <div className="admin-card border border-white/5 bg-[#0d0d12] mt-8">
           <div className="px-10 py-6 border-b border-white/5 flex items-center justify-between bg-white/[0.01]">
             <h2 className="text-sm font-bold uppercase tracking-[0.3em] text-gray-400">{t("admin.allUsers", "Todos os Usuários")}</h2>
-            <div className="text-[10px] font-mono text-gray-600">USER_DB v1.0</div>
+            <div className="flex items-center gap-3">
+              <span className="text-[10px] font-mono text-gray-500">{selectedUserIds.length} selecionado(s)</span>
+              <button
+                onClick={handleBulkDeleteUsers}
+                disabled={bulkDeleting || selectedUserIds.length === 0}
+                className={`px-3 py-2 rounded text-[10px] font-bold uppercase tracking-wider transition-all ${
+                  bulkDeleting || selectedUserIds.length === 0
+                    ? "bg-red-900/20 text-red-400/50 cursor-not-allowed"
+                    : "bg-red-500/20 text-red-300 hover:bg-red-500/30"
+                }`}
+              >
+                {bulkDeleting ? "Excluindo..." : "Excluir Selecionados"}
+              </button>
+              <div className="text-[10px] font-mono text-gray-600">USER_DB v1.1</div>
+            </div>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="admin-table-header text-gray-500 text-[10px] font-bold uppercase tracking-widest bg-black/50">
+                  <th className="px-4 py-4 text-center">
+                    <input
+                      type="checkbox"
+                      checked={allSelectableChecked}
+                      onChange={toggleSelectAllUsers}
+                      className="h-4 w-4 rounded border-white/20 bg-black/50 accent-[#00f5ff]"
+                      title="Selecionar todos os usuários não-admin"
+                    />
+                  </th>
                   <th className="px-6 py-4">{t("admin.user.name", "Nome")}</th>
                   <th className="px-6 py-4">{t("admin.user.email", "Email")}</th>
                   <th className="px-6 py-4">{t("admin.user.phone", "Telefone")}</th>
@@ -224,11 +334,22 @@ export default function AdminDashboard() {
                   <th className="px-6 py-4 text-center">{t("admin.user.isAdmin", "Admin")}</th>
                   <th className="px-6 py-4 text-center">{t("admin.user.rooms", "Salas")}</th>
                   <th className="px-6 py-4 text-right">{t("admin.user.createdAt", "Criado em")}</th>
+                  <th className="px-6 py-4 text-right">Ações</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5 text-sm">
                 {users.map((user) => (
                   <tr key={user.id} className="hover:bg-[#00f5ff]/[0.02] transition-colors group">
+                    <td className="px-4 py-4 text-center">
+                      <input
+                        type="checkbox"
+                        checked={selectedUserIds.includes(user.id)}
+                        onChange={() => toggleUserSelection(user)}
+                        disabled={user.isAdmin || bulkDeleting}
+                        className="h-4 w-4 rounded border-white/20 bg-black/50 accent-[#00f5ff] disabled:opacity-40"
+                        title={user.isAdmin ? "Administrador não pode ser selecionado" : "Selecionar usuário"}
+                      />
+                    </td>
                     <td className="px-6 py-4">
                       <span className="font-medium text-white">{user.name}</span>
                     </td>
@@ -255,11 +376,27 @@ export default function AdminDashboard() {
                     <td className="px-6 py-4 text-right text-gray-500 font-mono text-xs">
                       {new Date(user.createdAt).toLocaleString("pt-BR")}
                     </td>
+                    <td className="px-6 py-4 text-right">
+                      <button
+                        onClick={() => handleDeleteUser(user)}
+                        disabled={deletingUserId === user.id || user.isAdmin || bulkDeleting}
+                        className={`px-3 py-1.5 rounded text-[10px] font-bold uppercase tracking-wider transition-all ${
+                          user.isAdmin
+                            ? "bg-white/5 text-gray-600 cursor-not-allowed"
+                            : deletingUserId === user.id
+                              ? "bg-red-900/30 text-red-300 cursor-not-allowed"
+                              : "bg-red-500/20 text-red-300 hover:bg-red-500/30"
+                        }`}
+                        title={user.isAdmin ? "Administrador não pode ser excluído" : "Excluir usuário"}
+                      >
+                        {deletingUserId === user.id ? "Excluindo..." : "Excluir"}
+                      </button>
+                    </td>
                   </tr>
                 ))}
                 {users.length === 0 && (
                   <tr>
-                    <td colSpan={10} className="px-10 py-20 text-center text-gray-600 font-mono text-xs uppercase tracking-widest italic">
+                    <td colSpan={12} className="px-10 py-20 text-center text-gray-600 font-mono text-xs uppercase tracking-widest italic">
                       --- Nenhum usuário encontrado ---
                     </td>
                   </tr>

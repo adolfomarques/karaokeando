@@ -481,6 +481,38 @@ export async function getAdminUsers(): Promise<AdminUser[]> {
   return res.json();
 }
 
+export async function deleteAdminUser(id: string): Promise<{ success?: boolean; error?: string }> {
+  const token = localStorage.getItem("karaokefactory_token");
+  const res = await fetch(`${API_BASE}/api/admin/users/${id}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.json();
+}
+
+export async function bulkDeleteAdminUsers(ids: string[]): Promise<{
+  success?: boolean;
+  deletedCount?: number;
+  requestedCount?: number;
+  skipped?: {
+    adminIds?: string[];
+    selfIds?: string[];
+    notFoundIds?: string[];
+  };
+  error?: string;
+}> {
+  const token = localStorage.getItem("karaokefactory_token");
+  const res = await fetch(`${API_BASE}/api/admin/users/bulk-delete`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ ids }),
+  });
+  return res.json();
+}
+
 export async function getAdminSongs(): Promise<AdminSong[]> {
   const token = localStorage.getItem("karaokefactory_token");
   const res = await fetch(`${API_BASE}/api/admin/songs`, {
