@@ -50,3 +50,31 @@ Se encontrar falhas no deploy, **verifique sempre o arquivo \`netlify.toml\`** n
 2. Testar o checklist: \`python3 .agent/scripts/checklist.py .\`;
 3. Se aprovar, executar logado no CLI local: \`npx netlify-cli deploy --prod --build\`;
 4. E então realizar um commit no Git e enviar para seu repositório remoto.
+
+---
+
+## Deploy do Backend (Render via GitHub Actions)
+
+O backend é publicado automaticamente no Render por meio do workflow:
+
+- `/.github/workflows/deploy-backend.yml`
+
+Esse workflow dispara em push na branch `main` quando há mudanças em `backend/**` e usa **Deploy Hook URL** (sem CLI e sem token de sessão expirar).
+
+### Configuração obrigatória (GitHub Secrets)
+
+No repositório do GitHub, configure este secret:
+
+- `RENDER_DEPLOY_HOOK_URL`: URL do Deploy Hook do serviço no Render.
+
+### Como obter o Deploy Hook no Render
+
+1. Abra o serviço do backend no Render;
+2. Vá até a seção de Deploy Hooks;
+3. Crie (ou copie) um hook;
+4. Cole a URL no secret `RENDER_DEPLOY_HOOK_URL` no GitHub.
+
+### Observações importantes
+
+- Se o workflow falhar com `Missing secret: RENDER_DEPLOY_HOOK_URL`, o secret não foi criado ou está vazio.
+- O erro antigo de token expirado (`your token is expired`) ocorria no fluxo anterior baseado em Render CLI/API key.
