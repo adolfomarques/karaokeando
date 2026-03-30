@@ -487,7 +487,13 @@ export async function deleteAdminUser(id: string): Promise<{ success?: boolean; 
     method: "DELETE",
     headers: { Authorization: `Bearer ${token}` },
   });
-  return res.json();
+  try {
+    const data = await res.json();
+    if (!res.ok) return { success: false, error: data?.error || `http_${res.status}` };
+    return data;
+  } catch {
+    return { success: false, error: `http_${res.status}` };
+  }
 }
 
 export async function bulkDeleteAdminUsers(ids: string[]): Promise<{
@@ -498,6 +504,7 @@ export async function bulkDeleteAdminUsers(ids: string[]): Promise<{
     adminIds?: string[];
     selfIds?: string[];
     notFoundIds?: string[];
+    failedIds?: string[];
   };
   error?: string;
 }> {
@@ -510,7 +517,13 @@ export async function bulkDeleteAdminUsers(ids: string[]): Promise<{
     },
     body: JSON.stringify({ ids }),
   });
-  return res.json();
+  try {
+    const data = await res.json();
+    if (!res.ok) return { success: false, error: data?.error || `http_${res.status}` };
+    return data;
+  } catch {
+    return { success: false, error: `http_${res.status}` };
+  }
 }
 
 export async function getAdminSongs(): Promise<AdminSong[]> {

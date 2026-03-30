@@ -97,16 +97,34 @@ export default function AdminDashboard() {
     try {
       const res = await bulkDeleteAdminUsers(selectedUserIds);
       if (!res.success) {
-        toast.error("Erro ao excluir usuários em lote.");
+        const fallbackResults = await Promise.all(selectedUserIds.map((id) => deleteAdminUser(id)));
+        const deletedIdsFallback = selectedUserIds.filter((_, index) => fallbackResults[index]?.success);
+        const failedFallback = selectedUserIds.length - deletedIdsFallback.length;
+
+        if (deletedIdsFallback.length > 0) {
+          setUsers((prev) => prev.filter((user) => !deletedIdsFallback.includes(user.id)));
+          setSelectedUserIds([]);
+          setStats((prev: any) => prev ? { ...prev, userCount: Math.max((prev.userCount || 0) - deletedIdsFallback.length, 0) } : prev);
+          toast.success(`${deletedIdsFallback.length} usuário(s) excluído(s). ${failedFallback} falha(s).`);
+        } else {
+          toast.error("Erro ao excluir usuários em lote.");
+        }
         return;
       }
 
-      const deletedIds = selectedUserIds.filter((id) => !(res.skipped?.adminIds || []).includes(id) && !(res.skipped?.selfIds || []).includes(id));
+      const failedIds = res.skipped?.failedIds || [];
+      const deletedIds = selectedUserIds.filter(
+        (id) =>
+          !(res.skipped?.adminIds || []).includes(id) &&
+          !(res.skipped?.selfIds || []).includes(id) &&
+          !(res.skipped?.notFoundIds || []).includes(id) &&
+          !failedIds.includes(id)
+      );
       setUsers((prev) => prev.filter((user) => !deletedIds.includes(user.id)));
       setSelectedUserIds([]);
       setStats((prev: any) => prev ? { ...prev, userCount: Math.max((prev.userCount || 0) - (res.deletedCount || 0), 0) } : prev);
 
-      const skippedCount = (res.skipped?.adminIds?.length || 0) + (res.skipped?.selfIds?.length || 0) + (res.skipped?.notFoundIds?.length || 0);
+      const skippedCount = (res.skipped?.adminIds?.length || 0) + (res.skipped?.selfIds?.length || 0) + (res.skipped?.notFoundIds?.length || 0) + failedIds.length;
       if ((res.deletedCount || 0) > 0) {
         toast.success(`${res.deletedCount} usuário(s) excluído(s) com sucesso.${skippedCount > 0 ? ` ${skippedCount} item(ns) ignorado(s).` : ""}`);
       } else {

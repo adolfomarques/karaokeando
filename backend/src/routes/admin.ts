@@ -153,21 +153,30 @@ export default async function adminRoutes(app: FastifyInstance) {
       .filter((user) => !user.isAdmin && user.id !== currentUser.userId)
       .map((user) => user.id);
 
-    if (deletableIds.length > 0) {
-      await prisma.$transaction([
-        prisma.room.deleteMany({ where: { ownerId: { in: deletableIds } } }),
-        prisma.user.deleteMany({ where: { id: { in: deletableIds } } }),
-      ]);
+    const deletedIds: string[] = [];
+    const failedIds: string[] = [];
+
+    for (const userId of deletableIds) {
+      try {
+        await prisma.$transaction([
+          prisma.room.deleteMany({ where: { ownerId: userId } }),
+          prisma.user.delete({ where: { id: userId } }),
+        ]);
+        deletedIds.push(userId);
+      } catch {
+        failedIds.push(userId);
+      }
     }
 
     return {
       success: true,
       requestedCount: requestedIds.length,
-      deletedCount: deletableIds.length,
+      deletedCount: deletedIds.length,
       skipped: {
         adminIds,
         selfIds,
         notFoundIds,
+        failedIds,
       },
     };
   });
