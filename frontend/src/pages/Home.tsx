@@ -145,7 +145,7 @@ export default function Home() {
   if (authLoading) {
     return (
       <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", background: "#0A0A0A" }}>
-        <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "1rem" }}>{t("home.loading", "Loading...")}</div>
+        <div style={{ color: "rgba(255,255,255,0.62)", fontSize: "1rem" }}>{t("home.loading", "Loading...")}</div>
       </div>
     );
   }
@@ -178,10 +178,11 @@ export default function Home() {
         position: "relative",
         zIndex: 1,
       }}>
+        <h1 className="sr-only">{t("home.title", "Karaoke Factory")}</h1>
         <div className="container" style={{ padding: "0 16px", animation: "fadeInUp 0.75s ease-out" }}>
 
           {/* Logo */}
-          <Logo width={384} style={{ marginBottom: "28px" }} />
+          <Logo width={`min(384px, 85vw)`} style={{ marginBottom: "28px" }} />
 
           {/* Main glass card */}
           <div className="glass-card" style={{
@@ -205,7 +206,7 @@ export default function Home() {
                   <h2 style={{ margin: 0, fontSize: "1.35rem", fontWeight: "800", color: "#fff" }}>
                     {t("common.welcome", "Olá")}, {user.name} 👋
                   </h2>
-                  <p style={{ margin: "4px 0 0", color: "rgba(255,255,255,0.45)", fontSize: "0.9rem" }}>{user.email}</p>
+                  <p style={{ margin: "4px 0 0", color: "rgba(255,255,255,0.62)", fontSize: "0.9rem" }}>{user.email}</p>
                 </div>
                 <button
                   onClick={logout}
@@ -246,6 +247,7 @@ export default function Home() {
                   🎵 {t("home.joinRoom", "Entrar em uma sala")}
                 </h3>
                 <input
+                  aria-label={t("home.roomCodePlaceholder", "Código da sala")}
                   placeholder={t("home.roomCodePlaceholder", "ABC")}
                   value={joinCode}
                   onChange={e => setJoinCode(e.target.value.toUpperCase())}
@@ -271,7 +273,7 @@ export default function Home() {
                         background: joinMode === mode
                           ? "linear-gradient(135deg, #FF0080, #FF4D6D)"
                           : "rgba(255,255,255,0.05)",
-                        color: joinMode === mode ? "#fff" : "rgba(255,255,255,0.5)",
+                        color: joinMode === mode ? "#fff" : "rgba(255,255,255,0.55)",
                         border: "1px solid",
                         borderColor: joinMode === mode ? "transparent" : "rgba(255,255,255,0.08)",
                         borderRadius: "12px",
@@ -318,7 +320,7 @@ export default function Home() {
                     </h3>
                     <div style={{ maxHeight: "220px", overflowY: "auto", marginBottom: "16px" }}>
                       {myRooms.length === 0 ? (
-                        <p style={{ color: "rgba(255,255,255,0.3)", fontSize: "0.9rem" }}>{t("home.noRoomsYet", "Sem salas ainda")}</p>
+                        <p style={{ color: "rgba(255,255,255,0.55)", fontSize: "0.9rem" }}>{t("home.noRoomsYet", "Sem salas ainda")}</p>
                       ) : (
                         myRooms.map(r => (
                           <div
@@ -403,7 +405,7 @@ export default function Home() {
                     <h3 style={{ marginBottom: "12px", color: "#fff", fontSize: "1.1rem" }}>
                       {t("home.createYourRoom", "Crie sua própria festa!")}
                     </h3>
-                    <p style={{ color: "rgba(255,255,255,0.45)", marginBottom: "24px", fontSize: "0.9rem", lineHeight: 1.6 }}>
+                    <p style={{ color: "rgba(255,255,255,0.62)", marginBottom: "24px", fontSize: "0.9rem", lineHeight: 1.6 }}>
                       {t("home.loginToCreate", "Junte seus amigos e comece a festa agora.")}
                     </p>
                     <button
@@ -437,7 +439,7 @@ export default function Home() {
           <h2 style={{ fontSize: "clamp(1.8rem, 5vw, 2.5rem)", fontWeight: "900", color: "#fff", marginBottom: "10px", textAlign: "center" }}>
             {t("landing.howItWorks.title", "Como funciona")}
           </h2>
-          <p style={{ color: "rgba(255,255,255,0.45)", marginBottom: "52px", fontSize: "1.05rem", textAlign: "center" }}>
+          <p style={{ color: "rgba(255,255,255,0.62)", marginBottom: "52px", fontSize: "1.05rem", textAlign: "center" }}>
             {t("landing.howItWorks.subtitle", "Três passos simples para cantar com seus amigos")}
           </p>
 
@@ -473,7 +475,7 @@ export default function Home() {
                   {step.icon}
                 </div>
                 <h3 style={{ fontSize: "1.25rem", color: "#fff", marginBottom: "12px", fontWeight: "800" }}>{step.title}</h3>
-                <p style={{ color: "rgba(255,255,255,0.5)", lineHeight: "1.65", fontSize: "0.95rem" }}>{step.desc}</p>
+                <p style={{ color: "rgba(255,255,255,0.62)", lineHeight: "1.65", fontSize: "0.95rem" }}>{step.desc}</p>
               </div>
             ))}
           </div>
@@ -499,7 +501,7 @@ export default function Home() {
             ].map((stat, i) => (
               <div key={i} style={{ textAlign: "center", minWidth: "100px" }}>
                 <div style={{ fontSize: "2rem", fontWeight: "900", color: "#fff", marginBottom: "6px" }}>{stat.value}</div>
-                <div style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.4)", letterSpacing: "2px", fontWeight: "700", textTransform: "uppercase" }}>{stat.label}</div>
+                <div style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.55)", letterSpacing: "2px", fontWeight: "700", textTransform: "uppercase" }}>{stat.label}</div>
               </div>
             ))}
           </div>
@@ -510,10 +512,14 @@ export default function Home() {
       <section style={{ padding: "80px 20px 100px", textAlign: "center", position: "relative", zIndex: 1 }}>
         <div className="container">
           <h2
+            className="cta-heading"
             style={{ fontSize: "clamp(2.5rem, 9vw, 5.5rem)", fontWeight: "900", color: "#fff", marginBottom: "24px", letterSpacing: "-2px", lineHeight: "1" }}
-            dangerouslySetInnerHTML={{ __html: t("landing.cta.ready", "Pronto para <span>cantar</span>?") }}
-          />
-          <p style={{ color: "rgba(255,255,255,0.45)", marginBottom: "44px", fontSize: "1.1rem" }}>
+          >
+            {t("landing.cta.prefix", "Pronto para")}{" "}
+            <span>{t("landing.cta.highlight", "cantar")}</span>
+            ?
+          </h2>
+          <p style={{ color: "rgba(255,255,255,0.62)", marginBottom: "44px", fontSize: "1.1rem" }}>
             {t("landing.cta.subtitle", "Comece agora. Sem cadastro complicado.")}
           </p>
           <button
@@ -543,13 +549,13 @@ export default function Home() {
                 alt="AM"
                 style={{ width: "26px", height: "26px", borderRadius: "50%", objectFit: "cover", border: "1px solid rgba(255,255,255,0.1)" }}
               />
-              <span style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.82rem", fontWeight: "600" }}>by Adolfo Marques</span>
+              <span style={{ color: "rgba(255,255,255,0.62)", fontSize: "0.82rem", fontWeight: "600" }}>by Adolfo Marques</span>
             </div>
             <div style={{ display: "flex", gap: "24px", alignItems: "center" }}>
-              <Link to="/terms" style={{ color: "rgba(255,255,255,0.35)", textDecoration: "none", fontSize: "0.85rem" }}>
+              <Link to="/terms" style={{ color: "rgba(255,255,255,0.62)", textDecoration: "none", fontSize: "0.85rem" }}>
                 {t("landing.terms.title", "Terms")}
               </Link>
-              <span style={{ color: "rgba(255,255,255,0.2)", fontSize: "0.85rem" }}>{t("landing.footer.copyright")}</span>
+              <span style={{ color: "rgba(255,255,255,0.4)", fontSize: "0.85rem" }}>{t("landing.footer.copyright")}</span>
             </div>
           </div>
         </div>
@@ -557,7 +563,7 @@ export default function Home() {
 
       {/* ── CTA span glow ─────────────────────────────────── */}
       <style>{`
-        h2 span {
+        .cta-heading span {
           background: linear-gradient(135deg, #FF0080, #FF4D6D);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
@@ -585,7 +591,7 @@ export default function Home() {
             {guestNeedsLogin ? (
               <>
                 <h2 style={{ fontWeight: "900", marginBottom: "12px", color: "#fff" }}>{t("guest.alreadyHaveAccount")}</h2>
-                <p style={{ color: "rgba(255,255,255,0.5)", marginBottom: "28px" }}>
+                <p style={{ color: "rgba(255,255,255,0.62)", marginBottom: "28px" }}>
                   {t("guest.emailAlreadyRegistered1")} <strong>{guestEmail}</strong> {t("guest.emailAlreadyRegistered2")}
                 </p>
                 <button
@@ -600,11 +606,11 @@ export default function Home() {
                 <h2 style={{ fontWeight: "900", marginBottom: "6px", color: "#fff" }}>
                   {t("guest.enterRoom")} <span style={{ color: "#FF0080" }}>{pendingRoomCode}</span>
                 </h2>
-                <p style={{ color: "rgba(255,255,255,0.45)", marginBottom: "24px", fontSize: "0.9rem" }}>{t("guest.identifyYourself")}</p>
+                <p style={{ color: "rgba(255,255,255,0.62)", marginBottom: "24px", fontSize: "0.9rem" }}>{t("guest.identifyYourself")}</p>
                 {guestError && <p style={{ color: "#ff6b6b", marginBottom: "14px", fontSize: "0.9rem" }}>⚠️ {guestError}</p>}
-                <input type="text" value={guestName} onChange={e => setGuestName(e.target.value)} placeholder={t("guest.yourName")} style={{ marginBottom: "12px" }} />
-                <input type="email" value={guestEmail} onChange={e => setGuestEmail(e.target.value)} placeholder={t("guest.yourEmail")} style={{ marginBottom: "12px" }} />
-                <input type="tel" value={guestPhone} onChange={e => setGuestPhone(e.target.value)} placeholder={t("guest.yourPhone")} style={{ marginBottom: "24px" }} />
+                <input type="text" aria-label={t("guest.yourName")} value={guestName} onChange={e => setGuestName(e.target.value)} placeholder={t("guest.yourName")} style={{ marginBottom: "12px" }} />
+                <input type="email" aria-label={t("guest.yourEmail")} value={guestEmail} onChange={e => setGuestEmail(e.target.value)} placeholder={t("guest.yourEmail")} style={{ marginBottom: "12px" }} />
+                <input type="tel" aria-label={t("guest.yourPhone")} value={guestPhone} onChange={e => setGuestPhone(e.target.value)} placeholder={t("guest.yourPhone")} style={{ marginBottom: "24px" }} />
                 <button onClick={handleGuestSubmit} disabled={guestLoading} style={{ width: "100%" }}>
                   {guestLoading ? t("guest.entering") : t("guest.enterRoomBtn")}
                 </button>
@@ -631,13 +637,14 @@ export default function Home() {
             style={{ padding: "40px 36px", width: "100%", maxWidth: "380px", borderRadius: "24px", textAlign: "center" }}
           >
             <h2 style={{ fontWeight: "900", marginBottom: "8px", color: "#fff" }}>{t("tv.passwordTitle")}</h2>
-            <p style={{ color: "rgba(255,255,255,0.45)", marginBottom: "28px" }}>
+            <p style={{ color: "rgba(255,255,255,0.62)", marginBottom: "28px" }}>
               {t("tv.passwordInstruction")} <strong style={{ color: "#FF0080" }}>{pendingRoomCode}</strong>
             </p>
             {tvPasswordError && <p style={{ color: "#ff6b6b", marginBottom: "14px" }}>⚠️ {tvPasswordError}</p>}
             <input
               type="text"
               maxLength={6}
+              aria-label={t("tv.passwordTitle", "Senha da TV")}
               value={tvPassword}
               onChange={e => setTvPassword(e.target.value.toUpperCase())}
               style={{

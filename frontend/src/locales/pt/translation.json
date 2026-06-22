@@ -469,7 +469,8 @@
       "realtime": "TEMPO REAL"
     },
     "cta": {
-      "ready": "Pronto para <span>cantar</span>?",
+      "prefix": "Pronto para",
+      "highlight": "cantar",
       "subtitle": "Comece agora mesmo. Sem cadastro, sem complicação.",
       "start": "Criar Minha Sala"
     },

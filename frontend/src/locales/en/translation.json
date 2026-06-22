@@ -467,7 +467,8 @@
       "realtime": "REAL TIME"
     },
     "cta": {
-      "ready": "Ready to <span>sing</span>?",
+      "prefix": "Ready to",
+      "highlight": "sing",
       "subtitle": "Start right now. No registration, no hassle.",
       "start": "Create My Party"
     },
