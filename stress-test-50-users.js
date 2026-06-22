@@ -21,7 +21,7 @@ export const options = {
 };
 
 const BASE_URL = 'https://karaokeando.onrender.com';
-const ROOM_CODE = 'F9J';
+const ROOM_CODE = '2HV';
 
 const SEARCH_QUERIES = [
   "queen bohemian rhapsody", "beatles help", "lady gaga bad romance",
