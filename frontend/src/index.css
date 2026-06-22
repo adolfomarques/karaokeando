@@ -14,7 +14,14 @@
   --primary-glow:  rgba(255, 0, 128, 0.5);
   --secondary:     #7928CA;
   --text:          #FFFFFF;
-  --text-muted:    rgba(255, 255, 255, 0.6);
+
+  /* Texto com contraste corrigido (WCAG AA) */
+  --text-primary:     #FFFFFF;
+  --text-secondary:   rgba(255, 255, 255, 0.62);
+  --text-tertiary:    rgba(255, 255, 255, 0.50);
+  --text-muted:       rgba(255, 255, 255, 0.62);
+  --text-muted-light: rgba(255, 255, 255, 0.40);
+
   --accent:        #FF0080;
   --muted:         rgba(255, 255, 255, 0.4);
 
@@ -249,6 +256,116 @@ h1, h2, h3 {
 
 .glow-pulse {
   animation: glowPulse 2.5s ease-in-out infinite;
+}
+
+/* ── Ghost Button ───────────────────────────────────────── */
+.btn-ghost {
+  background: transparent;
+  box-shadow: none !important;
+  padding: 12px 18px;
+}
+
+.btn-ghost:hover {
+  background: rgba(255, 0, 128, 0.10) !important;
+  box-shadow: 0 0 20px rgba(255, 0, 128, 0.2) !important;
+}
+
+/* ── Logout Button ──────────────────────────────────────── */
+.btn-logout {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.10);
+  color: rgba(255,255,255,0.6);
+  padding: 8px 18px;
+  font-size: 0.85rem;
+  border-radius: 999px;
+  box-shadow: none;
+  transition: var(--transition);
+}
+
+.btn-logout:hover {
+  background: rgba(255,0,0,0.15) !important;
+  border-color: rgba(255,80,80,0.3) !important;
+  color: #fff !important;
+}
+
+/* ── Glass Card Lift ────────────────────────────────────── */
+.glass-card--lift {
+  transition: transform 0.3s ease, var(--transition);
+}
+
+.glass-card--lift:hover {
+  transform: translateY(-6px) scale(1.02);
+}
+
+/* ── Grid: Two Columns (responsive sem JS) ──────────────── */
+.grid-join {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 48px;
+}
+
+@media (max-width: 900px) {
+  .grid-join {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+}
+
+/* ── Separator ──────────────────────────────────────────── */
+.separator-vertical {
+  border-left: 1px solid rgba(255,255,255,0.07);
+}
+
+.separator-horizontal {
+  border-top: 1px solid rgba(255,255,255,0.07);
+}
+
+@media (max-width: 900px) {
+  .separator-vertical {
+    border-left: none;
+  }
+}
+
+/* ── Modal Overlay ──────────────────────────────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 20px;
+}
+
+/* ── Text utilities ─────────────────────────────────────── */
+.text-secondary { color: var(--text-secondary); }
+.text-tertiary { color: var(--text-tertiary); }
+.text-muted-light { color: var(--text-muted-light); }
+.text-error { color: #ff6b6b; }
+.text-pink { color: var(--primary); }
+
+/* ── Card padding adaptive ──────────────────────────────── */
+.card-padding {
+  padding: 44px 48px;
+}
+
+@media (max-width: 900px) {
+  .card-padding {
+    padding: 28px 22px;
+  }
+}
+
+/* ── Section spacing ────────────────────────────────────── */
+.section-padding {
+  padding: 70px 20px;
+}
+
+@media (max-width: 600px) {
+  .section-padding {
+    padding: 40px 16px;
+  }
 }
 
 /* ── Hover lift ─────────────────────────────────────────── */

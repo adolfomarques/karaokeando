@@ -144,16 +144,14 @@ export default function Home() {
 
   if (authLoading) {
     return (
-      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", background: "#0A0A0A" }}>
-        <div style={{ color: "rgba(255,255,255,0.62)", fontSize: "1rem" }}>{t("home.loading", "Loading...")}</div>
+      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", background: "var(--bg)" }}>
+        <div className="text-tertiary" style={{ fontSize: "1rem" }}>{t("home.loading", "Loading...")}</div>
       </div>
     );
   }
 
-  const isWide = typeof window !== "undefined" && window.innerWidth > 900;
-
   return (
-    <div style={{ background: "#0A0A0A", minHeight: "100vh" }}>
+    <div style={{ background: "var(--bg)", minHeight: "100vh" }}>
       <LandingHeader />
       <Toaster
         position="top-right"
@@ -185,11 +183,10 @@ export default function Home() {
           <Logo width={`min(384px, 85vw)`} style={{ marginBottom: "28px" }} />
 
           {/* Main glass card */}
-          <div className="glass-card" style={{
-            padding: isWide ? "44px 48px" : "28px 22px",
-            marginBottom: "48px",
-            textAlign: "left",
-          }}>
+            <div className="glass-card card-padding" style={{
+              marginBottom: "48px",
+              textAlign: "left",
+            }}>
             {/* User greeting */}
             {user && (
               <div style={{
@@ -206,29 +203,11 @@ export default function Home() {
                   <h2 style={{ margin: 0, fontSize: "1.35rem", fontWeight: "800", color: "#fff" }}>
                     {t("common.welcome", "Olá")}, {user.name} 👋
                   </h2>
-                  <p style={{ margin: "4px 0 0", color: "rgba(255,255,255,0.62)", fontSize: "0.9rem" }}>{user.email}</p>
+                  <p className="text-secondary" style={{ margin: "4px 0 0", fontSize: "0.9rem" }}>{user.email}</p>
                 </div>
                 <button
                   onClick={logout}
-                  style={{
-                    background: "rgba(255,255,255,0.06)",
-                    border: "1px solid rgba(255,255,255,0.10)",
-                    color: "rgba(255,255,255,0.6)",
-                    padding: "8px 18px",
-                    fontSize: "0.85rem",
-                    borderRadius: "999px",
-                    boxShadow: "none",
-                  }}
-                  onMouseEnter={e => {
-                    e.currentTarget.style.background = "rgba(255,0,0,0.15)";
-                    e.currentTarget.style.borderColor = "rgba(255,80,80,0.3)";
-                    e.currentTarget.style.color = "#fff";
-                  }}
-                  onMouseLeave={e => {
-                    e.currentTarget.style.background = "rgba(255,255,255,0.06)";
-                    e.currentTarget.style.borderColor = "rgba(255,255,255,0.10)";
-                    e.currentTarget.style.color = "rgba(255,255,255,0.6)";
-                  }}
+                  className="btn-logout"
                 >
                   {t("auth.logout", "Sair")}
                 </button>
@@ -236,11 +215,7 @@ export default function Home() {
             )}
 
             {/* Two columns */}
-            <div style={{
-              display: "grid",
-              gridTemplateColumns: isWide ? "1.15fr 1fr" : "1fr",
-              gap: isWide ? "48px" : "32px",
-            }}>
+            <div className="grid-join">
               {/* Join Room */}
               <div>
                 <h3 style={{ fontSize: "1.1rem", fontWeight: "700", marginBottom: "18px", color: "rgba(255,255,255,0.9)" }}>
@@ -307,11 +282,9 @@ export default function Home() {
               </div>
 
               {/* My Rooms / Create */}
-              <div style={{
-                borderLeft: isWide ? "1px solid rgba(255,255,255,0.07)" : "none",
-                borderTop: !isWide ? "1px solid rgba(255,255,255,0.07)" : "none",
-                paddingLeft: isWide ? "48px" : "0",
-                paddingTop: !isWide ? "28px" : "0",
+              <div className="separator-vertical separator-horizontal" style={{
+                paddingLeft: "48px",
+                paddingTop: 0,
               }}>
                 {user?.canHost ? (
                   <>
@@ -378,22 +351,14 @@ export default function Home() {
                     </div>
                     <button
                       onClick={() => navigate("/create-room")}
+                      className="btn-ghost"
                       style={{
                         width: "100%",
-                        background: "transparent",
                         border: "1px solid rgba(255,0,128,0.4)",
                         color: "#FF0080",
-                        boxShadow: "none",
                         padding: "13px",
                         fontSize: "0.95rem",
-                      }}
-                      onMouseEnter={e => {
-                        e.currentTarget.style.background = "rgba(255,0,128,0.10)";
-                        e.currentTarget.style.boxShadow = "0 0 20px rgba(255,0,128,0.2)";
-                      }}
-                      onMouseLeave={e => {
-                        e.currentTarget.style.background = "transparent";
-                        e.currentTarget.style.boxShadow = "none";
+                        borderRadius: "999px",
                       }}
                     >
                       + {t("home.createRoom", "Criar Sala")}
@@ -455,10 +420,8 @@ export default function Home() {
             ].map(step => (
               <div
                 key={step.id}
-                className="glass-card"
+                className="glass-card glass-card--lift"
                 style={{ padding: "36px 28px", textAlign: "left" }}
-                onMouseEnter={e => (e.currentTarget.style.transform = "translateY(-6px) scale(1.02)")}
-                onMouseLeave={e => (e.currentTarget.style.transform = "translateY(0) scale(1)")}
               >
                 <div style={{
                   width: "52px",
