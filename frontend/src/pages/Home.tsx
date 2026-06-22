@@ -5,7 +5,6 @@ import { useAuth, getToken } from "../context/AuthContext";
 import { getState, API_BASE, deleteRoom } from "../api";
 import { useTranslation } from "react-i18next";
 import LandingHeader from "../components/LandingHeader";
-import { Toaster } from "react-hot-toast";
 
 interface MyRoom {
   code: string;
@@ -153,17 +152,6 @@ export default function Home() {
   return (
     <div style={{ background: "var(--bg)", minHeight: "100vh" }}>
       <LandingHeader />
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          style: {
-            background: "rgba(20,20,28,0.95)",
-            color: "#fff",
-            border: "1px solid rgba(255,255,255,0.1)",
-            backdropFilter: "blur(12px)",
-          }
-        }}
-      />
 
       {/* ── Hero Section ──────────────────────────────────── */}
       <section style={{
@@ -414,31 +402,45 @@ export default function Home() {
             gap: "24px",
           }}>
             {[
-              { id: 1, icon: "➕", title: t("landing.howItWorks.step1Title"), desc: t("landing.howItWorks.step1Desc"), color: "#FF0080" },
-              { id: 2, icon: "↪️", title: t("landing.howItWorks.step2Title"), desc: t("landing.howItWorks.step2Desc"), color: "#7928CA" },
-              { id: 3, icon: "🎤", title: t("landing.howItWorks.step3Title"), desc: t("landing.howItWorks.step3Desc"), color: "#00d1ff" },
+              { id: 1, icon: "➕", title: t("landing.howItWorks.step1Title"), desc: t("landing.howItWorks.step1Desc"), color: "#FF0080", badge: "01" },
+              { id: 2, icon: "↪️", title: t("landing.howItWorks.step2Title"), desc: t("landing.howItWorks.step2Desc"), color: "#7928CA", badge: "02" },
+              { id: 3, icon: "🎤", title: t("landing.howItWorks.step3Title"), desc: t("landing.howItWorks.step3Desc"), color: "#00d1ff", badge: "03" },
             ].map(step => (
               <div
                 key={step.id}
                 className="glass-card glass-card--lift"
-                style={{ padding: "36px 28px", textAlign: "left" }}
+                style={{ padding: "36px 28px", textAlign: "left", position: "relative" }}
               >
                 <div style={{
-                  width: "52px",
-                  height: "52px",
-                  borderRadius: "14px",
-                  background: `${step.color}1A`,
-                  border: `1px solid ${step.color}33`,
+                  position: "absolute", top: 16, right: 20,
+                  fontSize: "2.5rem", fontWeight: "900", letterSpacing: "-2px",
+                  color: `${step.color}15`,
+                  lineHeight: 1,
+                }}>
+                  {step.badge}
+                </div>
+                <div style={{
+                  width: "56px",
+                  height: "56px",
+                  borderRadius: "16px",
+                  background: step.id === 1
+                    ? "linear-gradient(135deg, #FF0080, #FF4D6D)"
+                    : step.id === 2
+                    ? "linear-gradient(135deg, #7928CA, #a855f7)"
+                    : "linear-gradient(135deg, #00d1ff, #06b6d4)",
+                  border: "none",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  fontSize: "1.4rem",
+                  fontSize: "1.5rem",
                   marginBottom: "24px",
+                  position: "relative",
+                  zIndex: 1,
                 }}>
                   {step.icon}
                 </div>
-                <h3 style={{ fontSize: "1.25rem", color: "#fff", marginBottom: "12px", fontWeight: "800" }}>{step.title}</h3>
-                <p style={{ color: "rgba(255,255,255,0.62)", lineHeight: "1.65", fontSize: "0.95rem" }}>{step.desc}</p>
+                <h3 style={{ fontSize: "1.25rem", color: "#fff", marginBottom: "12px", fontWeight: "800", position: "relative", zIndex: 1 }}>{step.title}</h3>
+                <p className="text-secondary" style={{ lineHeight: "1.65", fontSize: "0.95rem", position: "relative", zIndex: 1 }}>{step.desc}</p>
               </div>
             ))}
           </div>
@@ -457,10 +459,10 @@ export default function Home() {
             borderRadius: "24px",
           }}>
             {[
-              { value: "100%", label: t("landing.stats.free"), icon: "💎" },
-              { value: "∞",    label: t("landing.stats.songs"), icon: "🎵" },
-              { value: "QR",   label: t("landing.stats.qr"), icon: "📱" },
-              { value: "⚡",   label: t("landing.stats.realtime"), icon: "🎤" },
+              { value: "100%", label: t("landing.stats.free") },
+              { value: "∞",    label: t("landing.stats.songs") },
+              { value: "QR",   label: t("landing.stats.qr") },
+              { value: "⚡",   label: t("landing.stats.realtime") },
             ].map((stat, i) => (
               <div key={i} style={{ textAlign: "center", minWidth: "100px" }}>
                 <div style={{ fontSize: "2rem", fontWeight: "900", color: "#fff", marginBottom: "6px" }}>{stat.value}</div>
@@ -486,7 +488,7 @@ export default function Home() {
             {t("landing.cta.subtitle", "Comece agora. Sem cadastro complicado.")}
           </p>
           <button
-            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+            onClick={() => navigate(user ? "/create-room" : "/login")}
             className="glow-pulse"
             style={{ padding: "18px 48px", fontSize: "1.1rem", fontWeight: "800" }}
             onMouseEnter={e => e.currentTarget.style.transform = "scale(1.06)"}
@@ -523,17 +525,6 @@ export default function Home() {
           </div>
         </div>
       </footer>
-
-      {/* ── CTA span glow ─────────────────────────────────── */}
-      <style>{`
-        .cta-heading span {
-          background: linear-gradient(135deg, #FF0080, #FF4D6D);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-          position: relative;
-        }
-      `}</style>
 
       {/* ── Guest Modal ───────────────────────────────────── */}
       {showGuestModal && (
