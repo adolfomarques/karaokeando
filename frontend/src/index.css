@@ -259,14 +259,16 @@ h1, h2, h3 {
   filter: drop-shadow(0 0 18px rgba(255, 0, 128, 0.45));
 }
 
-/* ── Ghost Button ───────────────────────────────────────── */
-.btn-ghost {
-  background: transparent;
+/* ── Ghost Button (higher specificity than global button) ── */
+body:not(:has(.admin-layout)) .btn-ghost {
+  background: transparent !important;
   box-shadow: none !important;
   padding: 12px 18px;
+  border: 1px solid rgba(255, 0, 128, 0.4);
+  color: #FF0080;
 }
 
-.btn-ghost:hover {
+body:not(:has(.admin-layout)) .btn-ghost:hover {
   background: rgba(255, 0, 128, 0.10) !important;
   box-shadow: 0 0 20px rgba(255, 0, 128, 0.2) !important;
 }

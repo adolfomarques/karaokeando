@@ -342,11 +342,8 @@ export default function Home() {
                       className="btn-ghost"
                       style={{
                         width: "100%",
-                        border: "1px solid rgba(255,0,128,0.4)",
-                        color: "#FF0080",
                         padding: "13px",
                         fontSize: "0.95rem",
-                        borderRadius: "999px",
                       }}
                     >
                       + {t("home.createRoom", "Criar Sala")}
