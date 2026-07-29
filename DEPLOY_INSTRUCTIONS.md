@@ -78,3 +78,21 @@ No repositório do GitHub, configure este secret:
 
 - Se o workflow falhar com `Missing secret: RENDER_DEPLOY_HOOK_URL`, o secret não foi criado ou está vazio.
 - O erro antigo de token expirado (`your token is expired`) ocorria no fluxo anterior baseado em Render CLI/API key.
+
+### ⚠️ DNS do Backend (api.karaokefactory.org)
+
+O domínio `api.karaokefactory.org` **não possui registro DNS configurado** (NXDOMAIN). O backend real está acessível em:
+
+```
+https://karaokeando.onrender.com
+```
+
+Se o frontend apresentar erro `⚠️ Erro de conexão` ao tentar entrar em uma sala, verifique:
+1. O serviço no Render está ativo (plano free pode hibernar após inatividade);
+2. O `VITE_API_URL` em `frontend/.env.production` está apontando para a URL correta.
+
+**Para usar o domínio customizado (`api.karaokefactory.org`):**
+1. Adicione um registro CNAME em `api.karaokefactory.org` apontando para o domínio `.onrender.com` do serviço;
+2. Configure o domínio customizado no dashboard do Render (Settings → Custom Domain).
+
+Enquanto o DNS não for configurado, mantenha `VITE_API_URL=https://karaokeando.onrender.com` em `frontend/.env.production`.

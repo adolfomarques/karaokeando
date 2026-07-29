@@ -296,26 +296,6 @@ const IconUser = ({ size = 16 }: { size?: number }) => (
 const ReactionDisplay = ({ reactions }: { reactions: Reaction[] }) => {
   return (
     <>
-      <style>{`
-        @keyframes organicFloatTV {
-          0% {
-            transform: translateY(0) scale(0.3) rotate(calc(var(--rot) * -1deg));
-            opacity: 0;
-          }
-          15% {
-            opacity: 1;
-            transform: translateY(-30px) scale(1.2) rotate(calc(var(--rot) * 1deg));
-          }
-          70% {
-            transform: translateY(calc(var(--ty) * 0.6)) scale(1) rotate(calc(var(--rot) * 0.5deg));
-            opacity: 0.8;
-          }
-          100% {
-            transform: translateY(var(--ty)) scale(0.8) rotate(calc(var(--rot) * 1.5deg));
-            opacity: 0;
-          }
-        }
-      `}</style>
       {reactions.map(r => (
         <div
           key={r.id}
@@ -437,6 +417,7 @@ export default function RoomTV() {
   const [reconnectKey, setReconnectKey] = useState(0);
   const isTransitioningRef = useRef(false);
   const wsRef = useRef<WebSocket | null>(null);
+  const reactionTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const playerRef = useRef<YTPlayer | null>(null);
   const playerContainerRef = useRef<HTMLDivElement | null>(null);
   const fullScreenWrapperRef = useRef<HTMLDivElement | null>(null);
@@ -826,18 +807,18 @@ export default function RoomTV() {
             id: Math.random().toString(36).substring(2, 9),
             emoji: mReaction.reaction,
             name: i === 0 ? (mReaction.name || "Convidado") : undefined,
-            x: 10 + Math.random() * 80, // 10% a 90%
-            duration: 1.5 + Math.random() * 1.5, // Variando velocidade 1.5s a 3.0s
-            delay: Math.random() * 0.3, // Stutter inicial
-            size: 40 + Math.random() * 50, // Variando tamanho (40px a 90px)
-            targetY: -(300 + Math.random() * 500), // Random height from -300 to -800
-            rotOffset: -20 + Math.random() * 40 // Random rotation degree spread
+            x: 10 + Math.random() * 80,
+            duration: 1.5 + Math.random() * 1.5,
+            delay: Math.random() * 0.3,
+            size: 40 + Math.random() * 50,
+            targetY: -(300 + Math.random() * 500),
+            rotOffset: -20 + Math.random() * 40
           }));
-          setReactions(prev => [...prev, ...newReactions]);
-          // Remove after animation finishes
-          setTimeout(() => {
+          setReactions(prev => [...prev, ...newReactions].slice(-20));
+          const timer = setTimeout(() => {
             setReactions(prev => prev.filter(r => !newReactions.find(nr => nr.id === r.id)));
           }, 4000);
+          reactionTimersRef.current.push(timer);
         }
       },
       tvToken
@@ -864,6 +845,8 @@ export default function RoomTV() {
     return () => {
       ws.close();
       clearInterval(pollInterval);
+      reactionTimersRef.current.forEach(clearTimeout);
+      reactionTimersRef.current = [];
     };
   }, [code, authChecked, finalized, reconnectKey]);
 
@@ -1872,6 +1855,14 @@ export default function RoomTV() {
         }}
       />
       <Toaster position="top-right" />
+      <style>{`
+        @keyframes organicFloatTV {
+          0% { transform: translateY(0) scale(0.3) rotate(calc(var(--rot) * -1deg)); opacity: 0; }
+          15% { opacity: 1; transform: translateY(-30px) scale(1.2) rotate(calc(var(--rot) * 1deg)); }
+          70% { transform: translateY(calc(var(--ty) * 0.6)) scale(1) rotate(calc(var(--rot) * 0.5deg)); opacity: 0.8; }
+          100% { transform: translateY(var(--ty)) scale(0.8) rotate(calc(var(--rot) * 1.5deg)); opacity: 0; }
+        }
+      `}</style>
       {/* Reações Animadas - absolute to wrapper container */}
       <div
         style={{

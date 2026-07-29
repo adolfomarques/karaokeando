@@ -1,0 +1,150 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-01T00:00:00.000Z",
+  "title": "Design System: KaraokeFactory",
+  "extensions": {
+    "colorMeta": {
+      "midnight-black": {
+        "role": "neutral",
+        "displayName": "Midnight Black",
+        "canonical": "oklch(3% 0.005 300)",
+        "tonalRamp": ["oklch(2% 0.004 300)", "oklch(4% 0.006 300)", "oklch(8% 0.008 300)", "oklch(14% 0.01 300)", "oklch(22% 0.012 300)", "oklch(32% 0.014 300)", "oklch(44% 0.016 300)", "oklch(58% 0.018 300)"]
+      },
+      "neon-pink": {
+        "role": "primary",
+        "displayName": "Neon Pink",
+        "canonical": "oklch(60% 0.28 0)",
+        "tonalRamp": ["oklch(15% 0.07 0)", "oklch(25% 0.12 0)", "oklch(35% 0.18 0)", "oklch(45% 0.23 0)", "oklch(55% 0.27 0)", "oklch(65% 0.28 0)", "oklch(75% 0.22 0)", "oklch(85% 0.14 0)"]
+      },
+      "purple-glow": {
+        "role": "secondary",
+        "displayName": "Purple Glow",
+        "canonical": "oklch(45% 0.22 310)",
+        "tonalRamp": ["oklch(12% 0.06 310)", "oklch(20% 0.10 310)", "oklch(28% 0.15 310)", "oklch(36% 0.19 310)", "oklch(44% 0.22 310)", "oklch(52% 0.20 310)", "oklch(62% 0.16 310)", "oklch(74% 0.10 310)"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Hero headlines only, one per page." },
+      "headline": { "displayName": "Headline", "purpose": "Section titles like 'Como funciona'." },
+      "title": { "displayName": "Title", "purpose": "Card headings, step names." },
+      "body": { "displayName": "Body", "purpose": "All running text, descriptions, participant info." },
+      "label": { "displayName": "Label", "purpose": "Stats labels, small metadata, uppercase tracking." }
+    },
+    "shadows": [
+      { "name": "glass-rest", "value": "0 10px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05)", "purpose": "Default glass card shadow." },
+      { "name": "glass-hover", "value": "0 20px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.08)", "purpose": "Elevated glass card on hover." },
+      { "name": "glow-primary", "value": "0 0 30px rgba(255, 0, 128, 0.45)", "purpose": "Ambient pink glow for active buttons and CTAs." },
+      { "name": "glow-strong", "value": "0 0 50px rgba(255, 0, 128, 0.70)", "purpose": "Intensified glow on button hover." }
+    ],
+    "motion": [
+      { "name": "ease-standard", "value": "all 0.25s ease", "purpose": "Default state transition for buttons, cards, inputs." },
+      { "name": "glow-pulse", "value": "2.5s ease-in-out infinite", "purpose": "Pulsing glow for primary CTAs and 'now playing' state." },
+      { "name": "blob-drift", "value": "14s/18s ease-in-out infinite alternate", "purpose": "Slow drift for background gradient blobs." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "600px" },
+      { "name": "md", "value": "900px" },
+      { "name": "lg", "value": "1200px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The main CTA — gradient pink pill with ambient glow. Used for 'Entrar', 'Criar Sala', and all primary actions.",
+      "html": "<button class=\"ds-btn-primary\">\uD83D\uDE80 Entrar</button>",
+      "css": ".ds-btn-primary { cursor: pointer; border: none; border-radius: 999px; padding: 12px 28px; font-size: 1rem; font-weight: 800; font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif; background: linear-gradient(135deg, #FF0080, #FF4D6D); color: #fff; transition: all 0.25s ease; box-shadow: 0 0 20px rgba(255, 0, 128, 0.35); letter-spacing: 0.01em; } .ds-btn-primary:hover { transform: scale(1.04); box-shadow: 0 0 35px rgba(255, 0, 128, 0.65); } .ds-btn-primary:active { transform: scale(0.97); } .ds-btn-primary:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Outline variant — transparent with pink border. For secondary actions like 'Criar Sala' in the landing section.",
+      "html": "<button class=\"ds-btn-ghost\">+ Criar Sala</button>",
+      "css": ".ds-btn-ghost { cursor: pointer; border: 1px solid rgba(255, 0, 128, 0.4); border-radius: 999px; padding: 12px 18px; font-size: 0.95rem; font-weight: 800; font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif; background: transparent; color: #FF0080; transition: all 0.25s ease; box-shadow: none; } .ds-btn-ghost:hover { background: rgba(255, 0, 128, 0.10); box-shadow: 0 0 20px rgba(255, 0, 128, 0.2); }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input-default",
+      "description": "Frosted glass input that ignites pink on focus. Used for room code, name, email fields.",
+      "html": "<input class=\"ds-input\" type=\"text\" placeholder=\"Código da sala\">",
+      "css": ".ds-input { padding: 14px 18px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.08); background: rgba(255, 255, 255, 0.04); color: #fff; font-size: 1rem; font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif; width: 100%; transition: all 0.25s ease; outline: none; box-sizing: border-box; } .ds-input::placeholder { color: rgba(255, 255, 255, 0.3); } .ds-input:focus { border-color: #FF0080; box-shadow: 0 0 0 3px rgba(255, 0, 128, 0.20); background: rgba(255, 255, 255, 0.06); }"
+    },
+    {
+      "name": "Glass Card",
+      "kind": "card",
+      "refersTo": "glass-card",
+      "description": "The universal container — frosted glass pane over dark canvas. Used everywhere: join/create card, modals, steps, stats.",
+      "html": "<div class=\"ds-glass-card\"><div style=\"padding: 44px 48px; color: #fff; font-family: 'Inter', sans-serif;\"><h3 style=\"margin: 0 0 12px; font-size: 1.25rem; font-weight: 800;\">Card Title</h3><p style=\"margin: 0; color: rgba(255,255,255,0.62); font-size: 0.95rem; line-height: 1.65;\">Content inside a frosted glass card with the standard shadow and border treatment.</p></div></div>",
+      "css": ".ds-glass-card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(255, 255, 255, 0.10); border-radius: 20px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255,255,255,0.05); position: relative; overflow: hidden; } .ds-glass-card::before { content: ''; position: absolute; inset: 0; background: linear-gradient(140deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.00) 60%); border-radius: inherit; pointer-events: none; }"
+    },
+    {
+      "name": "Mode Toggle",
+      "kind": "chip",
+      "refersTo": "mode-toggle",
+      "description": "Segmented control for participant vs. TV mode on the home page.",
+      "html": "<div style=\"display: flex; gap: 8px; font-family: 'Inter', sans-serif;\"><button class=\"ds-toggle ds-toggle-active\">\uD83C\uDFA4 Cantar</button><button class=\"ds-toggle\">\uD83D\uDDA5\uFE0F TV</button></div>",
+      "css": ".ds-toggle { flex: 1; cursor: pointer; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 11px; font-size: 0.9rem; font-weight: 600; font-family: 'Inter', sans-serif; background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.55); transition: all 0.25s ease; } .ds-toggle-active { background: linear-gradient(135deg, #FF0080, #FF4D6D); color: #fff; border-color: transparent; box-shadow: 0 0 20px rgba(255,0,128,0.35); }"
+    },
+    {
+      "name": "Neon Border Button",
+      "kind": "button",
+      "refersTo": "button-neon-border",
+      "description": "Decorative button with a spinning conic gradient border. Used sparingly for high-visibility moments.",
+      "html": "<button class=\"ds-btn-neon\">Aperte o Play</button>",
+      "css": ".ds-btn-neon { position: relative; overflow: hidden; background: #1a1a1a; color: #fff; border: none; z-index: 1; transition: transform 0.2s; border-radius: 12px; cursor: pointer; padding: 12px 28px; font-size: 1rem; font-weight: 800; font-family: 'Inter', sans-serif; } .ds-btn-neon:active { transform: scale(0.97); } .ds-btn-neon::before { content: ''; position: absolute; top: -150%; left: -50%; width: 200%; height: 400%; background: conic-gradient(transparent, #FF0080, transparent 30%, #7928CA, transparent 70%); animation: ds-rotate-neon 3s linear infinite; z-index: -2; } .ds-btn-neon::after { content: ''; position: absolute; inset: 1px; background: #1a1a1a; border-radius: 11px; z-index: -1; } @keyframes ds-rotate-neon { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }"
+    },
+    {
+      "name": "Modal Overlay",
+      "kind": "custom",
+      "refersTo": "modal-overlay",
+      "description": "Full-screen backdrop with blur and centered glass card. Used for guest registration and TV password entry.",
+      "html": "<div style=\"background: rgba(0,0,0,0.75); backdrop-filter: blur(12px); padding: 20px; display: flex; align-items: center; justify-content: center; width: 100vw; height: 100vh; box-sizing: border-box; font-family: 'Inter', sans-serif;\"><div class=\"ds-modal-card\"><h2 style=\"margin: 0 0 6px; font-weight: 900; font-size: 1.35rem;\">Modal Title</h2><p style=\"margin: 0 0 24px; color: rgba(255,255,255,0.62); font-size: 0.9rem;\">Modal description text.</p><input class=\"ds-modal-input\" placeholder=\"Campo\"><button class=\"ds-modal-btn\">Confirmar</button></div></div>",
+      "css": ".ds-modal-card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(255, 255, 255, 0.10); border-radius: 24px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255,255,255,0.05); padding: 40px 36px; width: 100%; max-width: 420px; box-sizing: border-box; } .ds-modal-input { display: block; width: 100%; padding: 14px 18px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.08); background: rgba(255, 255, 255, 0.04); color: #fff; font-size: 1rem; font-family: inherit; transition: all 0.25s ease; outline: none; box-sizing: border-box; margin-bottom: 12px; } .ds-modal-input:focus { border-color: #FF0080; box-shadow: 0 0 0 3px rgba(255, 0, 128, 0.20); } .ds-modal-btn { cursor: pointer; border: none; border-radius: 999px; padding: 14px; font-size: 1rem; font-weight: 800; font-family: inherit; background: linear-gradient(135deg, #FF0080, #FF4D6D); color: #fff; transition: all 0.25s ease; box-shadow: 0 0 20px rgba(255, 0, 128, 0.35); width: 100%; display: block; } .ds-modal-btn:hover { transform: scale(1.04); box-shadow: 0 0 35px rgba(255, 0, 128, 0.65); }"
+    },
+    {
+      "name": "Glass Card (Lift)",
+      "kind": "card",
+      "refersTo": "glass-card-lift",
+      "description": "Interactive glass card variant with hover lift animation. Used for 'How it Works' steps.",
+      "html": "<div class=\"ds-glass-lift\" style=\"padding: 36px 28px; font-family: 'Inter', sans-serif;\"><div style=\"width: 56px; height: 56px; border-radius: 16px; background: linear-gradient(135deg, #FF0080, #FF4D6D); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 24px;\">\u2795</div><h3 style=\"margin: 0 0 12px; font-size: 1.25rem; font-weight: 800; color: #fff;\">Step Title</h3><p style=\"margin: 0; color: rgba(255,255,255,0.62); line-height: 1.65; font-size: 0.95rem;\">Step description with details.</p></div>",
+      "css": ".ds-glass-lift { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(255, 255, 255, 0.10); border-radius: 20px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255,255,255,0.05); position: relative; overflow: hidden; transition: all 0.3s ease; } .ds-glass-lift::before { content: ''; position: absolute; inset: 0; background: linear-gradient(140deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.00) 60%); border-radius: inherit; pointer-events: none; } .ds-glass-lift:hover { transform: translateY(-6px) scale(1.02); border-color: rgba(255,255,255,0.16); box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.08); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Liquid Stage",
+    "overview": "The KaraokeFactory is a dark stage where performers and audience blur together. Every surface is a pane of frosted glass suspended over black — the midnight-black background gives way to floating glass cards that catch neon pink and purple light like a nightclub floor. The visual system is not 'dark mode' (a grudging fallback) but dark by identity: the void is the canvas, and the neon is the energy.\n\nThe palette is deliberately compressed: black, white, pink, purple. No warm neutrals, no beige, no pastels. The glass material (5% white with 24px blur) provides depth through translucency rather than hard shadows. Buttons pulse with glow like stage lights, cards levitate on hover, and inputs ignite at focus. This is not a quiet interface — it's a party waiting to happen.",
+    "keyCharacteristics": [
+      "Dark canvas with floating glass surfaces (backdrop-filter blur, thin white borders)",
+      "Dual neon accent palette: hot pink (primary) + purple (secondary)",
+      "Pill-shaped buttons with glow, not shadow",
+      "Glass is the universal container — cards, modals, navs all share the same material language",
+      "Admin surfaces use clean cyan (#00f5ff) as a deliberate signal: 'you are in control mode'"
+    ],
+    "rules": [
+      { "name": "The Two-Accent Rule", "body": "Pink does action. Purple does atmosphere. Pink is for buttons, active toggles, and CTAs. Purple is for background blobs, decorative gradients, and secondary icon fills. Never swap their roles.", "section": "colors" },
+      { "name": "The Single-Family Rule", "body": "No font pairing. Inter at 900 and 400 is the contrast axis. If the page needs more distinction, use weight or size, not a second family.", "section": "typography" },
+      { "name": "The Flat-Void Rule", "body": "The background is never gray, never tinted, never gradient. Midnight black (#0A0A0A) is the absolute base. Every surface above it is glass, not paint.", "section": "elevation" }
+    ],
+    "dos": [
+      "Use the glass material for every container — cards, modals, nav. The frosted pane is the universal surface.",
+      "Apply glow exclusively to interactive elements: buttons, active toggles, 'now playing' state. Glow communicates 'act now.'",
+      "Keep body text at white #FFFFFF — never gray. Text secondary at 62% is the floor for body copy.",
+      "Use text-wrap: balance on headings (h1–h3) for even line breaks.",
+      "Cap body text line length at 65–75ch for readability in the mobile/TV modes.",
+      "Respect prefers-reduced-motion: replace glow-pulse and blob-drift animations with instant opacity transitions."
+    ],
+    "donts": [
+      "Don't introduce warm neutrals, beige backgrounds, or cream tones. The canvas is midnight black — no 'warm dark' or 'charcoal.'",
+      "Don't use purple for call-to-action buttons. Purple is atmosphere; pink is action.",
+      "Don't exceed 24px blur on glass surfaces — blur(24px) is the maximum; larger values wash out the glass effect.",
+      "Don't use gradient text (background-clip: text with gradient).",
+      "Don't put border-left colored stripes on cards or list items.",
+      "Don't use 999 or 9999 z-index values. Use the semantic scale: glass cards z-index: 1, modals 2000, tooltips 3000.",
+      "Don't render dropdowns with position: absolute inside overflow: hidden containers.",
+      "Don't gate content visibility behind animation classes that trigger on scroll."
+    ]
+  }
+}
