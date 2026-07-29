@@ -403,82 +403,121 @@ export default function Home() {
 
           <div style={{
             display: "grid",
-            gridTemplateColumns: "repeat(3, 1fr)",
+            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
             gap: "24px",
             maxWidth: "1000px",
             margin: "0 auto",
           }}>
+            {/* Step 1 */}
             <div style={{
-              padding: "40px 28px 36px", borderRadius: "20px", textAlign: "center",
-              background: "linear-gradient(180deg, rgba(255,0,128,0.08) 0%, rgba(255,0,128,0.01) 100%)",
-              border: "1px solid rgba(255,0,128,0.12)",
+              padding: "20px", borderRadius: "24px", textAlign: "left",
+              background: "linear-gradient(180deg, rgba(255,0,128,0.08) 0%, rgba(255,0,128,0.02) 100%)",
+              border: "1px solid rgba(255,0,128,0.15)",
               transition: "all 0.4s cubic-bezier(0.22, 1, 0.36, 1)",
+              display: "flex",
+              flexDirection: "column",
             }}>
               <div style={{
-                width: "72px", height: "72px", borderRadius: "20px",
-                background: "linear-gradient(135deg, #FF0080, #FF4D6D)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                margin: "0 auto 20px",
-                boxShadow: "0 0 30px rgba(255,0,128,0.25)",
+                width: "100%", height: "190px", borderRadius: "16px", overflow: "hidden",
+                marginBottom: "20px", position: "relative",
+                border: "1px solid rgba(255,0,128,0.25)",
+                boxShadow: "0 10px 30px rgba(255,0,128,0.15)"
               }}>
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 3v18" /><path d="M3 12h18" />
-                </svg>
+                <img
+                  src="/images/step1_create.png"
+                  alt={t("landing.howItWorks.step1Title", "Crie a Sala")}
+                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                />
+                <div style={{
+                  position: "absolute", top: "12px", left: "12px",
+                  background: "rgba(255,0,128,0.85)", backdropFilter: "blur(8px)",
+                  color: "#fff", fontWeight: 900, fontSize: "0.85rem",
+                  padding: "4px 12px", borderRadius: "20px", letterSpacing: "0.05em",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.3)"
+                }}>
+                  01
+                </div>
               </div>
-              <h3 style={{ fontSize: "1.1rem", fontWeight: 800, color: "#fff", marginBottom: "8px", letterSpacing: "-0.02em" }}>
+              <h3 style={{ fontSize: "1.2rem", fontWeight: 800, color: "#fff", marginBottom: "8px", letterSpacing: "-0.02em" }}>
                 {t("landing.howItWorks.step1Title", "Crie a Sala")}
               </h3>
-              <p style={{ color: "rgba(255,255,255,0.55)", fontSize: "0.85rem", lineHeight: 1.6 }}>
+              <p style={{ color: "rgba(255,255,255,0.65)", fontSize: "0.9rem", lineHeight: 1.6, margin: 0 }}>
                 {t("landing.howItWorks.step1Desc", "Dê um nome para sua sala e tenha seu código exclusivo para compartilhar.")}
               </p>
             </div>
 
+            {/* Step 2 */}
             <div style={{
-              padding: "40px 28px 36px", borderRadius: "20px", textAlign: "center",
-              background: "linear-gradient(180deg, rgba(121,40,202,0.08) 0%, rgba(121,40,202,0.01) 100%)",
-              border: "1px solid rgba(121,40,202,0.12)",
+              padding: "20px", borderRadius: "24px", textAlign: "left",
+              background: "linear-gradient(180deg, rgba(121,40,202,0.08) 0%, rgba(121,40,202,0.02) 100%)",
+              border: "1px solid rgba(121,40,202,0.15)",
               transition: "all 0.4s cubic-bezier(0.22, 1, 0.36, 1)",
+              display: "flex",
+              flexDirection: "column",
             }}>
               <div style={{
-                width: "72px", height: "72px", borderRadius: "20px",
-                background: "linear-gradient(135deg, #7928CA, #a855f7)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                margin: "0 auto 20px",
-                boxShadow: "0 0 30px rgba(121,40,202,0.25)",
+                width: "100%", height: "190px", borderRadius: "16px", overflow: "hidden",
+                marginBottom: "20px", position: "relative",
+                border: "1px solid rgba(121,40,202,0.25)",
+                boxShadow: "0 10px 30px rgba(121,40,202,0.15)"
               }}>
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                </svg>
+                <img
+                  src="/images/step2_invite.png"
+                  alt={t("landing.howItWorks.step2Title", "Convide Amigos")}
+                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                />
+                <div style={{
+                  position: "absolute", top: "12px", left: "12px",
+                  background: "rgba(121,40,202,0.85)", backdropFilter: "blur(8px)",
+                  color: "#fff", fontWeight: 900, fontSize: "0.85rem",
+                  padding: "4px 12px", borderRadius: "20px", letterSpacing: "0.05em",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.3)"
+                }}>
+                  02
+                </div>
               </div>
-              <h3 style={{ fontSize: "1.1rem", fontWeight: 800, color: "#fff", marginBottom: "8px", letterSpacing: "-0.02em" }}>
+              <h3 style={{ fontSize: "1.2rem", fontWeight: 800, color: "#fff", marginBottom: "8px", letterSpacing: "-0.02em" }}>
                 {t("landing.howItWorks.step2Title", "Convide Amigos")}
               </h3>
-              <p style={{ color: "rgba(255,255,255,0.55)", fontSize: "0.85rem", lineHeight: 1.6 }}>
+              <p style={{ color: "rgba(255,255,255,0.65)", fontSize: "0.9rem", lineHeight: 1.6, margin: 0 }}>
                 {t("landing.howItWorks.step2Desc", "Compartilhe o código ou QR Code para seus amigos entrarem na sala.")}
               </p>
             </div>
 
+            {/* Step 3 */}
             <div style={{
-              padding: "40px 28px 36px", borderRadius: "20px", textAlign: "center",
-              background: "linear-gradient(180deg, rgba(0,209,255,0.08) 0%, rgba(0,209,255,0.01) 100%)",
-              border: "1px solid rgba(0,209,255,0.12)",
+              padding: "20px", borderRadius: "24px", textAlign: "left",
+              background: "linear-gradient(180deg, rgba(0,209,255,0.08) 0%, rgba(0,209,255,0.02) 100%)",
+              border: "1px solid rgba(0,209,255,0.15)",
               transition: "all 0.4s cubic-bezier(0.22, 1, 0.36, 1)",
+              display: "flex",
+              flexDirection: "column",
             }}>
               <div style={{
-                width: "72px", height: "72px", borderRadius: "20px",
-                background: "linear-gradient(135deg, #00d1ff, #06b6d4)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                margin: "0 auto 20px",
-                boxShadow: "0 0 30px rgba(0,209,255,0.25)",
+                width: "100%", height: "190px", borderRadius: "16px", overflow: "hidden",
+                marginBottom: "20px", position: "relative",
+                border: "1px solid rgba(0,209,255,0.25)",
+                boxShadow: "0 10px 30px rgba(0,209,255,0.15)"
               }}>
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="12" cy="10" r="3" /><path d="M12 13v3" /><path d="M9 19h6" />
-                </svg>
+                <img
+                  src="/images/step3_sing.png"
+                  alt={t("landing.howItWorks.step3Title", "Cantem Juntos")}
+                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                />
+                <div style={{
+                  position: "absolute", top: "12px", left: "12px",
+                  background: "rgba(0,209,255,0.85)", backdropFilter: "blur(8px)",
+                  color: "#000", fontWeight: 900, fontSize: "0.85rem",
+                  padding: "4px 12px", borderRadius: "20px", letterSpacing: "0.05em",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.3)"
+                }}>
+                  03
+                </div>
               </div>
-              <h3 style={{ fontSize: "1.1rem", fontWeight: 800, color: "#fff", marginBottom: "8px", letterSpacing: "-0.02em" }}>
+              <h3 style={{ fontSize: "1.2rem", fontWeight: 800, color: "#fff", marginBottom: "8px", letterSpacing: "-0.02em" }}>
                 {t("landing.howItWorks.step3Title", "Cantem Juntos")}
               </h3>
-              <p style={{ color: "rgba(255,255,255,0.55)", fontSize: "0.85rem", lineHeight: 1.6 }}>
+              <p style={{ color: "rgba(255,255,255,0.65)", fontSize: "0.9rem", lineHeight: 1.6, margin: 0 }}>
                 {t("landing.howItWorks.step3Desc", "Escolha as músicas, monte a fila e divirtam-se cantando em tempo real!")}
               </p>
             </div>
