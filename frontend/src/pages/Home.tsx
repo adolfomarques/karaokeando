@@ -383,63 +383,105 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── How it Works ──────────────────────────────────── */}
-      <section style={{ padding: "70px 20px", position: "relative", zIndex: 1 }}>
-        <div className="container">
-          <h2 style={{ fontSize: "clamp(1.8rem, 5vw, 2.5rem)", fontWeight: "900", color: "#fff", marginBottom: "10px", textAlign: "center" }}>
-            {t("landing.howItWorks.title", "Como funciona")}
-          </h2>
-          <p style={{ color: "rgba(255,255,255,0.62)", marginBottom: "52px", fontSize: "1.05rem", textAlign: "center" }}>
-            {t("landing.howItWorks.subtitle", "Três passos simples para cantar com seus amigos")}
-          </p>
+      {/* ── The Experience ────────────────────────────────── */}
+      <section style={{ padding: "100px 20px", position: "relative", zIndex: 1, overflow: "hidden" }}>
+        <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
+          <div style={{ position: "absolute", width: "500px", height: "500px", top: "10%", left: "50%", transform: "translateX(-50%)", borderRadius: "50%", background: "radial-gradient(circle, rgba(255,0,128,0.06) 0%, transparent 70%)", filter: "blur(80px)", animation: "pulseGlow 4s ease-in-out infinite" }} />
+        </div>
+        <div className="container" style={{ position: "relative", zIndex: 1 }}>
+          <div style={{ textAlign: "center", marginBottom: "60px" }}>
+            <h2 style={{
+              fontSize: "clamp(2rem, 6vw, 3.5rem)", fontWeight: 900, color: "#fff",
+              letterSpacing: "-0.03em", lineHeight: 1.1, marginBottom: "12px",
+            }}>
+              {t("landing.howItWorks.title", "Como funciona")}
+            </h2>
+            <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "1rem" }}>
+              {t("landing.howItWorks.subtitle", "Três passos simples para cantar com seus amigos")}
+            </p>
+          </div>
 
           <div style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+            gridTemplateColumns: "repeat(3, 1fr)",
             gap: "24px",
+            maxWidth: "1000px",
+            margin: "0 auto",
           }}>
-            {[
-              { id: 1, icon: "➕", title: t("landing.howItWorks.step1Title"), desc: t("landing.howItWorks.step1Desc"), color: "#FF0080", badge: "01" },
-              { id: 2, icon: "↪️", title: t("landing.howItWorks.step2Title"), desc: t("landing.howItWorks.step2Desc"), color: "#7928CA", badge: "02" },
-              { id: 3, icon: "🎤", title: t("landing.howItWorks.step3Title"), desc: t("landing.howItWorks.step3Desc"), color: "#00d1ff", badge: "03" },
-            ].map(step => (
-              <div
-                key={step.id}
-                className="glass-card glass-card--lift"
-                style={{ padding: "36px 28px", textAlign: "left", position: "relative" }}
-              >
-                <div style={{
-                  position: "absolute", top: 16, right: 20,
-                  fontSize: "2.5rem", fontWeight: "900", letterSpacing: "-2px",
-                  color: `${step.color}15`,
-                  lineHeight: 1,
-                }}>
-                  {step.badge}
-                </div>
-                <div style={{
-                  width: "56px",
-                  height: "56px",
-                  borderRadius: "16px",
-                  background: step.id === 1
-                    ? "linear-gradient(135deg, #FF0080, #FF4D6D)"
-                    : step.id === 2
-                    ? "linear-gradient(135deg, #7928CA, #a855f7)"
-                    : "linear-gradient(135deg, #00d1ff, #06b6d4)",
-                  border: "none",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "1.5rem",
-                  marginBottom: "24px",
-                  position: "relative",
-                  zIndex: 1,
-                }}>
-                  {step.icon}
-                </div>
-                <h3 style={{ fontSize: "1.25rem", color: "#fff", marginBottom: "12px", fontWeight: "800", position: "relative", zIndex: 1 }}>{step.title}</h3>
-                <p className="text-secondary" style={{ lineHeight: "1.65", fontSize: "0.95rem", position: "relative", zIndex: 1 }}>{step.desc}</p>
+            <div style={{
+              padding: "40px 28px 36px", borderRadius: "20px", textAlign: "center",
+              background: "linear-gradient(180deg, rgba(255,0,128,0.08) 0%, rgba(255,0,128,0.01) 100%)",
+              border: "1px solid rgba(255,0,128,0.12)",
+              transition: "all 0.4s cubic-bezier(0.22, 1, 0.36, 1)",
+            }}>
+              <div style={{
+                width: "72px", height: "72px", borderRadius: "20px",
+                background: "linear-gradient(135deg, #FF0080, #FF4D6D)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                margin: "0 auto 20px",
+                boxShadow: "0 0 30px rgba(255,0,128,0.25)",
+              }}>
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 3v18" /><path d="M3 12h18" />
+                </svg>
               </div>
-            ))}
+              <h3 style={{ fontSize: "1.1rem", fontWeight: 800, color: "#fff", marginBottom: "8px", letterSpacing: "-0.02em" }}>
+                {t("landing.howItWorks.step1Title", "Crie a Sala")}
+              </h3>
+              <p style={{ color: "rgba(255,255,255,0.55)", fontSize: "0.85rem", lineHeight: 1.6 }}>
+                {t("landing.howItWorks.step1Desc", "Dê um nome para sua sala e tenha seu código exclusivo para compartilhar.")}
+              </p>
+            </div>
+
+            <div style={{
+              padding: "40px 28px 36px", borderRadius: "20px", textAlign: "center",
+              background: "linear-gradient(180deg, rgba(121,40,202,0.08) 0%, rgba(121,40,202,0.01) 100%)",
+              border: "1px solid rgba(121,40,202,0.12)",
+              transition: "all 0.4s cubic-bezier(0.22, 1, 0.36, 1)",
+            }}>
+              <div style={{
+                width: "72px", height: "72px", borderRadius: "20px",
+                background: "linear-gradient(135deg, #7928CA, #a855f7)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                margin: "0 auto 20px",
+                boxShadow: "0 0 30px rgba(121,40,202,0.25)",
+              }}>
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+              </div>
+              <h3 style={{ fontSize: "1.1rem", fontWeight: 800, color: "#fff", marginBottom: "8px", letterSpacing: "-0.02em" }}>
+                {t("landing.howItWorks.step2Title", "Convide Amigos")}
+              </h3>
+              <p style={{ color: "rgba(255,255,255,0.55)", fontSize: "0.85rem", lineHeight: 1.6 }}>
+                {t("landing.howItWorks.step2Desc", "Compartilhe o código ou QR Code para seus amigos entrarem na sala.")}
+              </p>
+            </div>
+
+            <div style={{
+              padding: "40px 28px 36px", borderRadius: "20px", textAlign: "center",
+              background: "linear-gradient(180deg, rgba(0,209,255,0.08) 0%, rgba(0,209,255,0.01) 100%)",
+              border: "1px solid rgba(0,209,255,0.12)",
+              transition: "all 0.4s cubic-bezier(0.22, 1, 0.36, 1)",
+            }}>
+              <div style={{
+                width: "72px", height: "72px", borderRadius: "20px",
+                background: "linear-gradient(135deg, #00d1ff, #06b6d4)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                margin: "0 auto 20px",
+                boxShadow: "0 0 30px rgba(0,209,255,0.25)",
+              }}>
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="12" cy="10" r="3" /><path d="M12 13v3" /><path d="M9 19h6" />
+                </svg>
+              </div>
+              <h3 style={{ fontSize: "1.1rem", fontWeight: 800, color: "#fff", marginBottom: "8px", letterSpacing: "-0.02em" }}>
+                {t("landing.howItWorks.step3Title", "Cantem Juntos")}
+              </h3>
+              <p style={{ color: "rgba(255,255,255,0.55)", fontSize: "0.85rem", lineHeight: 1.6 }}>
+                {t("landing.howItWorks.step3Desc", "Escolha as músicas, monte a fila e divirtam-se cantando em tempo real!")}
+              </p>
+            </div>
           </div>
         </div>
       </section>
