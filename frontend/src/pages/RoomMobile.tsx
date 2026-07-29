@@ -606,7 +606,7 @@ export default function RoomMobile() {
   useEffect(() => {
     const handleSync = () => {
       if (document.visibilityState === "visible" && code) {
-        console.log("[Visibility] Page visible/focused, refreshing state...");
+        console.debug("[Visibility] Page visible/focused, refreshing state...");
         // Re-fetch everything immediately
         getState(code).then(s => { if (s && !s.error) setState(s); }).catch(() => { });
         getParticipants(code).then(d => { if (d.participants) setParticipants(d.participants); }).catch(() => { });

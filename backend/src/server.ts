@@ -1308,7 +1308,8 @@ app.get<{ Querystring: { q: string; userId?: string; roomCode?: string } }>(
   }
 );
 
-// In-memory cache for video info (videoId → info), TTL 1h
+// In-memory cache for video info (videoId → info), TTL 1h, max 1000 entries
+const VIDEO_CACHE_MAX = 1000;
 const videoInfoCache = new Map<string, { data: YouTubeSearchResult; expiresAt: number }>();
 
 // Get video info from YouTube (for when user pastes a link)
@@ -1337,6 +1338,10 @@ app.get<{ Querystring: { videoId: string } }>(
       };
 
       // Cache for 1 hour
+      if (videoInfoCache.size >= VIDEO_CACHE_MAX) {
+        const oldest = videoInfoCache.keys().next().value;
+        if (oldest) videoInfoCache.delete(oldest);
+      }
       videoInfoCache.set(videoId, { data: result, expiresAt: Date.now() + 60 * 60 * 1000 });
       reply.header("Cache-Control", "public, max-age=3600");
       return result;
@@ -1357,17 +1362,27 @@ app.get<{ Querystring: { videoId: string } }>(
 // ─────────────────────────────────────────────────────────────
 
 // List all songs in library
-app.get("/api/songs", async () => {
-  const songs = await getSongLibraryFromDb();
-  // Map to expected format
-  return songs.map(s => ({
-    id: s.id,
-    videoId: s.videoId,
-    title: s.title,
-    addedBy: s.addedBy,
-    savedAt: s.createdAt.getTime(),
-    playCount: s.playCount,
-  }));
+app.get("/api/songs", async (req) => {
+  const query = req.query as { limit?: string; offset?: string };
+  const limit = Math.min(parseInt(query.limit || "50", 10) || 50, 200);
+  const offset = parseInt(query.offset || "0", 10) || 0;
+  const [songs, total] = await Promise.all([
+    getSongLibraryFromDb(limit, offset),
+    prisma.song.count(),
+  ]);
+  return {
+    songs: songs.map(s => ({
+      id: s.id,
+      videoId: s.videoId,
+      title: s.title,
+      addedBy: s.addedBy,
+      savedAt: s.createdAt.getTime(),
+      playCount: s.playCount,
+    })),
+    total,
+    limit,
+    offset,
+  };
 });
 
 // Save a song to library
@@ -1469,29 +1484,22 @@ app.post("/api/admin/prewarm", async (req, reply) => {
   const { quantity } = req.body as { quantity?: number };
   const requestedQty = quantity && quantity > 0 ? quantity : 50;
 
-  // 1. Identify which hits are missing from cache
-  const missingHits: string[] = [];
-  const skippedSongs: string[] = [];
-  
-  for (const hit of KARAOKE_HITS) {
-    const searchTerm = hit + " karaoke";
-    const cacheKey = searchTerm.toLowerCase();
-    
-    try {
-      const existing = await prisma.searchCache.findUnique({ where: { query: cacheKey } });
-      if (existing && new Date() < existing.expiresAt) {
-        skippedSongs.push(hit);
-      } else {
-        missingHits.push(hit);
-      }
-    } catch {
-      // Treat as missing if DB check fails
-      missingHits.push(hit);
-    }
-  }
+  // 1. Identify which hits are missing from cache — batch query
+  const cacheKeys = KARAOKE_HITS.map(h => (h + " karaoke").toLowerCase());
+  const existingCache = await prisma.searchCache.findMany({
+    where: { query: { in: cacheKeys }, expiresAt: { gt: new Date() } },
+    select: { query: true },
+  });
+  const cachedQueries = new Set(existingCache.map(c => c.query));
+  const missingHits = KARAOKE_HITS.filter(h => !cachedQueries.has((h + " karaoke").toLowerCase()));
+  const skippedSongs = KARAOKE_HITS.filter(h => cachedQueries.has((h + " karaoke").toLowerCase()));
 
-  // 2. Randomly select the needed amount of missing songs to process
-  const shuffledMissing = [...missingHits].sort(() => 0.5 - Math.random());
+  // 2. Fisher-Yates shuffle on the needed amount of missing songs
+  const shuffledMissing = [...missingHits];
+  for (let i = shuffledMissing.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffledMissing[i], shuffledMissing[j]] = [shuffledMissing[j], shuffledMissing[i]];
+  }
   const songsToProcess = shuffledMissing.slice(0, requestedQty);
 
   if (songsToProcess.length === 0) {
@@ -1690,6 +1698,10 @@ app.get<{ Params: { roomCode: string } }>(
       } catch {
         // ignore
       }
+    });
+
+    socket.on("error", (err) => {
+      console.error(`[WS] Socket error in room ${roomCode}:`, err.message);
     });
 
     socket.on("close", () => {

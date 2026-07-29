@@ -801,7 +801,6 @@ export default function RoomTV() {
             }
           }
         } else if (m.type === "REACTION") {
-          console.log("[TV] Reaction received:", m);
           const mReaction = m as unknown as { reaction: string; name: string };
           const newReactions = Array.from({ length: 4 }).map((_, i) => ({
             id: Math.random().toString(36).substring(2, 9),

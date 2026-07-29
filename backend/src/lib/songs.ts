@@ -49,9 +49,11 @@ export async function incrementPlayCount(videoId: string): Promise<void> {
 /**
  * Retorna toda a biblioteca de músicas
  */
-export async function getSongLibrary(): Promise<SongInfo[]> {
+export async function getSongLibrary(limit?: number, offset?: number): Promise<SongInfo[]> {
   return prisma.song.findMany({
-    orderBy: { createdAt: "desc" },
+    take: limit,
+    skip: offset,
+    orderBy: { playCount: "desc" },
   });
 }
 

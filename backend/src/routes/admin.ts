@@ -67,39 +67,52 @@ export default async function adminRoutes(app: FastifyInstance) {
 
   // --- USERS MANAGEMENT ---
   // API endpoint to list all users with detailed information
-  app.get("/api/admin/users", { preHandler: [requireAdmin] }, async () => {
-    const users = await prisma.user.findMany({
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        phone: true,
-        city: true,
-        birthDate: true,
-        gender: true,
-        canHost: true,
-        isAdmin: true,
-        createdAt: true,
-        _count: {
-          select: { ownedRooms: true }
-        }
-      },
-      orderBy: { createdAt: "desc" }
-    });
+  app.get("/api/admin/users", { preHandler: [requireAdmin] }, async (request) => {
+    const query = request.query as { limit?: string; offset?: string };
+    const limit = Math.min(parseInt(query.limit || "50", 10) || 50, 200);
+    const offset = parseInt(query.offset || "0", 10) || 0;
+    const [users, total] = await Promise.all([
+      prisma.user.findMany({
+        skip: offset,
+        take: limit,
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+          city: true,
+          birthDate: true,
+          gender: true,
+          canHost: true,
+          isAdmin: true,
+          createdAt: true,
+          _count: {
+            select: { ownedRooms: true }
+          }
+        },
+        orderBy: { createdAt: "desc" }
+      }),
+      prisma.user.count(),
+    ]);
 
-    return users.map(user => ({
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      phone: user.phone,
-      city: user.city,
-      birthDate: user.birthDate,
-      gender: user.gender,
-      canHost: user.canHost,
-      isAdmin: user.isAdmin,
-      createdAt: user.createdAt,
-      roomsCreated: user._count.ownedRooms
-    }));
+    return {
+      users: users.map(user => ({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        city: user.city,
+        birthDate: user.birthDate,
+        gender: user.gender,
+        canHost: user.canHost,
+        isAdmin: user.isAdmin,
+        createdAt: user.createdAt,
+        roomsCreated: user._count.ownedRooms
+      })),
+      total,
+      limit,
+      offset,
+    };
   });
 
   app.delete("/api/admin/users/:id", { preHandler: [requireAdmin] }, async (request, reply) => {
@@ -182,8 +195,15 @@ export default async function adminRoutes(app: FastifyInstance) {
   });
 
   // --- SONGS MANAGEMENT ---
-  app.get("/api/admin/songs", { preHandler: [requireAdmin] }, async () => {
-    return prisma.song.findMany({ orderBy: { createdAt: "desc" } });
+  app.get("/api/admin/songs", { preHandler: [requireAdmin] }, async (request) => {
+    const query = request.query as { limit?: string; offset?: string };
+    const limit = Math.min(parseInt(query.limit || "50", 10) || 50, 200);
+    const offset = parseInt(query.offset || "0", 10) || 0;
+    const [songs, total] = await Promise.all([
+      prisma.song.findMany({ skip: offset, take: limit, orderBy: { createdAt: "desc" } }),
+      prisma.song.count(),
+    ]);
+    return { songs, total, limit, offset };
   });
 
   app.post("/api/admin/songs", { preHandler: [requireAdmin] }, async (request) => {
