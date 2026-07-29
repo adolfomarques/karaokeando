@@ -1758,4 +1758,3 @@ app.listen({ port: PORT, host: "0.0.0.0" }, err => {
   // Pre-warm cache in background (non-blocking)
   setTimeout(() => prewarmSearchCache().catch(console.error), 5000);
 });
-// ping render
