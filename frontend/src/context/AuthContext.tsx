@@ -8,6 +8,7 @@ import React, {
 import { API_BASE } from "../api";
 
 const TOKEN_KEY = "karaokefactory_token";
+const USER_KEY = "karaokefactory_user";
 
 // Decode JWT payload without verifying signature (client-side only)
 // Returns null if the token is malformed or expired
@@ -89,7 +90,11 @@ interface CompleteRegistrationData {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(() => {
+    const cached = localStorage.getItem(USER_KEY);
+    if (cached) try { return JSON.parse(cached); } catch {}
+    return null;
+  });
   const [token, setToken] = useState<string | null>(() => {
     return localStorage.getItem(TOKEN_KEY);
   });
@@ -121,17 +126,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (res.ok) {
         const data = await res.json();
         setUser(data.user);
-        setToken(storedToken);
+
+        // If backend issued a fresh token (e.g. after admin promotion), save it
+        if (data.token && data.token !== storedToken) {
+          localStorage.setItem(TOKEN_KEY, data.token);
+          setToken(data.token);
+        } else {
+          setToken(storedToken);
+        }
+
+        setLoading(false);
       } else {
         // Token invalid on server side
         localStorage.removeItem(TOKEN_KEY);
         setToken(null);
         setUser(null);
+        setLoading(false);
       }
     } catch {
-      // Network error, keep token but clear user
-      setUser(null);
-    } finally {
+      // Network error — use cached user if available
+      const cached = localStorage.getItem(USER_KEY);
+      if (cached) try { setUser(JSON.parse(cached)); } catch {}
       setLoading(false);
     }
   }, []);
@@ -140,6 +155,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     refreshUser();
   }, [refreshUser]);
+
+  // Sync user to localStorage
+  useEffect(() => {
+    if (user) localStorage.setItem(USER_KEY, JSON.stringify(user));
+    else localStorage.removeItem(USER_KEY);
+  }, [user]);
 
   // Login
   const login = async (email: string, password: string) => {

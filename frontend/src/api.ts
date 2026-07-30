@@ -285,7 +285,8 @@ export interface SavedSong {
 
 export async function getSongLibrary(): Promise<SavedSong[]> {
   const res = await fetch(`${API_BASE}/api/songs`);
-  return res.json();
+  const data = await res.json();
+  return data.songs ?? data;
 }
 
 export async function saveSong(
@@ -478,7 +479,9 @@ export async function getAdminUsers(): Promise<AdminUser[]> {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) throw new Error("Acesso negado");
-  return res.json();
+  const data = await res.json();
+  // API returns { users: [], total, limit, offset } — extract the array
+  return Array.isArray(data) ? data : (data.users ?? []);
 }
 
 export async function deleteAdminUser(id: string): Promise<{ success?: boolean; error?: string }> {

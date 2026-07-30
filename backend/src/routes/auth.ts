@@ -94,14 +94,36 @@ export async function requireAdmin(
   reply: FastifyReply
 ): Promise<void> {
   const user = await getUserFromRequest(request);
-  if (!user || !user.isAdmin) {
+  if (!user) {
     reply.code(403).send({
       error: "forbidden",
       message: "Acesso negado. Apenas administradores.",
     });
     return;
   }
-  (request as any).user = user;
+
+  // If JWT says isAdmin=true, trust it directly (fast path)
+  if (user.isAdmin) {
+    (request as any).user = user;
+    return;
+  }
+
+  // If JWT says isAdmin=false, double-check the DB in case user was promoted
+  // after their current token was issued (avoids forcing re-login)
+  const dbUser = await prisma.user.findUnique({
+    where: { id: user.userId },
+    select: { isAdmin: true },
+  });
+
+  if (!dbUser?.isAdmin) {
+    reply.code(403).send({
+      error: "forbidden",
+      message: "Acesso negado. Apenas administradores.",
+    });
+    return;
+  }
+
+  (request as any).user = { ...user, isAdmin: true };
 }
 
 export default async function authRoutes(app: FastifyInstance) {
@@ -612,7 +634,26 @@ export default async function authRoutes(app: FastifyInstance) {
       user.isAdmin = true;
     }
 
-    reply.header("Cache-Control", "private, max-age=60");
+    // If the DB isAdmin differs from JWT isAdmin, issue a fresh token
+    // This handles promotion-after-login without forcing re-login
+    const needsNewToken = user.isAdmin !== userPayload.isAdmin;
+    const newToken = needsNewToken
+      ? generateUserToken({
+          userId: user.id,
+          email: user.email,
+          name: user.name,
+          canHost: user.canHost,
+          isAdmin: user.isAdmin,
+        })
+      : undefined;
+
+    // No caching when token is being refreshed
+    if (needsNewToken) {
+      reply.header("Cache-Control", "no-store");
+    } else {
+      reply.header("Cache-Control", "private, max-age=60");
+    }
+
     return {
       user: {
         id: user.id,
@@ -627,6 +668,7 @@ export default async function authRoutes(app: FastifyInstance) {
         isComplete: !!user.passwordHash,
         createdAt: user.createdAt,
       },
+      ...(newToken ? { token: newToken } : {}),
     };
   });
 

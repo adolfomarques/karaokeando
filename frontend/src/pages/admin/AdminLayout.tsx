@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import Logo from "../../components/Logo";
@@ -10,6 +10,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Auto-redirect when auth state resolves
+  useEffect(() => {
+    if (loading) return;
+    if (!user) {
+      navigate("/login", { state: { redirectTo: location.pathname }, replace: true });
+    }
+  }, [loading, user, navigate, location.pathname]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-[#0a0a0c]">
@@ -19,18 +27,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   if (!user) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-[#0a0a0c] text-white p-4 text-center">
-        <h2 className="text-2xl font-bold mb-4 text-red-500">{t("admin.restrictedAccess", "Acesso Restrito")}</h2>
-        <p className="mb-6">{t("admin.mustBeLoggedIn", "Você precisa estar logado para acessar esta área.")}</p>
-        <button 
-          onClick={() => navigate("/login")}
-          className="bg-red-600 px-6 py-2 rounded-xl font-bold"
-        >
-          {t("auth.login", "Fazer Login")}
-        </button>
-      </div>
-    );
+    // useEffect above will redirect — show nothing while redirecting
+    return null;
   }
 
   if (!user.isAdmin) {
@@ -38,7 +36,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <div className="flex flex-col items-center justify-center min-h-screen bg-[#0a0a0c] text-white p-4 text-center">
         <h2 className="text-2xl font-bold mb-4 text-red-500">{t("admin.accessDenied", "Acesso Negado")}</h2>
         <p className="mb-2">{t("admin.noAdminPrivileges", { email: user.email })}</p>
-        <p className="mb-6 text-gray-400">{t("admin.checkDeploy", "Verifique se o deploy do servidor já terminou ou tente sair e entrar novamente.")}</p>
+        <p className="mb-4 text-gray-400">{t("admin.checkDeploy", "Verifique se o deploy do servidor já terminou ou tente sair e entrar novamente.")}</p>
+        <p className="mb-6 text-yellow-400 text-sm bg-yellow-400/10 px-4 py-3 rounded border border-yellow-400/20">
+          ⚠️ Se você acabou de ser promovido a admin, faça logout e login novamente para atualizar seu token.
+        </p>
         <button 
           onClick={() => navigate("/")}
           className="bg-white/10 px-6 py-2 rounded-xl font-bold"
