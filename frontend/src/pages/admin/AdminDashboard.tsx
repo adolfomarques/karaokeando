@@ -3,6 +3,23 @@ import AdminLayout from "./AdminLayout";
 import { getAdminStats, getAdminUsers, deleteAdminUser, bulkDeleteAdminUsers, AdminUser, runAdminPrewarm } from "../../api";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-hot-toast";
+import AdminPageHeader from "../../components/admin/AdminPageHeader";
+import AdminStatCard from "../../components/admin/AdminStatCard";
+import AdminButton from "../../components/admin/AdminButton";
+import AdminEmpty from "../../components/admin/AdminEmpty";
+import ConfirmDialog from "../../components/admin/ConfirmDialog";
+
+interface ConfirmState {
+  title: string;
+  message: string;
+  confirmLabel: string;
+  loading?: boolean;
+  onConfirm: () => void;
+}
+
+function adminBadgeClass(user: AdminUser): string {
+  return user.isAdmin ? "bg-red-500/15 text-red-400" : "bg-[#0a0a0a] text-white/40";
+}
 
 export default function AdminDashboard() {
   const { t } = useTranslation();
@@ -34,6 +51,7 @@ export default function AdminDashboard() {
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [confirm, setConfirm] = useState<ConfirmState | null>(null);
 
   const selectableUsers = users.filter((user) => !user.isAdmin);
   const selectableUserIds = selectableUsers.map((user) => user.id);
@@ -58,10 +76,8 @@ export default function AdminDashboard() {
       return;
     }
 
-    const confirmed = window.confirm(`Excluir o usuário ${user.name} (${user.email})? Esta ação não pode ser desfeita.`);
-    if (!confirmed) return;
-
     setDeletingUserId(user.id);
+    setConfirm((prev) => prev ? { ...prev, loading: true } : prev);
     try {
       const res = await deleteAdminUser(user.id);
       if (res.success) {
@@ -81,6 +97,7 @@ export default function AdminDashboard() {
       toast.error("Erro ao excluir usuário.");
     } finally {
       setDeletingUserId(null);
+      setConfirm(null);
     }
   };
 
@@ -90,10 +107,8 @@ export default function AdminDashboard() {
       return;
     }
 
-    const confirmed = window.confirm(`Excluir ${selectedUserIds.length} usuários selecionados? Esta ação não pode ser desfeita.`);
-    if (!confirmed) return;
-
     setBulkDeleting(true);
+    setConfirm((prev) => prev ? { ...prev, loading: true } : prev);
     try {
       const res = await bulkDeleteAdminUsers(selectedUserIds);
       if (!res.success) {
@@ -109,6 +124,8 @@ export default function AdminDashboard() {
         } else {
           toast.error("Erro ao excluir usuários em lote.");
         }
+        setConfirm(null);
+        setBulkDeleting(false);
         return;
       }
 
@@ -133,16 +150,17 @@ export default function AdminDashboard() {
     } catch {
       toast.error("Erro ao excluir usuários em lote.");
     } finally {
+      setConfirm(null);
       setBulkDeleting(false);
     }
   };
 
   const handlePrewarm = async () => {
     const qty = prewarmQty === "" ? undefined : Number(prewarmQty);
-    const confirmMsg = qty 
+    const confirmMsg = qty
       ? `Deseja aquecer o cache com ${qty} músicas? Isso pode levar alguns minutos.`
       : "Deseja iniciar o aquecimento automático do cache? Isso pode levar alguns minutos.";
-    
+
     if (!window.confirm(confirmMsg)) return;
     setPrewarming(true);
     try {
@@ -150,16 +168,14 @@ export default function AdminDashboard() {
       if (res.success) {
         const message = res.message || `Aquecimento concluído! ${res.count} músicas adicionadas ao cache.`;
         toast.success(message);
-        
-        // Show detailed result in console for admin review
+
         if (res.addedSongs && res.addedSongs.length > 0) {
           console.log('🎵 Músicas adicionadas ao cache:', res.addedSongs);
         }
         if (res.skippedSongs && res.skippedSongs.length > 0) {
           console.log('⏭️ Músicas já estavam em cache:', res.skippedSongs);
         }
-        
-        // Refresh stats
+
         const statsData = await getAdminStats();
         setStats(statsData);
       } else {
@@ -172,135 +188,130 @@ export default function AdminDashboard() {
     }
   };
 
-  if (loading) return <AdminLayout><div className="text-[#00f5ff] font-mono animate-pulse uppercase tracking-widest text-xs">Loading_System_Metrics...</div></AdminLayout>;
-  if (error) return <AdminLayout><div className="text-red-500 font-mono text-xs border border-red-500/20 p-4 bg-red-500/5">{error}</div></AdminLayout>;
+  if (loading) {
+    return (
+      <AdminLayout>
+        <div className="max-w-7xl">
+          <div className="mb-10 h-10 w-56 admin-skeleton"></div>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="admin-card h-44 admin-skeleton"></div>
+            ))}
+          </div>
+        </div>
+      </AdminLayout>
+    );
+  }
+
+  if (error) return <AdminLayout><AdminEmpty title={error} /></AdminLayout>;
 
   return (
     <AdminLayout>
       <div className="max-w-7xl">
-        <header className="mb-12">
-          <h1 className="text-4xl font-black mb-2 tracking-tighter uppercase neon-glow-cyan text-white">
-            {t("admin.dashboard", "Dashboard")} <span className="text-white/20">/</span> Central
-          </h1>
-          <p className="text-gray-500 text-sm font-mono tracking-widest uppercase">
-             {t("admin.comingSoon", "📊 Dashboard simplificado • Analytics detalhado em breve")}
-          </p>
-        </header>
+        <AdminPageHeader
+          title={t("admin.dashboard", "Dashboard")}
+          subtitle="Visão geral da plataforma em tempo real: usuários, salas ativas e o estado do cache de músicas."
+        />
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16 stagger-in">
-          <div className="admin-card admin-stat-card p-10 relative group">
-            <div className="absolute top-4 right-4 text-[10px] font-mono text-gray-700 uppercase group-hover:text-[#00f5ff] transition-colors">USR_MNG</div>
-            <div className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-4">Total de Usuários</div>
-            <div className="text-6xl font-black neon-text-cyan admin-stat-value text-[#00f5ff]">{stats?.userCount}</div>
-            <div className="mt-4 h-1 w-12 bg-[#00f5ff]/20"></div>
-          </div>
-          <div className="admin-card admin-stat-card p-10 relative group">
-            <div className="absolute top-4 right-4 text-[10px] font-mono text-gray-700 uppercase group-hover:text-[#00f5ff] transition-colors">RM_CTRL</div>
-            <div className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-4">Salas Criadas</div>
-            <div className="text-6xl font-black text-white admin-stat-value">{stats?.roomCount}</div>
-            <div className="mt-4 h-1 w-12 bg-white/10"></div>
-          </div>
-          <div className="admin-card admin-stat-card p-10 relative group">
-            <div className="absolute top-4 right-4 text-[10px] font-mono text-gray-700 uppercase group-hover:text-[#00f5ff] transition-colors">LIB_INF</div>
-            <div className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-4">Músicas no Cache</div>
-            <div className="text-6xl font-black text-white admin-stat-value">{stats?.cacheCount ?? stats?.songCount}</div>
-            <div className="mt-4 h-1 w-12 bg-white/10"></div>
-          </div>
+        <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-3">
+          <AdminStatCard label="Usuários Cadastrados" value={stats?.userCount ?? 0} accent hint="user_count" />
+          <AdminStatCard label="Salas Criadas" value={stats?.roomCount ?? 0} hint="rooms_total" />
+          <AdminStatCard label="Músicas no Cache" value={stats?.cacheCount ?? stats?.songCount ?? 0} hint="cache_entries" />
         </div>
 
         {/* Pre-warm Control */}
-        <div className="admin-card border border-[#00f5ff]/20 bg-[#00f5ff]/5 p-8 mb-8 flex flex-col md:flex-row items-center justify-between gap-6 stagger-in">
-          <div className="flex-1">
-            <h2 className="text-[#00f5ff] font-bold uppercase tracking-wider mb-2 flex items-center gap-2">
-              🔥 {t("admin.prewarmTitle", "Aquecimento de Cache (Pre-warm)")}
-            </h2>
-            <p className="text-gray-400 text-sm">
-              {t("admin.prewarmDesc", "Faz a busca automática das músicas mais populares para deixar o sistema rápido antes do evento.")}
-            </p>
-            <p className="text-gray-500 text-xs mt-1">
-              Total configurado no sistema: 100+ músicas
-            </p>
-          </div>
-          <div className="flex items-end gap-4">
-            <div className="flex flex-col">
-              <label className="text-[10px] text-gray-500 uppercase tracking-wider mb-1">Qtd Novas</label>
-              <input
-                type="number"
-                min="1"
-                max="100"
-                value={prewarmQty}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  if (val === "") {
-                    setPrewarmQty("");
-                  } else {
-                    const num = parseInt(val);
-                    if (num >= 1 && num <= 100) {
-                      setPrewarmQty(num);
-                    }
-                  }
-                }}
-                placeholder="50"
-                className="w-20 px-3 py-2 bg-black/50 border border-white/10 rounded text-white text-sm focus:border-[#00f5ff] focus:outline-none"
-              />
+        <div className="admin-card mb-8 border border-[#00f5ff]/20 bg-[#00f5ff]/[0.04] p-8">
+          <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
+            <div className="flex-1">
+              <h2 className="mb-2 flex items-center gap-2 font-bold uppercase tracking-wider text-[#00f5ff]">
+                🔥 {t("admin.prewarmTitle", "Aquecimento de Cache")}
+              </h2>
+              <p className="text-sm text-gray-400">
+                {t("admin.prewarmDesc", "Busca automaticamente as músicas mais populares para deixar o sistema rápido antes do evento.")}
+              </p>
             </div>
-            <button
-              onClick={handlePrewarm}
-              disabled={prewarming}
-              className={`px-8 py-3 rounded font-bold uppercase tracking-widest text-xs transition-all ${
-                prewarming 
-                  ? "bg-gray-800 text-gray-500 cursor-not-allowed" 
-                  : "bg-[#00f5ff] text-black hover:bg-white shadow-[0_0_20px_rgba(0,245,255,0.3)]"
-              }`}
-            >
-              {prewarming ? "WARMING_UP..." : t("admin.prewarmStart", "Começar")}
-            </button>
+            <div className="flex items-end gap-4">
+              <div className="flex flex-col">
+                <label className="mb-1 text-[10px] font-bold uppercase tracking-wider text-gray-500">
+                  Quantidade
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  max="100"
+                  value={prewarmQty}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === "") {
+                      setPrewarmQty("");
+                    } else {
+                      const num = parseInt(val);
+                      if (num >= 1 && num <= 100) {
+                        setPrewarmQty(num);
+                      }
+                    }
+                  }}
+                  placeholder="50"
+                  className="admin-input w-24 font-mono"
+                />
+              </div>
+              <AdminButton onClick={handlePrewarm} disabled={prewarming} size="lg">
+                {prewarming ? "Aquecendo..." : t("admin.prewarmStart", "Aquecer Cache")}
+              </AdminButton>
+            </div>
           </div>
         </div>
 
         {/* Recent Activity */}
         <div className="admin-card border border-white/5 bg-[#0d0d12]">
-          <div className="px-10 py-6 border-b border-white/5 flex items-center justify-between bg-white/[0.01]">
-            <h2 className="text-sm font-bold uppercase tracking-[0.3em] text-gray-400">{t("admin.activeRooms", "Salas Ativas Agora")}</h2>
-            <div className="text-[10px] font-mono text-gray-600">LIVE_FEED v1.0</div>
+          <div className="flex items-center justify-between border-b border-white/5 bg-white/[0.01] px-8 py-5">
+            <h2 className="text-sm font-bold uppercase tracking-[0.3em] text-gray-400">
+              {t("admin.activeRooms", "Salas Ativas")}
+            </h2>
+            <span className="font-mono text-[10px] uppercase tracking-widest text-gray-600">
+              {stats?.recentRooms?.length ?? 0} ao vivo
+            </span>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="admin-table">
               <thead>
-                <tr className="admin-table-header text-gray-500 text-[10px] font-bold uppercase tracking-widest bg-black/50">
-                  <th className="px-10 py-5">{t("admin.identifier", "Identificador")}</th>
-                  <th className="px-10 py-5">{t("admin.owner", "Proprietário")}</th>
-                  <th className="px-10 py-5">{t("admin.traffic", "Tráfego")}</th>
-                  <th className="px-10 py-5 text-right">{t("admin.createdAt", "Data de Criação")}</th>
+                <tr>
+                  <th className="admin-th">{t("admin.identifier", "Código")}</th>
+                  <th className="admin-th">{t("admin.owner", "Proprietário")}</th>
+                  <th className="admin-th">{t("admin.traffic", "Visitantes")}</th>
+                  <th className="admin-th" align="right">{t("admin.createdAt", "Criada em")}</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5 text-sm">
+              <tbody>
                 {stats?.recentRooms?.map((room: any) => (
-                  <tr key={room.code} className="hover:bg-[#00f5ff]/[0.02] transition-colors group">
-                    <td className="px-10 py-5">
-                      <span className="font-mono font-bold text-[#00f5ff] bg-[#00f5ff]/10 px-2 py-1 tracking-tighter group-hover:bg-[#00f5ff] group-hover:text-black transition-colors">
+                  <tr key={room.code} className="admin-tr">
+                    <td className="admin-td">
+                      <span className="bg-[#00f5ff]/10 px-2 py-1 font-mono font-bold tracking-tighter text-[#00f5ff]">
                         {room.code}
                       </span>
                     </td>
-                    <td className="px-10 py-5 text-gray-300 font-medium">{room.owner}</td>
-                    <td className="px-10 py-5">
-                      <div className="flex items-center gap-2">
+                    <td className="admin-td font-medium text-gray-300">{room.owner}</td>
+                    <td className="admin-td">
+                      <div className="flex items-center gap-3">
                         <span className="text-white">{room.visitors}</span>
-                        <div className="flex-1 h-[2px] w-12 bg-white/5 overflow-hidden">
+                        <div className="h-[2px] w-16 overflow-hidden bg-white/5">
                           <div className="h-full bg-[#00f5ff]" style={{ width: `${Math.min((room.visitors || 0) * 10, 100)}%` }}></div>
                         </div>
                       </div>
                     </td>
-                    <td className="px-10 py-5 text-gray-500 text-right font-mono text-xs">
+                    <td className="admin-td text-right font-mono text-xs text-gray-500">
                       {new Date(room.createdAt).toLocaleString()}
                     </td>
                   </tr>
                 ))}
-                {(!stats?.recentRooms || stats.recentRooms.length === 0) && (
+                {!stats?.recentRooms?.length && (
                   <tr>
-                    <td colSpan={4} className="px-10 py-20 text-center text-gray-600 font-mono text-xs uppercase tracking-widest italic">
-                      {t("admin.noData", "--- Sem Dados de Transmissão ---")}
+                    <td colSpan={4} className="admin-td">
+                      <AdminEmpty
+                        title="Nenhuma sala ativa agora"
+                        hint="As salas aparecem aqui em tempo real enquanto estão em uso."
+                      />
                     </td>
                   </tr>
                 )}
@@ -310,30 +321,40 @@ export default function AdminDashboard() {
         </div>
 
         {/* Users Table */}
-        <div className="admin-card border border-white/5 bg-[#0d0d12] mt-8">
-          <div className="px-10 py-6 border-b border-white/5 flex items-center justify-between bg-white/[0.01]">
-            <h2 className="text-sm font-bold uppercase tracking-[0.3em] text-gray-400">{t("admin.allUsers", "Todos os Usuários")}</h2>
+        <div className="admin-card mt-8 border border-white/5 bg-[#0d0d12]">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/5 bg-white/[0.01] px-8 py-5">
+            <h2 className="text-sm font-bold uppercase tracking-[0.3em] text-gray-400">
+              {t("admin.allUsers", "Usuários Cadastrados")}
+            </h2>
             <div className="flex items-center gap-3">
-              <span className="text-[10px] font-mono text-gray-500">{selectedUserIds.length} selecionado(s)</span>
-              <button
-                onClick={handleBulkDeleteUsers}
+              {selectedUserIds.length > 0 && (
+                <span className="font-mono text-[10px] uppercase tracking-widest text-gray-500">
+                  {selectedUserIds.length} selecionado(s)
+                </span>
+              )}
+              <AdminButton
+                variant="danger"
+                size="sm"
+                onClick={() =>
+                  setConfirm({
+                    title: "Excluir usuários selecionados",
+                    message: `Excluir ${selectedUserIds.length} usuários selecionados? Esta ação não pode ser desfeita.`,
+                    confirmLabel: "Excluir",
+                    loading: bulkDeleting,
+                    onConfirm: handleBulkDeleteUsers,
+                  })
+                }
                 disabled={bulkDeleting || selectedUserIds.length === 0}
-                className={`px-3 py-2 rounded text-[10px] font-bold uppercase tracking-wider transition-all ${
-                  bulkDeleting || selectedUserIds.length === 0
-                    ? "bg-red-900/20 text-red-400/50 cursor-not-allowed"
-                    : "bg-red-500/20 text-red-300 hover:bg-red-500/30"
-                }`}
               >
-                {bulkDeleting ? "Excluindo..." : "Excluir Selecionados"}
-              </button>
-              <div className="text-[10px] font-mono text-gray-600">USER_DB v1.1</div>
+                Excluir Selecionados
+              </AdminButton>
             </div>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="admin-table">
               <thead>
-                <tr className="admin-table-header text-gray-500 text-[10px] font-bold uppercase tracking-widest bg-black/50">
-                  <th className="px-4 py-4 text-center">
+                <tr>
+                  <th className="admin-th" align="center">
                     <input
                       type="checkbox"
                       checked={allSelectableChecked}
@@ -342,23 +363,23 @@ export default function AdminDashboard() {
                       title="Selecionar todos os usuários não-admin"
                     />
                   </th>
-                  <th className="px-6 py-4">{t("admin.user.name", "Nome")}</th>
-                  <th className="px-6 py-4">{t("admin.user.email", "Email")}</th>
-                  <th className="px-6 py-4">{t("admin.user.phone", "Telefone")}</th>
-                  <th className="px-6 py-4">{t("admin.user.city", "Cidade")}</th>
-                  <th className="px-6 py-4">{t("admin.user.birthDate", "Nascimento")}</th>
-                  <th className="px-6 py-4">{t("admin.user.gender", "Gênero")}</th>
-                  <th className="px-6 py-4 text-center">{t("admin.user.canHost", "Anfitrião")}</th>
-                  <th className="px-6 py-4 text-center">{t("admin.user.isAdmin", "Admin")}</th>
-                  <th className="px-6 py-4 text-center">{t("admin.user.rooms", "Salas")}</th>
-                  <th className="px-6 py-4 text-right">{t("admin.user.createdAt", "Criado em")}</th>
-                  <th className="px-6 py-4 text-right">Ações</th>
+                  <th className="admin-th">{t("admin.user.name", "Nome")}</th>
+                  <th className="admin-th">{t("admin.user.email", "Email")}</th>
+                  <th className="admin-th">{t("admin.user.phone", "Telefone")}</th>
+                  <th className="admin-th">{t("admin.user.city", "Cidade")}</th>
+                  <th className="admin-th">{t("admin.user.birthDate", "Nascimento")}</th>
+                  <th className="admin-th">{t("admin.user.gender", "Gênero")}</th>
+                  <th className="admin-th" align="center">{t("admin.user.canHost", "Anfitrião")}</th>
+                  <th className="admin-th" align="center">{t("admin.user.isAdmin", "Admin")}</th>
+                  <th className="admin-th" align="center">{t("admin.user.rooms", "Salas")}</th>
+                  <th className="admin-th" align="right">{t("admin.user.createdAt", "Criado em")}</th>
+                  <th className="admin-th" align="right">Ações</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5 text-sm">
+              <tbody>
                 {users.map((user) => (
-                  <tr key={user.id} className="hover:bg-[#00f5ff]/[0.02] transition-colors group">
-                    <td className="px-4 py-4 text-center">
+                  <tr key={user.id} className="admin-tr">
+                    <td className="admin-td" align="center">
                       <input
                         type="checkbox"
                         checked={selectedUserIds.includes(user.id)}
@@ -368,54 +389,54 @@ export default function AdminDashboard() {
                         title={user.isAdmin ? "Administrador não pode ser selecionado" : "Selecionar usuário"}
                       />
                     </td>
-                    <td className="px-6 py-4">
-                      <span className="font-medium text-white">{user.name}</span>
-                    </td>
-                    <td className="px-6 py-4 text-gray-400 font-mono text-xs">{user.email}</td>
-                    <td className="px-6 py-4 text-gray-500 font-mono text-xs">{user.phone || "-"}</td>
-                    <td className="px-6 py-4 text-gray-400">{user.city || "-"}</td>
-                    <td className="px-6 py-4 text-gray-500 font-mono text-xs">
+                    <td className="admin-td font-medium text-white">{user.name}</td>
+                    <td className="admin-td font-mono text-xs text-gray-400">{user.email}</td>
+                    <td className="admin-td font-mono text-xs text-gray-500">{user.phone || "-"}</td>
+                    <td className="admin-td text-gray-400">{user.city || "-"}</td>
+                    <td className="admin-td font-mono text-xs text-gray-500">
                       {user.birthDate ? new Date(user.birthDate).toLocaleDateString("pt-BR") : "-"}
                     </td>
-                    <td className="px-6 py-4 text-gray-400">{user.gender || "-"}</td>
-                    <td className="px-6 py-4 text-center">
-                      <span className={`text-xs px-2 py-1 rounded ${user.canHost ? "bg-[#00f5ff]/20 text-[#00f5ff]" : "bg-white/5 text-gray-600"}`}>
+                    <td className="admin-td text-gray-400">{user.gender || "-"}</td>
+                    <td className="admin-td" align="center">
+                      <span className={`rounded px-2 py-1 text-xs ${user.canHost ? "bg-[#00f5ff]/15 text-[#00f5ff]" : "bg-white/5 text-gray-600"}`}>
                         {user.canHost ? "Sim" : "Não"}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-center">
-                      <span className={`text-xs px-2 py-1 rounded ${user.isAdmin ? "bg-red-500/20 text-red-400" : "bg-white/5 text-gray-600"}`}>
+                    <td className="admin-td" align="center">
+                      <span className={`rounded px-2 py-1 text-xs ${adminBadgeClass(user)}`}>
                         {user.isAdmin ? "Sim" : "Não"}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-center">
+                    <td className="admin-td" align="center">
                       <span className="font-mono text-white">{user.roomsCreated}</span>
                     </td>
-                    <td className="px-6 py-4 text-right text-gray-500 font-mono text-xs">
+                    <td className="admin-td text-right font-mono text-xs text-gray-500">
                       {new Date(user.createdAt).toLocaleString("pt-BR")}
                     </td>
-                    <td className="px-6 py-4 text-right">
-                      <button
-                        onClick={() => handleDeleteUser(user)}
+                    <td className="admin-td text-right">
+                      <AdminButton
+                        variant="danger"
+                        size="sm"
                         disabled={deletingUserId === user.id || user.isAdmin || bulkDeleting}
-                        className={`px-3 py-1.5 rounded text-[10px] font-bold uppercase tracking-wider transition-all ${
-                          user.isAdmin
-                            ? "bg-white/5 text-gray-600 cursor-not-allowed"
-                            : deletingUserId === user.id
-                              ? "bg-red-900/30 text-red-300 cursor-not-allowed"
-                              : "bg-red-500/20 text-red-300 hover:bg-red-500/30"
-                        }`}
-                        title={user.isAdmin ? "Administrador não pode ser excluído" : "Excluir usuário"}
+                        onClick={() =>
+                          setConfirm({
+                            title: "Excluir usuário",
+                            message: `Excluir o usuário ${user.name} (${user.email})? Esta ação não pode ser desfeita.`,
+                            confirmLabel: "Excluir",
+                            loading: deletingUserId === user.id,
+                            onConfirm: () => handleDeleteUser(user),
+                          })
+                        }
                       >
                         {deletingUserId === user.id ? "Excluindo..." : "Excluir"}
-                      </button>
+                      </AdminButton>
                     </td>
                   </tr>
                 ))}
                 {users.length === 0 && (
                   <tr>
-                    <td colSpan={12} className="px-10 py-20 text-center text-gray-600 font-mono text-xs uppercase tracking-widest italic">
-                      --- Nenhum usuário encontrado ---
+                    <td colSpan={12} className="admin-td">
+                      <AdminEmpty title="Nenhum usuário cadastrado" />
                     </td>
                   </tr>
                 )}
@@ -424,6 +445,16 @@ export default function AdminDashboard() {
           </div>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={!!confirm}
+        title={confirm?.title || ""}
+        message={confirm?.message || ""}
+        confirmLabel={confirm?.confirmLabel}
+        loading={confirm?.loading}
+        onConfirm={() => confirm?.onConfirm()}
+        onCancel={() => setConfirm(null)}
+      />
     </AdminLayout>
   );
 }

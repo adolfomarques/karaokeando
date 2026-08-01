@@ -19,11 +19,28 @@ model User {
   canHost      Boolean   @default(false) @map("can_host")
   isAdmin      Boolean   @default(false) @map("is_admin")
   createdAt    DateTime  @default(now()) @map("created_at")
+  lastLoginAt  DateTime? @map("last_login_at")
 
   // Relations
-  ownedRooms Room[] @relation("RoomOwner")
+  ownedRooms  Room[]       @relation("RoomOwner")
+  loginEvents LoginEvent[]
 
   @@map("users")
+}
+
+model LoginEvent {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  method    String
+  ip        String?
+  userAgent String?  @map("user_agent")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+  @@map("login_events")
 }
 
 model Room {

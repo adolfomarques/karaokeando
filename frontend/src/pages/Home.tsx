@@ -424,8 +424,9 @@ export default function Home() {
                 boxShadow: "0 10px 30px rgba(255,0,128,0.15)"
               }}>
                 <img
-                  src="/images/step1_create.png"
+                  src="/images/step1_create.webp"
                   alt={t("landing.howItWorks.step1Title", "Crie a Sala")}
+                  loading="lazy"
                   style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
                 />
                 <div style={{
@@ -462,8 +463,9 @@ export default function Home() {
                 boxShadow: "0 10px 30px rgba(121,40,202,0.15)"
               }}>
                 <img
-                  src="/images/step2_invite.png"
+                  src="/images/step2_invite.webp"
                   alt={t("landing.howItWorks.step2Title", "Convide Amigos")}
+                  loading="lazy"
                   style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
                 />
                 <div style={{
@@ -500,7 +502,8 @@ export default function Home() {
                 boxShadow: "0 10px 30px rgba(0,209,255,0.15)"
               }}>
                 <img
-                  src="/images/step3_sing.png"
+                  src="/images/step3_sing.webp"
+                  loading="lazy"
                   alt={t("landing.howItWorks.step3Title", "Cantem Juntos")}
                   style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
                 />

@@ -5,7 +5,6 @@
 /* ════════════════════════════════════════════════════════
    KARAOKE LIQUID GLASS SYSTEM — Design Tokens
    ════════════════════════════════════════════════════════ */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 :root {
   /* Cores */
@@ -386,9 +385,40 @@ body:not(:has(.admin-layout)) .btn-ghost:hover {
   to   { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
 @keyframes fadeInLogo {
   from { opacity: 0; transform: translateY(-12px); }
   to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Reaction burst (mobile local feedback) ──────────────── */
+.reaction-burst {
+  position: absolute;
+  bottom: 100%;
+  font-size: 28px;
+  pointer-events: none;
+  animation: reactionFloat 1s ease-out forwards;
+  transform: translateX(-50%);
+}
+
+@keyframes reactionFloat {
+  from { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+  to   { opacity: 0; transform: translateX(-50%) translateY(-70px) scale(1.4); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reaction-burst {
+    animation: reactionFade 0.6s ease-out forwards;
+  }
+}
+
+@keyframes reactionFade {
+  from { opacity: 1; }
+  to   { opacity: 0; }
 }
 
 /* ── Queue / Room shared items ──────────────────────────── */
@@ -572,10 +602,14 @@ body:not(:has(.admin-layout)) .btn-ghost:hover {
   }
 }
 
+.admin-sidebar-link {
+  border-left: 4px solid transparent;
+}
+
 .admin-sidebar-link.active {
-  background: rgba(0, 245, 255, 0.05) !important;
+  background: rgba(0, 245, 255, 0.06) !important;
   color: #00f5ff !important;
-  border-left: 4px solid #00f5ff !important;
+  border-left-color: #00f5ff !important;
   box-shadow: none !important;
 }
 
@@ -608,6 +642,77 @@ body:not(:has(.admin-layout)) .btn-ghost:hover {
 .stagger-in > *:nth-child(2) { animation-delay: 0.2s; }
 .stagger-in > *:nth-child(3) { animation-delay: 0.3s; }
 .stagger-in > *:nth-child(4) { animation-delay: 0.4s; }
+
+/* ── Admin primitives ───────────────────────────────────── */
+.admin-table { width: 100%; border-collapse: collapse; }
+
+.admin-th {
+  padding: 0.9rem 1.25rem;
+  text-align: left;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: rgba(255, 255, 255, 0.4);
+  background: rgba(0, 0, 0, 0.45);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  white-space: nowrap;
+}
+
+.admin-th[align="right"] { text-align: right; }
+.admin-th[align="center"] { text-align: center; }
+
+.admin-td {
+  padding: 1rem 1.25rem;
+  font-size: 0.875rem;
+  vertical-align: middle;
+}
+
+.admin-tr {
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  transition: background-color 0.2s ease;
+}
+
+.admin-tr:hover { background: rgba(0, 245, 255, 0.03); }
+
+.admin-input {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #fff;
+  padding: 0.65rem 1rem;
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.admin-input::placeholder { color: rgba(255, 255, 255, 0.28); }
+
+.admin-input:focus {
+  border-color: #00f5ff;
+  box-shadow: 0 0 0 3px rgba(0, 245, 255, 0.15);
+}
+
+.admin-select {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='%23ffffff55'%3E%3Cpath d='M1 1l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  padding-right: 2.5rem;
+}
+
+@keyframes adminShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.admin-skeleton {
+  background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.10) 50%, rgba(255,255,255,0.04) 75%);
+  background-size: 200% 100%;
+  animation: adminShimmer 1.4s ease infinite;
+}
 
 /* ── Scrollbar ──────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; }

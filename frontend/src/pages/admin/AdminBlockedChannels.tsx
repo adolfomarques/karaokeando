@@ -3,6 +3,10 @@ import { getAdminBlockedChannels, addAdminBlockedChannel, deleteAdminBlockedChan
 import AdminLayout from "./AdminLayout";
 import { toast } from "react-hot-toast";
 import { useTranslation } from "react-i18next";
+import AdminPageHeader from "../../components/admin/AdminPageHeader";
+import AdminButton from "../../components/admin/AdminButton";
+import AdminEmpty from "../../components/admin/AdminEmpty";
+import ConfirmDialog from "../../components/admin/ConfirmDialog";
 
 export default function AdminBlockedChannels() {
   const { t } = useTranslation();
@@ -10,6 +14,8 @@ export default function AdminBlockedChannels() {
   const [loading, setLoading] = useState(true);
   const [newChannelId, setNewChannelId] = useState("");
   const [newChannelName, setNewChannelName] = useState("");
+  const [deleting, setDeleting] = useState(false);
+  const [confirm, setConfirm] = useState<AdminBlockedChannel | null>(null);
 
   const loadChannels = async () => {
     try {
@@ -42,103 +48,126 @@ export default function AdminBlockedChannels() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm(t("admin.confirmUnblockChannel", "Tem certeza que deseja desbloquear este canal?"))) return;
+    setDeleting(true);
     try {
       await deleteAdminBlockedChannel(id);
       toast.success(t("admin.deleteSuccess", "Canal desbloqueado"));
       loadChannels();
     } catch (err) {
       toast.error(t("admin.deleteError", "Erro ao remover"));
+    } finally {
+      setDeleting(false);
+      setConfirm(null);
     }
   };
 
-  if (loading) return <AdminLayout><div className="text-[#00f5ff] font-mono animate-pulse uppercase tracking-widest text-xs">{t("admin.downloadingRegistry", "Downloading_Registry...")}</div></AdminLayout>;
+  if (loading) {
+    return (
+      <AdminLayout>
+        <div className="max-w-7xl">
+          <div className="mb-10 h-10 w-56 admin-skeleton"></div>
+          <div className="admin-card border border-white/5 bg-[#0d0d12] p-8">
+            <div className="admin-skeleton h-12 mb-6"></div>
+            <div className="admin-skeleton h-48"></div>
+          </div>
+        </div>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout>
       <div className="max-w-7xl">
-        <header className="mb-12">
-          <h1 className="text-4xl font-black mb-2 tracking-tighter uppercase neon-glow-cyan">
-             {t("admin.blockedChannels", "Canais Bloqueados")} <span className="text-white/20">/</span> {t("admin.security", "Filtro")}
-          </h1>
-          <p className="text-gray-500 text-sm font-mono tracking-widest uppercase">
-            {t("admin.blocklistManagement", "Gerenciamento de canais que não devem aparecer nas buscas")}
-          </p>
-        </header>
+        <AdminPageHeader
+          title={t("admin.blockedChannels", "Canais Bloqueados")}
+          subtitle="Canais do YouTube que não devem aparecer nos resultados de busca das salas."
+          actions={
+            <div className="text-right">
+              <div className="font-mono text-xl font-black text-[#00f5ff]">{channels.length}</div>
+              <div className="text-[10px] font-bold uppercase tracking-wider text-gray-500">bloqueados</div>
+            </div>
+          }
+        />
 
-        <form onSubmit={handleAdd} className="mb-12 admin-card border border-white/5 bg-[#0d0d12] p-8">
-          <h2 className="text-xs font-mono font-bold text-gray-500 uppercase tracking-[0.3em] mb-6">Bloquear Novo Canal</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <form onSubmit={handleAdd} className="admin-card mb-8 border border-white/5 bg-[#0d0d12] p-8">
+          <h2 className="mb-6 text-[10px] font-bold uppercase tracking-[0.3em] text-gray-500">Bloquear Novo Canal</h2>
+          <div className="mb-6 grid grid-cols-1 gap-6 md:grid-cols-2">
             <div>
-              <label className="block text-[10px] text-gray-600 font-bold uppercase tracking-widest mb-2">ID do Canal (ex: UCwTRjvjVge51X-ILJ4i22ew)</label>
-              <input 
-                type="text" 
-                placeholder="CHANNEL_ID..."
-                className="w-full bg-black border border-white/5 px-6 py-4 text-xs font-mono tracking-widest focus:outline-none focus:border-[#00f5ff]/30 transition-all"
+              <label className="mb-2 block font-mono text-[10px] uppercase tracking-widest text-gray-500">
+                ID do Canal (obrigatório)
+              </label>
+              <input
+                type="text"
+                placeholder="UCxxxxxxxxxxxxxxxxxxxxx"
+                className="admin-input font-mono"
                 value={newChannelId}
                 onChange={(e) => setNewChannelId(e.target.value)}
                 required
               />
             </div>
             <div>
-              <label className="block text-[10px] text-gray-600 font-bold uppercase tracking-widest mb-2">Nome Amigável (Opcional)</label>
-              <input 
-                type="text" 
-                placeholder="CHANNEL_NAME..."
-                className="w-full bg-black border border-white/5 px-6 py-4 text-xs font-mono tracking-widest focus:outline-none focus:border-[#00f5ff]/30 transition-all"
+              <label className="mb-2 block font-mono text-[10px] uppercase tracking-widest text-gray-500">
+                Nome (opcional)
+              </label>
+              <input
+                type="text"
+                placeholder="Ex: Canal de Música"
+                className="admin-input font-mono"
                 value={newChannelName}
                 onChange={(e) => setNewChannelName(e.target.value)}
               />
             </div>
           </div>
-          <button 
-            type="submit"
-            className="bg-[#00f5ff] text-black px-8 py-4 text-xs font-black uppercase tracking-widest hover:bg-[#00f5ff]/80 transition-all"
-          >
+          <AdminButton type="submit" size="lg">
             Bloquear Canal
-          </button>
+          </AdminButton>
         </form>
 
         <div className="admin-card border border-white/5 bg-[#0d0d12]">
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="admin-table">
               <thead>
-                <tr className="admin-table-header text-gray-500 text-[10px] font-bold uppercase tracking-widest bg-black/50">
-                  <th className="px-10 py-5">Metadata Canal</th>
-                  <th className="px-10 py-5">Identificador (ID)</th>
-                  <th className="px-10 py-5 text-right">Controle</th>
+                <tr>
+                  <th className="admin-th">Canal</th>
+                  <th className="admin-th">ID</th>
+                  <th className="admin-th" align="right">Ação</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5 text-sm">
+              <tbody>
                 {channels.map((channel) => (
-                  <tr key={channel.id} className="hover:bg-[#00f5ff]/[0.02] transition-colors group">
-                    <td className="px-10 py-5">
-                      <div className="font-bold text-gray-200 mb-1 max-w-md truncate uppercase tracking-tighter">
-                        {channel.name || "NOME_NÃO_INFORMADO"}
+                  <tr key={channel.id} className="admin-tr group">
+                    <td className="admin-td">
+                      <div className="mb-1 max-w-md truncate font-bold uppercase tracking-tighter text-gray-200">
+                        {channel.name || "Nome não informado"}
                       </div>
-                      <div className="text-[10px] text-gray-600 font-mono italic">
-                        Adicionado em: {new Date(channel.createdAt).toLocaleDateString()}
+                      <div className="text-[10px] italic text-gray-600">
+                        Adicionado em {new Date(channel.createdAt).toLocaleDateString()}
                       </div>
                     </td>
-                    <td className="px-10 py-5">
-                      <div className="font-mono text-xs text-gray-500 group-hover:text-[#00f5ff] transition-colors">
+                    <td className="admin-td">
+                      <div className="font-mono text-xs text-gray-500 transition-colors group-hover:text-[#00f5ff]">
                         {channel.channelId}
                       </div>
                     </td>
-                    <td className="px-10 py-5 text-right">
-                      <button 
-                         onClick={() => handleDelete(channel.id)}
-                         className="text-[10px] font-mono font-bold text-gray-700 hover:text-red-500 transition-colors uppercase tracking-[0.2em]"
+                    <td className="admin-td text-right">
+                      <AdminButton
+                        variant="danger"
+                        size="sm"
+                        disabled={deleting}
+                        onClick={() => setConfirm(channel)}
                       >
-                        [DESBLOQUEAR]
-                      </button>
+                        Desbloquear
+                      </AdminButton>
                     </td>
                   </tr>
                 ))}
-                {channels.length === 0 && !loading && (
+                {channels.length === 0 && (
                   <tr>
-                    <td colSpan={3} className="px-10 py-20 text-center text-gray-700 font-mono text-xs uppercase tracking-widest italic">
-                      --- BLOCKLIST_EMPTY ---
+                    <td colSpan={3} className="admin-td">
+                      <AdminEmpty
+                        title="Nenhum canal bloqueado"
+                        hint="Os canais bloqueados aqui não aparecerão nas buscas das salas."
+                      />
                     </td>
                   </tr>
                 )}
@@ -147,6 +176,16 @@ export default function AdminBlockedChannels() {
           </div>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={!!confirm}
+        title="Desbloquear canal"
+        message={confirm ? `Tem certeza que deseja desbloquear o canal "${confirm.name || confirm.channelId}"? Ele voltará a aparecer nas buscas.` : ""}
+        confirmLabel="Desbloquear"
+        loading={deleting}
+        onConfirm={() => confirm && handleDelete(confirm.id)}
+        onCancel={() => setConfirm(null)}
+      />
     </AdminLayout>
   );
 }

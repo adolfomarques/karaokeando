@@ -51,9 +51,9 @@ export default async function adminRoutes(app: FastifyInstance) {
       include: { owner: { select: { name: true } } }
     });
 
-    return { 
-      userCount, 
-      roomCount, 
+    return {
+      userCount,
+      roomCount,
       songCount,
       cacheCount,
       recentRooms: recentRooms.map(r => ({
@@ -62,6 +62,92 @@ export default async function adminRoutes(app: FastifyInstance) {
         visitors: r.uniqueVisitors,
         createdAt: r.createdAt
       }))
+    };
+  });
+
+  // --- LOGIN HISTORY ---
+  // Returns recent login events with user info, paginated.
+  // Supports filtering by user email/name via ?q= and by method via ?method=.
+  app.get<{ Querystring: { limit?: string; offset?: string; q?: string; method?: string } }>(
+    "/api/admin/logins",
+    { preHandler: [requireAdmin] },
+    async (request) => {
+      const query = request.query;
+      const limit = Math.min(parseInt(query.limit || "100", 10) || 100, 500);
+      const offset = parseInt(query.offset || "0", 10) || 0;
+      const q = (query.q || "").trim().toLowerCase();
+      const method = (query.method || "").trim() || undefined;
+
+      const where: any = {};
+      if (method) where.method = method;
+      if (q) {
+        where.user = {
+          OR: [
+            { email: { contains: q } },
+            { name: { contains: q } },
+          ],
+        };
+      }
+
+      const [events, total] = await Promise.all([
+        prisma.loginEvent.findMany({
+          where,
+          skip: offset,
+          take: limit,
+          orderBy: { createdAt: "desc" },
+          include: {
+            user: {
+              select: { id: true, name: true, email: true, isAdmin: true },
+            },
+          },
+        }),
+        prisma.loginEvent.count({ where }),
+      ]);
+
+      return {
+        events: events.map((e) => ({
+          id: e.id,
+          userId: e.userId,
+          userName: e.user.name,
+          userEmail: e.user.email,
+          userIsAdmin: e.user.isAdmin,
+          method: e.method,
+          ip: e.ip,
+          userAgent: e.userAgent,
+          createdAt: e.createdAt,
+        })),
+        total,
+        limit,
+        offset,
+      };
+    }
+  );
+
+  // --- LOGIN STATS (summary) ---
+  app.get("/api/admin/logins/stats", { preHandler: [requireAdmin] }, async () => {
+    const now = new Date();
+    const dayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+    const [last24h, last7d, total, byMethodRaw, uniqueUsers] = await Promise.all([
+      prisma.loginEvent.count({ where: { createdAt: { gte: dayAgo } } }),
+      prisma.loginEvent.count({ where: { createdAt: { gte: weekAgo } } }),
+      prisma.loginEvent.count(),
+      prisma.loginEvent.groupBy({ by: ["method"], _count: { _all: true } }),
+      prisma.loginEvent.findMany({
+        distinct: ["userId"],
+        select: { userId: true },
+      }),
+    ]);
+
+    return {
+      last24h,
+      last7d,
+      total,
+      uniqueUsers: uniqueUsers.length,
+      byMethod: Object.fromEntries(
+        byMethodRaw.map((m) => [m.method, m._count._all])
+      ),
     };
   });
 
@@ -86,6 +172,7 @@ export default async function adminRoutes(app: FastifyInstance) {
           canHost: true,
           isAdmin: true,
           createdAt: true,
+          lastLoginAt: true,
           _count: {
             select: { ownedRooms: true }
           }
@@ -107,6 +194,7 @@ export default async function adminRoutes(app: FastifyInstance) {
         canHost: user.canHost,
         isAdmin: user.isAdmin,
         createdAt: user.createdAt,
+        lastLoginAt: user.lastLoginAt,
         roomsCreated: user._count.ownedRooms
       })),
       total,

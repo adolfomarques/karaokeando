@@ -448,42 +448,55 @@ export default function RoomTV() {
       item => !prevQueueRef.current.some(prev => prev.id === item.id)
     );
 
+    const emojis = ["🎤","🎶","🎸","🥁","🎹","🎧","🔥","🌟","💃","🕺","🎉","🎊","✨","⭐","🎵"];
+    const colors = [
+      ["#FF0080","#7928CA"],
+      ["#06b6d4","#0d9488"],
+      ["#f59e0b","#ef4444"],
+      ["#8b5cf6","#ec4899"],
+      ["#10b981","#3b82f6"],
+      ["#f97316","#ec4899"],
+    ];
+
     newItems.forEach(item => {
+      const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+      const [c1, c2] = colors[Math.floor(Math.random() * colors.length)];
       toast.custom((toastRef) => (
         <div
           style={{
-            background: 'rgba(26, 28, 41, 0.95)',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.5)',
-            borderRadius: '12px',
+            background: 'linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04))',
+            backdropFilter: 'blur(14px)',
+            WebkitBackdropFilter: 'blur(14px)',
+            border: '1px solid rgba(255,255,255,0.15)',
+            boxShadow: `0 12px 40px rgba(0,0,0,0.5), 0 0 30px ${c1}33`,
+            borderRadius: '14px',
             padding: '16px',
             display: 'flex',
             alignItems: 'center',
-            gap: '12px',
-            maxWidth: '350px',
+            gap: '14px',
+            maxWidth: '360px',
             color: 'white',
             opacity: toastRef.visible ? 1 : 0,
-            transform: toastRef.visible ? 'translateX(0)' : 'translateX(-50px)',
-            transition: 'all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1)',
+            transform: toastRef.visible ? 'translateX(0)' : 'translateX(120px)',
+            transition: 'all 0.55s cubic-bezier(0.34, 1.56, 0.64, 1)',
           }}
         >
           <div style={{
-            width: '40px',
-            height: '40px',
+            width: '44px',
+            height: '44px',
             borderRadius: '50%',
-            background: 'linear-gradient(135deg, #06b6d4, #0d9488)',
+            background: `linear-gradient(135deg, ${c1}, ${c2})`,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: '1.2rem',
+            fontSize: '1.3rem',
             flexShrink: 0,
-            boxShadow: '0 4px 10px rgba(236, 72, 153, 0.3)'
+            boxShadow: `0 4px 15px ${c1}66`,
           }}>
-            🎵
+            {emoji}
           </div>
           <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
-            <div style={{ fontSize: '0.85rem', color: '#a0aec0', marginBottom: '2px', fontWeight: 500 }}>
+            <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.62)', marginBottom: '2px', fontWeight: 500 }}>
               {t("tv.newSongToast", "New song in queue")}
             </div>
             <div style={{ fontSize: '1rem', fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden' }}>
@@ -1042,34 +1055,71 @@ export default function RoomTV() {
           style={{
             position: "fixed",
             inset: 0,
-            background: "rgba(0,0,0,0.9)",
-            zIndex: 9999,
+            zIndex: 100,
             display: "flex",
-            flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
             color: "#fff",
+            cursor: "pointer",
           }}
           onClick={() => setHasInteracted(true)}
         >
-          <div style={{ padding: 40, textAlign: "center", background: "#222", borderRadius: 16 }}>
-            <IconPlay size={64} />
-            <h2 style={{ fontSize: "2rem", margin: "20px 0 10px" }}>{t("tv.clickToActivate", "Clique para Ativar a TV")}</h2>
-            <p style={{ color: "#aaa", fontSize: "1.1rem", maxWidth: 400 }}>
+          <div style={{
+            position: "absolute", inset: 0,
+            background: "radial-gradient(ellipse at center, rgba(255,0,128,0.08) 0%, rgba(0,0,0,0.95) 70%)",
+            backdropFilter: "blur(40px)",
+            WebkitBackdropFilter: "blur(40px)",
+          }} />
+          <div
+            style={{
+              position: "relative",
+              background: "linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.03))",
+              backdropFilter: "blur(20px)",
+              WebkitBackdropFilter: "blur(20px)",
+              border: "1px solid rgba(255,255,255,0.12)",
+              borderRadius: 24,
+              padding: "60px 72px",
+              textAlign: "center",
+              maxWidth: 520,
+              boxShadow: "0 32px 80px rgba(0,0,0,0.6), 0 0 60px rgba(255,0,128,0.06)",
+            }}
+          >
+            <div style={{
+              width: 96,
+              height: 96,
+              borderRadius: "50%",
+              background: "linear-gradient(135deg, #FF0080, #7928CA)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              margin: "0 auto 24px",
+              boxShadow: "0 0 40px rgba(255,0,128,0.3)",
+              animation: "tvPulse 2s ease-in-out infinite",
+            }}>
+              <IconPlay size={44} />
+            </div>
+            <h2 style={{ fontSize: "1.8rem", fontWeight: 900, margin: "0 0 12px", letterSpacing: "-0.03em" }}>
+              {t("tv.clickToActivate", "Clique para Ativar a TV")}
+            </h2>
+            <p style={{ color: "rgba(255,255,255,0.55)", fontSize: "0.95rem", lineHeight: 1.5, margin: "0 0 28px" }}>
               {t("tv.autoplayWarning", "Browsers block autoplay videos. Click anywhere on this screen once for autoplay karaoke.")}
             </p>
             <button
               style={{
-                marginTop: 24,
-                background: "#ff4081",
+                background: "linear-gradient(135deg, #FF0080, #7928CA)",
                 color: "#fff",
                 border: "none",
-                padding: "16px 32px",
-                fontSize: "1.2rem",
-                fontWeight: "bold",
-                borderRadius: 8,
+                padding: "14px 40px",
+                fontSize: "1rem",
+                fontWeight: 800,
+                borderRadius: 14,
                 cursor: "pointer",
+                boxShadow: "0 8px 30px rgba(255,0,128,0.3)",
+                transition: "transform 0.15s, box-shadow 0.15s",
+                letterSpacing: "0.5px",
               }}
+              onMouseEnter={e => { e.currentTarget.style.transform = "scale(1.05)"; e.currentTarget.style.boxShadow = "0 12px 40px rgba(255,0,128,0.4)"; }}
+              onMouseLeave={e => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = "0 8px 30px rgba(255,0,128,0.3)"; }}
             >
               {t("common.continue", "Continue")}
             </button>
@@ -1087,6 +1137,27 @@ export default function RoomTV() {
             flexDirection: "column",
           }}
         >
+          {/* Blur nas bordas superior esquerda/direita — centro limpo para a letra */}
+          <div style={{
+            position: "absolute", top: 0, left: 0,
+            width: "30%", height: "100px",
+            background: "linear-gradient(to bottom, rgba(0,0,0,0.85) 0%, transparent 100%)",
+            backdropFilter: "blur(6px)",
+            WebkitBackdropFilter: "blur(6px)",
+            zIndex: 9, pointerEvents: "none",
+            maskImage: "linear-gradient(to right, black 40%, transparent 100%)",
+            WebkitMaskImage: "linear-gradient(to right, black 40%, transparent 100%)",
+          }} />
+          <div style={{
+            position: "absolute", top: 0, right: 0,
+            width: "30%", height: "100px",
+            background: "linear-gradient(to bottom, rgba(0,0,0,0.85) 0%, transparent 100%)",
+            backdropFilter: "blur(6px)",
+            WebkitBackdropFilter: "blur(6px)",
+            zIndex: 9, pointerEvents: "none",
+            maskImage: "linear-gradient(to left, black 40%, transparent 100%)",
+            WebkitMaskImage: "linear-gradient(to left, black 40%, transparent 100%)",
+          }} />
           {/* Barra superior com info da música */}
           <div
             style={{
@@ -1095,8 +1166,6 @@ export default function RoomTV() {
               left: 0,
               right: 0,
               padding: "20px 40px",
-              background: "linear-gradient(to bottom, rgba(0,0,0,0.9), transparent)",
-              backdropFilter: "blur(4px)",
               zIndex: 10,
               display: "flex",
               justifyContent: "space-between",
@@ -1244,13 +1313,13 @@ export default function RoomTV() {
             </span>
           </button>
 
-          {/* QR Code discreto no canto inferior esquerdo */}
+          {/* QR Code no canto inferior esquerdo */}
           <div
             style={{
               position: "absolute",
               bottom: 16,
               left: 16,
-              background: "rgba(255,255,255,0.06)",
+              background: "rgba(255,255,255,0.08)",
               backdropFilter: "blur(24px)",
               padding: 14,
               borderRadius: 20,
@@ -1259,22 +1328,18 @@ export default function RoomTV() {
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
-              opacity: 0.7,
-              transition: "opacity 0.2s",
               zIndex: 10,
             }}
-            onMouseEnter={e => (e.currentTarget.style.opacity = "1")}
-            onMouseLeave={e => (e.currentTarget.style.opacity = "0.7")}
           >
             <img
-              src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(
+              src={`https://api.qrserver.com/v1/create-qr-code/?size=170x170&data=${encodeURIComponent(
                 window.location.origin + "/join/" + code
               )}&color=000000&bgcolor=ffffff`}
               alt="QR Code"
               loading="lazy"
               style={{ 
-                width: 145, 
-                height: 145, 
+                width: 160, 
+                height: 160, 
                 display: "block", 
                 borderRadius: 12,
                 padding: 6,
@@ -1294,6 +1359,16 @@ export default function RoomTV() {
               }}
             >
               {code}
+            </div>
+            <div style={{
+              color: "rgba(255,255,255,0.5)",
+              fontSize: "0.65rem",
+              fontWeight: 600,
+              marginTop: 4,
+              letterSpacing: "1px",
+              textTransform: "uppercase",
+            }}>
+              {t("tv.scanToAdd", "QR Code to add songs!")}
             </div>
           </div>
         </div>
@@ -1496,13 +1571,25 @@ export default function RoomTV() {
                   border: "1px solid rgba(255, 255, 255, 0.08)",
               }}>
                   <img
-                    src={`https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${encodeURIComponent(
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(
                       window.location.origin + "/join/" + code
                     )}&color=000000&bgcolor=ffffff`}
                     alt="QR"
                     loading="lazy"
-                    style={{ width: 110, height: 110, borderRadius: 8, background: "rgb(255, 255, 255)", padding: 4 }}
+                    style={{ width: 120, height: 120, borderRadius: 8, background: "rgb(255, 255, 255)", padding: 4 }}
                   />
+                  <div style={{
+                    color: "rgba(255,255,255,0.35)",
+                    fontSize: "0.55rem",
+                    fontWeight: 600,
+                    marginTop: 4,
+                    width: 120,
+                    textAlign: "center",
+                    letterSpacing: "1.5px",
+                    textTransform: "uppercase",
+                  }}>
+                    {t("tv.scanToAdd", "QR Code to add songs!")}
+                  </div>
               </div>
             </div>
           </header>
@@ -1697,7 +1784,7 @@ export default function RoomTV() {
                   </div>
                   <h2 className="tv-vip-title" style={{ fontSize: "2.5vw", marginBottom: "2vh", whiteSpace: "normal" }}>{t("tv.emptyQueue", "Fila vazia")}</h2>
                   <p style={{ color: "#00e5ff", fontSize: "1.2vw", fontWeight: 600, letterSpacing: "1px" }}>
-                    {t("tv.scanToAdd", "Escaneie o QR code e adicione músicas!")}
+                    {t("tv.scanToAdd", "QR Code to add songs!")}
                   </p>
                 </div>
               )}
@@ -1860,6 +1947,10 @@ export default function RoomTV() {
           15% { opacity: 1; transform: translateY(-30px) scale(1.2) rotate(calc(var(--rot) * 1deg)); }
           70% { transform: translateY(calc(var(--ty) * 0.6)) scale(1) rotate(calc(var(--rot) * 0.5deg)); opacity: 0.8; }
           100% { transform: translateY(var(--ty)) scale(0.8) rotate(calc(var(--rot) * 1.5deg)); opacity: 0; }
+        }
+        @keyframes tvPulse {
+          0%, 100% { transform: scale(1); box-shadow: 0 0 40px rgba(255,0,128,0.3); }
+          50% { transform: scale(1.06); box-shadow: 0 0 60px rgba(255,0,128,0.5); }
         }
       `}</style>
       {/* Reações Animadas - absolute to wrapper container */}

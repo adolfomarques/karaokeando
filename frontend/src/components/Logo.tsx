@@ -47,11 +47,11 @@ export default memo(function Logo({ width = 336, style = {} }: { width?: number 
           right: 0;
           bottom: 0;
           pointer-events: none;
-          -webkit-mask-image: url('/logo.png');
+          -webkit-mask-image: url('/logo.webp');
           -webkit-mask-size: contain;
           -webkit-mask-repeat: no-repeat;
           -webkit-mask-position: center;
-          mask-image: url('/logo.png');
+          mask-image: url('/logo.webp');
           mask-size: contain;
           mask-repeat: no-repeat;
           mask-position: center;
@@ -82,7 +82,7 @@ export default memo(function Logo({ width = 336, style = {} }: { width?: number 
         onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
       >
         <img
-          src="/logo.png"
+          src="/logo.webp"
           alt={t("home.title", "KARAOKE FACTORY")}
           style={{ 
             width: '100%', 

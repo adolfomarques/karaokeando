@@ -15,6 +15,11 @@ colors:
   glass-border: "rgba(255, 255, 255, 0.10)"
   admin-cyan: "#00f5ff"
   error-red: "#ff6b6b"
+  success-green: "#2ecc71"
+  warning-orange: "#e67e22"
+  gold: "#FFD700"
+  destructive-red: "#ff4444"
+  skip-red: "#e74c3c"
 typography:
   display:
     fontFamily: "Inter, -apple-system, BlinkMacSystemFont, system-ui, sans-serif"

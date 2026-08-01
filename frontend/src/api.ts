@@ -429,6 +429,7 @@ export interface AdminUser {
   canHost: boolean;
   isAdmin: boolean;
   createdAt: string;
+  lastLoginAt: string | null;
   roomsCreated: number;
 }
 
@@ -484,6 +485,66 @@ export async function getAdminUsers(): Promise<AdminUser[]> {
   return Array.isArray(data) ? data : (data.users ?? []);
 }
 
+// ─────────────────────────────────────────────────────────────
+// Login History (admin)
+// ─────────────────────────────────────────────────────────────
+
+export interface LoginEvent {
+  id: string;
+  userId: string;
+  userName: string;
+  userEmail: string;
+  userIsAdmin: boolean;
+  method: string;
+  ip: string | null;
+  userAgent: string | null;
+  createdAt: string;
+}
+
+export interface LoginEventPage {
+  events: LoginEvent[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+export interface LoginStats {
+  last24h: number;
+  last7d: number;
+  total: number;
+  uniqueUsers: number;
+  byMethod: Record<string, number>;
+}
+
+export async function getAdminLogins(params: {
+  limit?: number;
+  offset?: number;
+  q?: string;
+  method?: string;
+} = {}): Promise<LoginEventPage> {
+  const token = localStorage.getItem("karaokefactory_token");
+  const qs = new URLSearchParams();
+  if (params.limit) qs.set("limit", String(params.limit));
+  if (params.offset) qs.set("offset", String(params.offset));
+  if (params.q) qs.set("q", params.q);
+  if (params.method) qs.set("method", params.method);
+  const q = qs.toString();
+  const res = await fetch(`${API_BASE}/api/admin/logins${q ? `?${q}` : ""}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error("Acesso negado");
+  return res.json();
+}
+
+export async function getAdminLoginStats(): Promise<LoginStats> {
+  const token = localStorage.getItem("karaokefactory_token");
+  const res = await fetch(`${API_BASE}/api/admin/logins/stats`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error("Acesso negado");
+  return res.json();
+}
+
 export async function deleteAdminUser(id: string): Promise<{ success?: boolean; error?: string }> {
   const token = localStorage.getItem("karaokefactory_token");
   const res = await fetch(`${API_BASE}/api/admin/users/${id}`, {
@@ -534,7 +595,10 @@ export async function getAdminSongs(): Promise<AdminSong[]> {
   const res = await fetch(`${API_BASE}/api/admin/songs`, {
     headers: { Authorization: `Bearer ${token}` },
   });
-  return res.json();
+  if (!res.ok) throw new Error("Acesso negado");
+  const data = await res.json();
+  // API returns { songs: [], total, limit, offset } — extract the array
+  return Array.isArray(data) ? data : (data.songs ?? []);
 }
 
 export async function deleteAdminSong(id: string) {

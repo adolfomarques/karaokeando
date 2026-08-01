@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import toast, { Toaster } from "react-hot-toast";
 import { useAuth, getToken } from "../context/AuthContext";
 import { getDeviceFingerprint } from "../lib/deviceId";
 import Logo from "../components/Logo";
@@ -374,8 +375,35 @@ export default function RoomMobile() {
   const [showNameModal, setShowNameModal] = useState(false);
   const [nameInput, setNameInput] = useState("");
   const [nameError, setNameError] = useState<string | null>(null);
-  const [nickname, setNickname] = useState<string>(""); // Apelido na sala (pode ser diferente do nome cadastrado)
-  const [toast, setToast] = useState<string | null>(null); // Temporary notification
+  const [nickname, setNickname] = useState<string>("");
+  const cleanTitle = (title: string) => title.replace(/\s*[\[\(][^\]\)]*karaok[eê][^\]\)]*[\]\)]/gi, "").replace(/\s*karaok[eê][:\s-]*/gi, " ").replace(/\s*\(\)\s*/g, "").replace(/\s*\[\s*\]\s*/g, "").replace(/\s+/g, " ").trim();
+  const showToast = (msg: string, duration = 4000) => {
+    toast.custom((t) => (
+      <div style={{
+        background: "rgba(255,255,255,0.08)",
+        backdropFilter: "blur(16px)",
+        WebkitBackdropFilter: "blur(16px)",
+        border: "1px solid rgba(255,255,255,0.12)",
+        borderRadius: "16px",
+        padding: "14px 20px",
+        color: "#fff",
+        fontSize: "0.9rem",
+        fontWeight: 600,
+        display: "flex",
+        alignItems: "center",
+        gap: "12px",
+        maxWidth: "360px",
+        boxShadow: "0 10px 40px rgba(0,0,0,0.4)",
+        transform: t.visible ? "translateX(0)" : "translateX(60px)",
+        opacity: t.visible ? 1 : 0,
+        transition: "all 0.4s cubic-bezier(0.22, 1, 0.36, 1)",
+        pointerEvents: "auto",
+      }}>
+        <div style={{ width: "3px", height: "28px", borderRadius: "2px", background: "#FF0080", flexShrink: 0 }} />
+        {msg}
+      </div>
+    ), { duration, position: "top-right" });
+  };
   // Modal para adicionar música (escolher solo/dueto)
   const [addSongModal, setAddSongModal] = useState<{
     videoId: string;
@@ -384,6 +412,7 @@ export default function RoomMobile() {
   } | null>(null);
   const [modalPartner, setModalPartner] = useState<string>(""); // Partner ID selected in modal
   const [cooldownRemaining, setCooldownRemaining] = useState<number>(0);
+  const [reactionBursts, setReactionBursts] = useState<{ id: number; emoji: string; x: number }[]>([]);
   const [reconnectKey, setReconnectKey] = useState(0); // Para forçar reconexão do WS
   const [searchQueuePosition, setSearchQueuePosition] = useState<number | null>(null);
   const [searchQueueTotal, setSearchQueueTotal] = useState<number | null>(null);
@@ -411,17 +440,22 @@ export default function RoomMobile() {
   }, [searching, loadingMessages.length]);
 
   // Floating emojis were removed from mobile (they are now exclusive to TV).
+  // The sender gets a small local burst as feedback that the reaction was sent.
   const sendReaction = (emoji: string) => {
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       wsRef.current.send(
         JSON.stringify({
           type: "REACTION",
           reaction: emoji,
-          name: nickname || user?.name || "Anônimo",
+          name: nickname || user?.name || t("mobile.anonymous", "Anônimo"),
           userId: myUserId
         })
       );
     }
+    const id = Date.now() + Math.random();
+    const x = Math.round(Math.random() * 48 - 24);
+    setReactionBursts(prev => [...prev, { id, emoji, x }]);
+    setTimeout(() => setReactionBursts(prev => prev.filter(b => b.id !== id)), 1000);
   };
 
   // Check auth on mount
@@ -441,6 +475,9 @@ export default function RoomMobile() {
 
   const myUserId = user?.id || "";
   const isHost = state?.ownerId === myUserId;
+  // queue[0] appears in the "up next" box when nothing is playing — don't repeat it in the list
+  const upNextInBox = !state?.nowPlaying && !state?.showingScore && (state?.queue.length ?? 0) > 0;
+  const queueList = upNextInBox ? state!.queue.slice(1) : (state?.queue ?? []);
 
   // Cooldown effect
   useEffect(() => {
@@ -478,6 +515,7 @@ export default function RoomMobile() {
         setNickname(trimmed);
         setShowNameModal(false);
         setNameError(null);
+        showToast(t("mobile.nameUpdated", "✨ Apelido atualizado!"));
 
         // Reconnect WebSocket with new name
         if (wsRef.current) {
@@ -559,12 +597,7 @@ export default function RoomMobile() {
         } else if (m.type === "NICKNAME_ASSIGNED" && m.nickname) {
           setNickname(m.nickname);
           if (m.wasModified) {
-            // Show a brief toast notification that name was changed
-            setToast(
-              t("mobile.nicknameAssigned", { nickname: m.nickname })
-            );
-            // Clear the toast after 5 seconds
-            setTimeout(() => setToast(null), 5000);
+            showToast(t("mobile.nicknameAssigned", { nickname: m.nickname }), 5000);
           }
         } else if (m.type === "ERROR" && m.error === "room_not_found") {
           setError(t("home.roomNotFound", "Room not found. Check the code."));
@@ -670,6 +703,9 @@ export default function RoomMobile() {
     )
     : [];
 
+  // Reaction pill hides while search UI is open so it never covers the "+" buttons
+  const searchOpen = searching || searchResults.length > 0 || matchingLibrarySongs.length > 0;
+
   const handleSearch = useCallback(async (query: string, abortSignal: AbortSignal) => {
     query = query.trim();
     if (!query) return;
@@ -691,7 +727,7 @@ export default function RoomMobile() {
             videoId,
             title: info.title || `YouTube Video (${videoId})`,
             thumbnail: info.thumbnail,
-            channelTitle: info.channelTitle || "Link colado",
+            channelTitle: info.channelTitle || t("mobile.pastedLink", "Link colado"),
           },
         ]);
         // Pre-fill custom title if we got one
@@ -706,7 +742,7 @@ export default function RoomMobile() {
             videoId,
             title: `YouTube Video (${videoId})`,
             thumbnail: `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`,
-            channelTitle: "Link colado",
+            channelTitle: t("mobile.pastedLink", "Link colado"),
           },
         ]);
       }
@@ -834,16 +870,26 @@ export default function RoomMobile() {
     const deviceFP = await getDeviceFingerprint();
 
     setAdding(addSongModal.videoId);
-    await enqueue(
-      code,
-      addSongModal.videoId,
-      addSongModal.title,
-      nickname,
-      partner?.name || undefined,
-      myUserId,
-      partner?.id || undefined,
-      deviceFP
-    );
+    try {
+      const result = await enqueue(
+        code,
+        addSongModal.videoId,
+        addSongModal.title,
+        nickname,
+        partner?.name || undefined,
+        myUserId,
+        partner?.id || undefined,
+        deviceFP
+      );
+      if (result?.error) {
+        showToast(result.message || t("mobile.addError", "Não foi possível adicionar. Tente de novo."));
+      } else {
+        const position = (state?.queue.length ?? 0) + 1;
+        showToast(t("mobile.addedToQueue", { position }));
+      }
+    } catch {
+      showToast(t("mobile.addError", "Não foi possível adicionar. Tente de novo."));
+    }
     setAdding(null);
     setAddSongModal(null);
     setModalPartner("");
@@ -863,6 +909,7 @@ export default function RoomMobile() {
 
   const handleQueueRemove = async (itemId: string) => {
     if (!code) return;
+    if (!window.confirm(t("mobile.confirmRemove", "Remover esta música da fila?"))) return;
     try {
       await removeQueueItem(code, itemId, myUserId);
     } catch (err) {
@@ -874,111 +921,6 @@ export default function RoomMobile() {
   const handleAddFromSaved = (song: SavedSong) => {
     openAddSongModal(song.videoId, song.title, "library");
   };
-
-  // Show name modal if no name (before other screens)
-  // This can happen if we want to let user change their name
-  if (showNameModal) {
-    return (
-      <div
-        className="container"
-        style={{
-          paddingTop: 60,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          minHeight: "80vh",
-        }}
-      >
-        <div
-          style={{
-            background: "#1e1e1e",
-            borderRadius: 16,
-            padding: 24,
-            width: "100%",
-            maxWidth: 320,
-          }}
-        >
-          <h3 style={{ margin: "0 0 8px", textAlign: "center" }}>
-            <span
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 8,
-              }}
-            >
-              <IconMic size={24} /> {t("mobile.changeNameTitle", "Change Name")}
-            </span>
-          </h3>
-          <p
-            style={{
-              color: "#888",
-              textAlign: "center",
-              margin: "0 0 16px",
-              fontSize: 14,
-            }}
-          >
-            {t("mobile.enterNewName", "Enter your new name")}
-          </p>
-          {nameError && (
-            <div
-              style={{
-                background: "#ff4444",
-                color: "#fff",
-                padding: 12,
-                borderRadius: 8,
-                marginBottom: 16,
-                fontSize: 14,
-                textAlign: "center",
-              }}
-            >
-              {nameError}
-            </div>
-          )}
-          <input
-            type="text"
-            value={nameInput}
-            onChange={e => {
-              setNameInput(e.target.value);
-              if (nameError) setNameError(null);
-            }}
-            onKeyDown={e => e.key === "Enter" && handleSaveName()}
-            placeholder={t("guest.yourName", "Seu nome")}
-            autoFocus
-            style={{
-              width: "100%",
-              padding: 12,
-              fontSize: 16,
-              background: "#2a2a2a",
-              border: nameError ? "1px solid #ff4444" : "1px solid #444",
-              borderRadius: 8,
-              color: "#fff",
-              marginBottom: 16,
-              boxSizing: "border-box",
-            }}
-          />
-          <button
-            onClick={handleSaveName}
-            disabled={!nameInput.trim()}
-            style={{
-              width: "100%",
-              padding: 12,
-              background: nameInput.trim() ? "#7c4dff" : "#444",
-              border: "none",
-              borderRadius: 8,
-              color: "#fff",
-              fontSize: 16,
-              fontWeight: 600,
-              cursor: nameInput.trim() ? "pointer" : "not-allowed",
-            }}
-          >
-            {t("mobile.updateName", "Update Name")}
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   // Loading state while checking auth
   if (authLoading || !user) {
@@ -1030,7 +972,7 @@ export default function RoomMobile() {
       background: "#0A0A0A",
       color: "#fff",
       fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
-      paddingBottom: "80px",
+      paddingBottom: "120px",
       position: "relative",
       overflowX: "hidden"
     }}>
@@ -1079,7 +1021,8 @@ export default function RoomMobile() {
 
         <div style={{ display: "flex", gap: "8px", alignItems: "center", flex: 1, justifyContent: "flex-end" }}>
           <button
-            onClick={() => setShowNameModal(true)}
+            onClick={() => { setNameInput(nickname); setNameError(null); setShowNameModal(true); }}
+            aria-label={t("mobile.changeNickname", "Alterar Apelido")}
             style={{
               padding: "10px",
               background: "rgba(255,255,255,0.05)",
@@ -1098,31 +1041,11 @@ export default function RoomMobile() {
         </div>
       </div>
 
-      {/* Floating Toast Notification */}
-      {toast && (
-        <div style={{
-          position: "fixed",
-          top: "80px",
-          left: "20px",
-          right: "20px",
-          zIndex: 2000,
-          background: "rgba(255, 0, 128, 0.95)",
-          color: "#fff",
-          padding: "12px 20px",
-          borderRadius: "16px",
-          boxShadow: "0 10px 30px rgba(255, 0, 128, 0.3)",
-          display: "flex",
-          alignItems: "center",
-          gap: "12px",
-          animation: "fadeInUp 0.4s ease-out"
-        }}>
-          ✨ {toast}
-        </div>
-      )}
-
       {/* Modal para mudar nome - Glass implementation */}
       {showNameModal && (
-        <div style={{
+        <div
+          onClick={() => { setShowNameModal(false); setNameError(null); }}
+          style={{
           position: "fixed",
           inset: 0,
           background: "rgba(0,0,0,0.8)",
@@ -1134,7 +1057,7 @@ export default function RoomMobile() {
           zIndex: 2000,
           padding: "20px"
         }}>
-          <div className="glass-card" style={{ padding: "32px", width: "100%", maxWidth: "380px", border: "1px solid rgba(255,255,255,0.15)" }}>
+          <div className="glass-card" onClick={e => e.stopPropagation()} style={{ padding: "32px", width: "100%", maxWidth: "380px", border: "1px solid rgba(255,255,255,0.15)" }}>
             <h3 style={{ margin: "0 0 16px", fontSize: "1.25rem", fontWeight: "900", textAlign: "center" }}>
               {t("mobile.changeNickname", "Alterar Apelido")}
             </h3>
@@ -1252,7 +1175,7 @@ export default function RoomMobile() {
               >
                 <TruncatedText text={state.nowPlaying.title} maxLength={50} />
               </div>
-              <div style={{ color: "#888", fontSize: "0.9rem", display: "flex", alignItems: "center", gap: 6, marginBottom: isHost ? 12 : 0 }}>
+              <div style={{ color: "#fff", textShadow: "0 1px 3px rgba(0,0,0,0.45)", fontSize: "0.9rem", display: "flex", alignItems: "center", gap: 6, marginBottom: isHost ? 12 : 0 }}>
                 <IconMic size={14} />
                 {state.nowPlaying.singers
                   ?.map(s => (typeof s === "string" ? s : s.name))
@@ -1329,7 +1252,7 @@ export default function RoomMobile() {
                   >
                     <IconTrophy size={20} /> {t("mobile.calculatingScore", "Calculating score...")}
                   </div>
-                  <p style={{ color: "#888", margin: 0 }}>
+                  <p style={{ color: "rgba(255,255,255,0.62)", margin: 0 }}>
                     {t("mobile.waitTV", "Wait for TV to show result")}
                   </p>
                 </>
@@ -1350,7 +1273,7 @@ export default function RoomMobile() {
                   </div>
                   <div
                     style={{
-                      color: "#888",
+                      color: "rgba(255,255,255,0.62)",
                       fontSize: "0.9rem",
                       marginBottom: 12,
                       display: "flex",
@@ -1364,39 +1287,45 @@ export default function RoomMobile() {
                       ?.map(s => (typeof s === "string" ? s : s.name))
                       .join(" e ") || state.queue[0].requestedBy}
                   </div>
-                  <button
-                    onClick={() => code && isHost && nextSong(code, myUserId)}
-                    style={{
-                      background: isHost ? "#2ecc71" : "#444",
-                      width: "100%",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 8,
-                      cursor: isHost ? "pointer" : "not-allowed",
-                      opacity: isHost ? 1 : 0.7,
-                    }}
-                  >
-                    <IconPlay size={18} /> {isHost ? t("mobile.start", "Start!") : t("mobile.waitingHost", "Waiting for Host...")}
-                  </button>
+                  {isHost ? (
+                    <button
+                      onClick={() => code && nextSong(code, myUserId)}
+                      style={{
+                        background: "#2ecc71",
+                        width: "100%",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 8,
+                      }}
+                    >
+                      <IconPlay size={18} /> {t("mobile.start", "Start!")}
+                    </button>
+                  ) : (
+                    <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.85rem", margin: 0 }}>
+                      {t("mobile.waitingHost", "Waiting for Host...")}
+                    </p>
+                  )}
                 </>
               ) : (
-                <span style={{ color: "#888" }}>{t("mobile.noSongInQueue", "Nenhuma música na fila")}</span>
+                <span style={{ color: "rgba(255,255,255,0.62)" }}>{t("mobile.queueEmptySearch", "Queue is empty - search for a song below!")}</span>
               )}
             </div>
           )}
 
           {/* Próximas na fila */}
           {state.queue.length === 0 ? (
-            <p style={{ color: "#888" }}>
-              {t("mobile.queueEmptySearch", "Queue is empty - search for a song below!")}
-            </p>
-          ) : (
+            state.nowPlaying && (
+              <p style={{ color: "rgba(255,255,255,0.62)" }}>
+                {t("mobile.queueEmptySearch", "Queue is empty - search for a song below!")}
+              </p>
+            )
+          ) : queueList.length > 0 && (
             <>
               <div style={{ fontSize: "0.85rem", color: "rgba(255,255,255,0.4)", marginBottom: "12px", fontWeight: "700", letterSpacing: "1px" }}>
-                {t("mobile.upNext", "PRÓXIMAS NA FILA").toUpperCase()}:
+                {t("mobile.upNextList", "Próximas na fila").toUpperCase()}:
               </div>
-              {(showAllQueue ? state.queue : state.queue.slice(0, 5)).map((item, i) => {
+              {(showAllQueue ? queueList : queueList.slice(0, 5)).map((item, i) => {
                 const singers = item.singers || [];
                 const singerNames = singers.map(s => typeof s === "string" ? s : s.name);
                 const singersDisplay = singerNames.length > 1 ? singerNames.join(" e ") : singerNames[0] || item.requestedBy;
@@ -1408,19 +1337,20 @@ export default function RoomMobile() {
                     transition: "all 0.2s ease"
                   }}>
                     <div style={{ fontSize: "1.1rem", fontWeight: "950", color: "#FF0080", minWidth: "28px", textAlign: "center", opacity: 0.8 }}>
-                      {String(i + 1).padStart(2, '0')}
+                      {String(i + 1 + (upNextInBox ? 1 : 0)).padStart(2, '0')}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: "1rem", fontWeight: "700", color: "#fff", marginBottom: "4px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                         {item.title}
                       </div>
                       <div style={{ fontSize: "0.85rem", color: "rgba(255,255,255,0.4)", display: "flex", alignItems: "center", gap: "4px" }}>
-                        <span style={{ fontWeight: "700", color: "#7928CA" }}>{singersDisplay}</span>
+                        <span style={{ fontWeight: "700", color: "#B983FF" }}>{singersDisplay}</span>
                       </div>
                     </div>
                     {(isHost || item.requesterId === myUserId) && (
                       <button
                         onClick={() => handleQueueRemove(item.id)}
+                        aria-label={t("mobile.removeFromQueue", "Remover da fila")}
                         style={{
                           padding: "10px", background: "rgba(255, 68, 68, 0.1)",
                           color: "#ff4444", border: "1px solid rgba(255, 68, 68, 0.15)",
@@ -1433,7 +1363,7 @@ export default function RoomMobile() {
                   </div>
                 );
               })}
-              {state.queue.length > 5 && (
+              {queueList.length > 5 && (
                 <button
                   onClick={() => setShowAllQueue(!showAllQueue)}
                   style={{
@@ -1443,7 +1373,7 @@ export default function RoomMobile() {
                     color: "rgba(255,255,255,0.6)"
                   }}
                 >
-                  {showAllQueue ? t("mobile.showLess", "▲ Ver menos") : t("mobile.showMore", { count: state.queue.length - 5 })}
+                  {showAllQueue ? t("mobile.showLess", "▲ Ver menos") : t("mobile.showMore", { count: queueList.length - 5 })}
                 </button>
               )}
             </>
@@ -1453,22 +1383,25 @@ export default function RoomMobile() {
           <div
             style={{
               marginTop: 20,
-              paddingTop: 16,
-              borderTop: "1px solid #444",
+              paddingTop: 20,
+              borderTop: "1px solid rgba(255,255,255,0.10)",
             }}
           >
             <h4
               style={{
-                margin: "0 0 12px",
+                margin: "0 0 8px",
                 display: "flex",
                 alignItems: "center",
                 gap: 8,
+                fontSize: "1rem",
+                fontWeight: 800,
+                color: "#fff",
               }}
             >
               <IconSearch size={16} /> {t("mobile.addSong", "Add song")}
             </h4>
 
-            <p style={{ color: "#888", fontSize: "0.8rem", marginBottom: 8 }}>
+            <p style={{ color: "rgba(255,255,255,0.50)", fontSize: "0.8rem", marginBottom: 12 }}>
               {t("mobile.pasteLink", "Paste a YouTube link or type song name")}
             </p>
             <div
@@ -1494,36 +1427,38 @@ export default function RoomMobile() {
                   }
                 }}
                 onKeyDown={e => e.key === "Enter" && handleManualSearch()}
-                style={{ flex: 1, margin: 0 }}
+                style={{ flex: 1, minWidth: 0, margin: 0, height: 48 }}
               />
               <button
                 onClick={handleManualSearch}
-                disabled={searching || !searchQuery.trim() || cooldownRemaining > 0}
-                className={cooldownRemaining > 0 ? "btn-neon-border" : ""}
+                disabled={searching || !searchQuery.trim()}
                 style={{
-                  flex: 0,
+                  flexShrink: 0,
                   whiteSpace: "nowrap",
-                  minWidth: cooldownRemaining > 0 ? "80px" : "auto",
-                  cursor: cooldownRemaining > 0 ? "not-allowed" : "pointer",
-                  height: "48px", // Match height of search input for better alignment
-                  borderRadius: "12px",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  background: cooldownRemaining > 0 ? "transparent" : (isLinkMode ? "#2ecc71" : "var(--primary)"),
+                  height: 48,
+                  borderRadius: 12,
+                  padding: "0 20px",
+                  border: "none",
+                  background: searching ? "rgba(255,255,255,0.08)" : "#FF0080",
+                  color: "#fff",
+                  fontWeight: 700,
+                  fontSize: "0.9rem",
+                  cursor: searching || !searchQuery.trim() ? "not-allowed" : "pointer",
+                  opacity: searching || !searchQuery.trim() ? 0.5 : 1,
                 }}
               >
-                {searching ? (
-                  "..."
-                ) : cooldownRemaining > 0 ? (
-                  `${Math.floor(cooldownRemaining / 60)}:${(cooldownRemaining % 60)
-                    .toString()
-                    .padStart(2, "0")}`
-                ) : isLinkMode ? (
-                  "OK"
-                ) : (
-                  t("mobile.search", "Search")
-                )}
+                {searching ? "…" : t("mobile.search", "Search")}
               </button>
             </div>
+
+            {/* Cooldown: buscar é livre, adicionar é que espera */}
+            {cooldownRemaining > 0 && (
+              <p style={{ color: "rgba(255,255,255,0.50)", fontSize: "0.8rem", marginTop: -8, marginBottom: 12 }}>
+                ⏱ {t("mobile.cooldownHint", {
+                  time: `${Math.floor(cooldownRemaining / 60)}:${(cooldownRemaining % 60).toString().padStart(2, "0")}`
+                })}
+              </p>
+            )}
 
             {/* Campo de título quando é link */}
             {isLinkMode && (
@@ -1540,12 +1475,18 @@ export default function RoomMobile() {
               <>
                 <div
                   style={{
-                    fontSize: "0.85rem",
-                    color: "#888",
+                    fontSize: "0.72rem",
+                    fontWeight: 700,
+                    letterSpacing: "0.15em",
+                    textTransform: "uppercase",
+                    color: "rgba(255,255,255,0.4)",
                     marginBottom: 8,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
                   }}
                 >
-                  <IconLibrary size={14} /> {t("mobile.inLibrary", "In library:")}
+                  <IconLibrary size={14} /> {t("mobile.inLibrary", "Na biblioteca")}
                 </div>
                 <div
                   style={{
@@ -1555,50 +1496,71 @@ export default function RoomMobile() {
                     marginBottom: 12,
                   }}
                 >
-                  {matchingLibrarySongs.slice(0, 5).map(song => (
-                    <div
-                      key={song.id}
-                      style={{
-                        background: "#2a4a2a",
-                        borderRadius: 8,
-                        padding: 10,
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 8,
-                      }}
-                    >
-                      <img
-                        src={`https://i.ytimg.com/vi/${song.videoId}/default.jpg`}
-                        alt="Thumbnail"
+                    {matchingLibrarySongs.slice(0, 5).map(song => (
+                      <div
+                        key={song.id}
                         style={{
-                          width: 50,
-                          height: 38,
-                          objectFit: "cover",
-                          borderRadius: 4,
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "14px",
+                          background: "rgba(255,255,255,0.05)",
+                          borderRadius: "16px",
+                          padding: "14px",
+                          border: "1px solid rgba(255,255,255,0.10)",
                         }}
-                      />
-                      <span style={{ flex: 1, fontSize: "0.85rem" }}>
-                        {song.title}
-                      </span>
+                      >
+                        <img
+                          src={`https://i.ytimg.com/vi/${song.videoId}/default.jpg`}
+                          alt=""
+                          style={{
+                            width: 112,
+                            height: 84,
+                            objectFit: "cover",
+                            borderRadius: 8,
+                            flexShrink: 0,
+                          }}
+                        />
+                      <span
+                        style={{
+                          flex: 1,
+                          minWidth: 0,
+                          fontSize: "0.9rem",
+                          fontWeight: 700,
+                          color: "#fff",
+                          display: "-webkit-box",
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: "vertical",
+                          overflow: "hidden",
+                          lineHeight: 1.3,
+                        }}
+                      >
+                          {cleanTitle(song.title)}
+                        </span>
                       <button
                         onClick={() => handleAddFromSaved(song)}
                         disabled={adding === song.videoId || cooldownRemaining > 0}
+                        aria-label={t("mobile.addToQueue", "Adicionar à Fila")}
                         style={{
-                          padding: "8px 12px",
-                          fontSize: "0.85rem",
-                          background: cooldownRemaining > 0 ? "#444" : "#2ecc71",
+                          padding: "10px",
+                          background: adding === song.videoId ? "#2ecc71" : (cooldownRemaining > 0 ? "rgba(255,255,255,0.05)" : "#FF0080"),
+                          borderRadius: "10px",
+                          border: "none",
+                          color: "#fff",
+                          cursor: cooldownRemaining > 0 ? "not-allowed" : "pointer",
+                          opacity: cooldownRemaining > 0 ? 0.3 : 1,
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
-                          cursor: cooldownRemaining > 0 ? "not-allowed" : "pointer",
+                          flexShrink: 0,
+                          transition: "background 0.2s ease",
                         }}
                       >
                         {adding === song.videoId ? (
-                          "..."
+                          <span style={{ fontSize: "0.8rem" }}>✓</span>
                         ) : cooldownRemaining > 0 ? (
-                          t("common.wait", "Wait")
+                          <span style={{ fontSize: "0.75rem" }}>{t("common.wait", "Aguarde")}</span>
                         ) : (
-                          <IconPlus size={16} />
+                          <IconPlus size={18} />
                         )}
                       </button>
                     </div>
@@ -1607,7 +1569,6 @@ export default function RoomMobile() {
                 {searchResults.length === 0 && !searching && (
                   <button
                     onClick={handleSearchYouTube}
-                    className="btn-neon-border"
                     style={{
                       width: "100%",
                       marginBottom: 12,
@@ -1615,10 +1576,20 @@ export default function RoomMobile() {
                       alignItems: "center",
                       justifyContent: "center",
                       gap: 8,
-                      height: 48, // Fixed height for better border alignment
+                      height: 48,
+                      borderRadius: 12,
+                      background: "rgba(255,255,255,0.05)",
+                      border: "1px solid rgba(255,255,255,0.10)",
+                      color: "rgba(255,255,255,0.62)",
+                      fontWeight: 700,
+                      fontSize: "0.85rem",
+                      cursor: "pointer",
+                      transition: "all 0.15s",
                     }}
+                    onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.08)"; e.currentTarget.style.color = "#fff"; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.05)"; e.currentTarget.style.color = "rgba(255,255,255,0.62)"; }}
                   >
-                    <IconSearch size={16} /> {t("mobile.searchYouTubeToo", "Search YouTube too")}
+                    <IconSearch size={16} /> {t("mobile.searchYouTubeToo", "Buscar no YouTube também")}
                   </button>
                 )}
               </>
@@ -1691,59 +1662,123 @@ export default function RoomMobile() {
                 {matchingLibrarySongs.length > 0 && (
                   <div
                     style={{
-                      fontSize: "0.85rem",
-                      color: "#888",
+                      fontSize: "0.72rem",
+                      fontWeight: 700,
+                      letterSpacing: "0.15em",
+                      textTransform: "uppercase",
+                      color: "rgba(255,255,255,0.4)",
                       marginBottom: 8,
                     }}
                   >
-                    {t("mobile.youtubeResults", "YouTube results:")}
+                    {t("mobile.youtubeResults", "YouTube:")}
                   </div>
                 )}
                 <div
-                  style={{ display: "flex", flexDirection: "column", gap: 12 }}
+                  style={{ display: "flex", flexDirection: "column", gap: 8 }}
                 >
-                  {searchResults.map(result => (
-                    <div key={result.videoId} className="glass-card" style={{ padding: 0, overflow: "hidden", marginBottom: "8px", border: "1px solid rgba(255,255,255,0.05)" }}>
-                      <div style={{ position: "relative", width: "100%", aspectRatio: "16/9" }}>
+                  {searchResults.map((result, idx) => (
+                    <div
+                      key={result.videoId}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "14px",
+                        background: "rgba(255,255,255,0.05)",
+                        borderRadius: "16px",
+                        padding: "14px",
+                        border: "1px solid rgba(255,255,255,0.10)",
+                        animation: `fadeInUp 0.3s ease ${idx * 0.05}s both`,
+                      }}
+                    >
+                      <div style={{ position: "relative", flexShrink: 0 }}>
                         <img
-                          src={result.thumbnail} alt={result.title}
-                          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", cursor: "pointer" }}
+                          src={result.thumbnail}
+                          alt=""
+                          style={{
+                            width: 112,
+                            height: 84,
+                            objectFit: "cover",
+                            borderRadius: 8,
+                            cursor: "pointer",
+                          }}
                           onClick={() => setPreviewVideo(result)}
                         />
-                        <div style={{
-                          position: "absolute", inset: 0, background: "rgba(0,0,0,0.3)",
-                          display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer"
-                        }} onClick={() => setPreviewVideo(result)}>
-                          <div style={{
-                            width: 50, height: 50, borderRadius: "50%", background: "rgba(255,255,255,0.2)",
-                            backdropFilter: "blur(5px)", display: "flex", alignItems: "center", justifyContent: "center",
-                            border: "1px solid rgba(255,255,255,0.3)"
-                          }}>
-                            <IconPlay size={24} />
+                        <div
+                          style={{
+                            position: "absolute",
+                            inset: 0,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            cursor: "pointer",
+                          }}
+                          onClick={() => setPreviewVideo(result)}
+                        >
+                          <div
+                            style={{
+                              width: 40,
+                              height: 40,
+                              borderRadius: "50%",
+                              background: "rgba(255,255,255,0.12)",
+                              backdropFilter: "blur(6px)",
+                              WebkitBackdropFilter: "blur(6px)",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              boxShadow: "0 2px 12px rgba(0,0,0,0.3)",
+                              color: "rgba(255,255,255,0.9)",
+                              transition: "background 0.2s ease, transform 0.2s ease",
+                            }}
+                            onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.2)"; e.currentTarget.style.transform = "scale(1.1)" }}
+                            onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.12)"; e.currentTarget.style.transform = "scale(1)" }}
+                          >
+                            <IconPlay size={18} />
                           </div>
                         </div>
                       </div>
-                      <div style={{ padding: "16px" }}>
-                        <div style={{ fontSize: "1rem", fontWeight: "700", marginBottom: "6px", color: "#fff", lineHeight: 1.4 }}>
-                          {result.title}
-                        </div>
-                        <div style={{ fontSize: "0.85rem", color: "rgba(255,255,255,0.4)", marginBottom: "16px" }}>
-                          {result.channelTitle}
-                        </div>
-                        <button
-                          onClick={() => handleAddFromSearch(result)}
-                          disabled={adding === result.videoId || cooldownRemaining > 0}
-                          className={cooldownRemaining > 0 ? "" : "glow-pulse"}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div
                           style={{
-                            width: "100%", padding: "14px", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
-                            background: cooldownRemaining > 0 ? "rgba(255,255,255,0.05)" : "#FF0080",
-                            color: cooldownRemaining > 0 ? "rgba(255,255,255,0.3)" : "#fff",
-                            border: "none", cursor: cooldownRemaining > 0 ? "not-allowed" : "pointer"
+                            fontSize: "0.9rem",
+                            fontWeight: 700,
+                            color: "#fff",
+                            display: "-webkit-box",
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: "vertical",
+                            overflow: "hidden",
+                            lineHeight: 1.3,
                           }}
                         >
-                          {adding === result.videoId ? "..." : cooldownRemaining > 0 ? t("common.wait", "Aguarde") : <><IconPlus size={18} /> {t("mobile.addToQueue", "Adicionar à Fila")}</>}
-                        </button>
+                          {cleanTitle(result.title)}
+                        </div>
                       </div>
+                      <button
+                        onClick={() => handleAddFromSearch(result)}
+                        disabled={adding === result.videoId || cooldownRemaining > 0}
+                        aria-label={t("mobile.addToQueue", "Adicionar à Fila")}
+                        style={{
+                          padding: "10px",
+                          background: adding === result.videoId ? "#2ecc71" : (cooldownRemaining > 0 ? "rgba(255,255,255,0.05)" : "#FF0080"),
+                          borderRadius: "10px",
+                          border: "none",
+                          color: "#fff",
+                          cursor: cooldownRemaining > 0 ? "not-allowed" : "pointer",
+                          opacity: cooldownRemaining > 0 ? 0.3 : 1,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          flexShrink: 0,
+                          transition: "background 0.2s ease",
+                        }}
+                      >
+                        {adding === result.videoId ? (
+                          <span style={{ fontSize: "0.9rem" }}>✓</span>
+                        ) : cooldownRemaining > 0 ? (
+                          <span style={{ fontSize: "0.75rem" }}>{t("common.wait", "Aguarde")}</span>
+                        ) : (
+                          <IconPlus size={18} />
+                        )}
+                      </button>
                     </div>
                   ))}
                 </div>
@@ -1788,7 +1823,13 @@ export default function RoomMobile() {
 
           {rankingView === "solo" ? (
             Object.keys(state.ranking).length === 0 ? (
-              <p style={{ color: "#888", textAlign: "center", padding: "20px" }}>{t("tv.nobodyScored", "Ninguém pontuou ainda")}</p>
+              <div style={{ textAlign: "center", padding: "48px 20px" }}>
+                <div style={{ fontSize: "2.2rem", marginBottom: "12px" }}>🎤</div>
+                <p style={{ color: "rgba(255,255,255,0.62)", margin: "0 0 24px" }}>{t("tv.nobodyScored", "Ninguém pontuou ainda")}</p>
+                <button onClick={() => setTab("queue")} className="glow-pulse" style={{ padding: "14px 28px", fontWeight: "700" }}>
+                  {t("mobile.singFirst", "Seja o primeiro a cantar!")}
+                </button>
+              </div>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                 {Object.entries(state.ranking)
@@ -1808,7 +1849,13 @@ export default function RoomMobile() {
               </div>
             )
           ) : (!state.duetRanking || state.duetRanking.length === 0) ? (
-            <p style={{ color: "#888", textAlign: "center", padding: "20px" }}>{t("tv.noDuetScored", "Nenhuma dupla pontuou ainda")}</p>
+            <div style={{ textAlign: "center", padding: "48px 20px" }}>
+              <div style={{ fontSize: "2.2rem", marginBottom: "12px" }}>🎤</div>
+              <p style={{ color: "rgba(255,255,255,0.62)", margin: "0 0 24px" }}>{t("tv.noDuetScored", "Nenhuma dupla pontuou ainda")}</p>
+              <button onClick={() => setTab("queue")} className="glow-pulse" style={{ padding: "14px 28px", fontWeight: "700" }}>
+                {t("mobile.singFirstDuet", "Chame alguém para um dueto!")}
+              </button>
+            </div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
               {[...state.duetRanking]
@@ -1857,9 +1904,9 @@ export default function RoomMobile() {
                       width: "28px", height: "28px", borderRadius: "50%", background: i === 0 ? "#FFD700" : "rgba(255,255,255,0.1)",
                       display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.8rem", fontWeight: "900", color: i === 0 ? "#000" : "#fff"
                     }}>{i + 1}</div>
-                    <img src={`https://i.ytimg.com/vi/${song.videoId}/default.jpg`} alt="Thumbnail" style={{ width: "50px", height: "38px", objectFit: "cover", borderRadius: "8px" }} />
+                    <img src={`https://i.ytimg.com/vi/${song.videoId}/default.jpg`} alt="Thumbnail" style={{ width: "72px", height: "54px", objectFit: "cover", borderRadius: "8px" }} />
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: "0.9rem", fontWeight: "700", color: "#fff" }}><TruncatedText text={song.title} maxLength={35} /></div>
+                      <div style={{ fontSize: "0.9rem", fontWeight: "700", color: "#fff" }}><TruncatedText text={cleanTitle(song.title)} maxLength={35} /></div>
                       <div style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.4)" }}>{song.playCount} {song.playCount === 1 ? t("mobile.playTime", "play") : t("mobile.playTimes", "plays")}</div>
                     </div>
                     <button
@@ -1906,17 +1953,18 @@ export default function RoomMobile() {
                       display: "flex", alignItems: "center", gap: "12px", background: "rgba(255,255,255,0.03)",
                       padding: "12px", borderRadius: "16px", border: "1px solid rgba(255,255,255,0.05)"
                     }}>
-                      <img src={`https://i.ytimg.com/vi/${song.videoId}/default.jpg`} alt="Thumbnail" style={{ width: "50px", height: "38px", objectFit: "cover", borderRadius: "8px" }} />
+                      <img src={`https://i.ytimg.com/vi/${song.videoId}/default.jpg`} alt="Thumbnail" style={{ width: "72px", height: "54px", objectFit: "cover", borderRadius: "8px" }} />
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: "0.9rem", fontWeight: "700", color: "#fff" }}><TruncatedText text={song.title} maxLength={40} /></div>
+                        <div style={{ fontSize: "0.9rem", fontWeight: "700", color: "#fff" }}><TruncatedText text={cleanTitle(song.title)} maxLength={40} /></div>
                         <div style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.4)" }}>{t("mobile.addedBy", "por")} {song.addedBy}</div>
                       </div>
                       <div style={{ display: "flex", gap: "8px" }}>
                         <button
                           onClick={() => handleAddFromSaved(song)}
                           disabled={adding === song.videoId || cooldownRemaining > 0}
+                          aria-label={t("mobile.addToQueue", "Adicionar à Fila")}
                           style={{
-                            padding: "10px", background: "#7928CA", borderRadius: "10px", opacity: cooldownRemaining > 0 ? 0.3 : 1
+                            padding: "10px", background: "#FF0080", borderRadius: "10px", opacity: cooldownRemaining > 0 ? 0.3 : 1
                           }}
                         >
                           <IconPlus size={18} />
@@ -1924,6 +1972,7 @@ export default function RoomMobile() {
                         {isHost && (
                           <button
                             onClick={() => handleDeleteSaved(song.id)}
+                            aria-label={t("mobile.removeFromLibrary", "Remover da biblioteca")}
                             style={{ padding: "10px", background: "rgba(255,68,68,0.1)", color: "#ff4444", borderRadius: "10px", border: "1px solid rgba(255,68,68,0.2)" }}
                           >
                             <IconTrash size={18} />
@@ -1981,7 +2030,7 @@ export default function RoomMobile() {
                 allow="autoplay; encrypted-media" allowFullScreen
               />
             </div>
-            <h3 style={{ margin: "0 0 8px", fontSize: "1.1rem", fontWeight: "900", color: "#fff" }}>{previewVideo.title}</h3>
+            <h3 style={{ margin: "0 0 8px", fontSize: "1.1rem", fontWeight: "900", color: "#fff" }}>{cleanTitle(previewVideo.title)}</h3>
             <p style={{ color: "rgba(255,255,255,0.4)", marginBottom: "24px", fontSize: "0.9rem" }}>{previewVideo.channelTitle}</p>
             <button
               onClick={() => { handleAddFromSearch(previewVideo); setPreviewVideo(null); }}
@@ -1998,11 +2047,12 @@ export default function RoomMobile() {
       {addSongModal && (
         <div style={{
           position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", backdropFilter: "blur(10px)",
-          WebkitBackdropFilter: "blur(10px)", display: "flex", alignItems: "center", justifyContent: "center", padding: "20px", zIndex: 3000
+          WebkitBackdropFilter: "blur(10px)", display: "flex", alignItems: "center", justifyContent: "center", padding: "20px", zIndex: 3000,
+          animation: "fadeIn 0.25s ease-out",
         }}>
-          <div className="glass-card" style={{ padding: "32px", width: "100%", maxWidth: "380px", border: "1px solid rgba(255,255,255,0.2)" }}>
-            <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.8rem", fontWeight: "900", letterSpacing: "1px", marginBottom: "8px" }}>SOLO OU DUETO?</div>
-            <h3 style={{ margin: "0 0 24px", fontSize: "1.25rem", fontWeight: "900", lineHeight: 1.3, color: "#fff" }}>{addSongModal.title}</h3>
+          <div className="glass-card" style={{ padding: "32px", width: "100%", maxWidth: "380px", border: "1px solid rgba(255,255,255,0.2)", animation: "fadeInUp 0.35s cubic-bezier(0.22,1,0.36,1)" }}>
+            <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.8rem", fontWeight: "900", letterSpacing: "1px", marginBottom: "8px", textTransform: "uppercase" }}>{t("mobile.soloOrDuet", "Solo ou dueto?")}</div>
+            <h3 style={{ margin: "0 0 24px", fontSize: "1.25rem", fontWeight: "900", lineHeight: 1.3, color: "#fff" }}>{cleanTitle(addSongModal.title)}</h3>
 
             <div style={{ marginBottom: "24px" }}>
               <label style={{ fontSize: "0.9rem", color: "rgba(255,255,255,0.6)", display: "block", marginBottom: "12px" }}>
@@ -2039,6 +2089,12 @@ export default function RoomMobile() {
         </div>
       )}
 
+      <Toaster
+        position="top-right"
+        containerStyle={{ top: "76px", zIndex: 3000 }}
+        toastOptions={{ duration: 4000 }}
+      />
+      {!searchOpen && (
       <div style={{
         position: "fixed", bottom: "30px", left: "50%", transform: "translateX(-50%)",
         display: "flex", gap: "12px", zIndex: 100, background: "rgba(10, 10, 10, 0.6)",
@@ -2046,9 +2102,15 @@ export default function RoomMobile() {
         padding: "10px 16px", borderRadius: "32px", border: "1px solid rgba(255, 255, 255, 0.1)",
         boxShadow: "0 10px 40px rgba(0,0,0,0.5)"
       }}>
+        {reactionBursts.map(b => (
+          <span key={b.id} className="reaction-burst" style={{ left: `calc(50% + ${b.x}px)` }}>
+            {b.emoji}
+          </span>
+        ))}
         {["👏", "🎤", "🔥", "😂"].map(emoji => (
           <button
             key={emoji} onClick={() => sendReaction(emoji)}
+            aria-label={t("mobile.sendReaction", { emoji })}
             style={{
               width: "48px", height: "48px", borderRadius: "50%", fontSize: "22px",
               background: "rgba(255,255,255,0.05)", border: "none",
@@ -2056,13 +2118,19 @@ export default function RoomMobile() {
               transition: "transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275)"
             }}
             onPointerDown={e => (e.currentTarget.style.transform = "scale(0.85)")}
-            onPointerUp={e => (e.currentTarget.style.transform = "scale(1.2)")}
+            onPointerUp={e => {
+              const el = e.currentTarget;
+              el.style.transform = "scale(1.2)";
+              setTimeout(() => { el.style.transform = "scale(1)"; }, 150);
+            }}
+            onPointerCancel={e => (e.currentTarget.style.transform = "scale(1)")}
             onPointerLeave={e => (e.currentTarget.style.transform = "scale(1)")}
           >
             {emoji}
           </button>
         ))}
       </div>
+      )}
     </div>
   );
 }

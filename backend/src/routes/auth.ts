@@ -19,6 +19,25 @@ const getResend = () => {
   return new Resend(apiKey);
 };
 
+// Record a login event for audit/history. Fire-and-forget; never breaks auth flow.
+async function recordLoginEvent(
+  request: FastifyRequest,
+  userId: string,
+  method: string
+): Promise<void> {
+  const userAgent = (request.headers["user-agent"] as string) || null;
+  const rawIp = (request.headers["x-forwarded-for"] as string) || request.ip || null;
+  const ip = rawIp ? rawIp.split(",")[0].trim() : null;
+  try {
+    await Promise.all([
+      prisma.loginEvent.create({ data: { userId, method, ip, userAgent } }),
+      prisma.user.update({ where: { id: userId }, data: { lastLoginAt: new Date() } }),
+    ]);
+  } catch (err) {
+    request.log.warn({ err }, "Failed to record login event");
+  }
+}
+
 // Validation schemas
 const registerGuestSchema = z.object({
   name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
@@ -184,6 +203,8 @@ export default async function authRoutes(app: FastifyInstance) {
         isAdmin: user.isAdmin,
       });
 
+      await recordLoginEvent(request, user.id, "guest");
+
       return {
         token,
         user: {
@@ -274,6 +295,8 @@ export default async function authRoutes(app: FastifyInstance) {
       isAdmin: user.isAdmin,
     });
 
+    await recordLoginEvent(request, user.id, "host");
+
     return {
       token,
       user: {
@@ -353,6 +376,8 @@ export default async function authRoutes(app: FastifyInstance) {
       isAdmin: updatedUser.isAdmin,
     });
 
+    await recordLoginEvent(request, updatedUser.id, "complete");
+
     return {
       token: newToken,
       user: {
@@ -425,6 +450,8 @@ export default async function authRoutes(app: FastifyInstance) {
           canHost: true,
           isAdmin: user.isAdmin,
         });
+
+        await recordLoginEvent(request, user.id, "google");
 
         return {
           token,
@@ -505,6 +532,8 @@ export default async function authRoutes(app: FastifyInstance) {
           isAdmin: user.isAdmin,
         });
 
+        await recordLoginEvent(request, user.id, "facebook");
+
         return {
           token,
           user: {
@@ -576,6 +605,8 @@ export default async function authRoutes(app: FastifyInstance) {
         canHost: user.canHost,
         isAdmin: user.isAdmin,
       });
+
+      await recordLoginEvent(request, user.id, "password");
 
       return {
         token,

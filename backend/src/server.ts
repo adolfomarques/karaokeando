@@ -535,7 +535,7 @@ function broadcastParticipants(roomCode: string) {
 // Fastify App
 // ─────────────────────────────────────────────────────────────
 
-const app = Fastify({ logger: { level: "warn" } });
+const app = Fastify({ logger: { level: "warn" }, trustProxy: true });
 
 await app.register(cors, { origin: true });
 await app.register(websocket);

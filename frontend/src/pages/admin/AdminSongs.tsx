@@ -3,6 +3,10 @@ import { getAdminSongs, deleteAdminSong } from "../../api";
 import AdminLayout from "./AdminLayout";
 import { toast } from "react-hot-toast";
 import { useTranslation } from "react-i18next";
+import AdminPageHeader from "../../components/admin/AdminPageHeader";
+import AdminButton from "../../components/admin/AdminButton";
+import AdminEmpty from "../../components/admin/AdminEmpty";
+import ConfirmDialog from "../../components/admin/ConfirmDialog";
 
 export default function AdminSongs() {
   const { t } = useTranslation();
@@ -11,6 +15,8 @@ export default function AdminSongs() {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [sortBy, setSortBy] = useState<"newest"|"oldest"|"most_played"|"az">("newest");
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirm, setConfirm] = useState<{ id: string; title: string } | null>(null);
   const itemsPerPage = 20;
 
   useEffect(() => {
@@ -33,18 +39,21 @@ export default function AdminSongs() {
   }, []);
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm(t("admin.confirmDeleteSong", "Tem certeza que deseja remover esta música do cache?"))) return;
+    setDeletingId(id);
     try {
       await deleteAdminSong(id);
       toast.success(t("admin.deleteSuccess", "Música removida"));
       loadSongs();
     } catch (err) {
       toast.error(t("admin.deleteError", "Erro ao remover"));
+    } finally {
+      setDeletingId(null);
+      setConfirm(null);
     }
   };
 
-  const filteredSongs = songs.filter(s => 
-    s.title.toLowerCase().includes(search.toLowerCase()) || 
+  const filteredSongs = songs.filter(s =>
+    s.title.toLowerCase().includes(search.toLowerCase()) ||
     s.id.toLowerCase().includes(search.toLowerCase())
   );
 
@@ -59,106 +68,122 @@ export default function AdminSongs() {
   const totalPages = Math.max(1, Math.ceil(sortedSongs.length / itemsPerPage));
   const currentSongs = sortedSongs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
-  if (loading) return <AdminLayout><div className="text-[#00f5ff] font-mono animate-pulse uppercase tracking-widest text-xs">{t("admin.downloadingRegistry", "Downloading_Registry...")}</div></AdminLayout>;
+  if (loading) {
+    return (
+      <AdminLayout>
+        <div className="max-w-7xl">
+          <div className="mb-10 h-10 w-56 admin-skeleton"></div>
+          <div className="admin-card border border-white/5 bg-[#0d0d12] p-8 space-y-4">
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="admin-skeleton h-14"></div>
+            ))}
+          </div>
+        </div>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout>
       <div className="max-w-7xl">
-        <header className="mb-12">
-          <h1 className="text-4xl font-black mb-2 tracking-tighter uppercase neon-glow-cyan">
-             {t("admin.songs", "Músicas")} <span className="text-white/20">/</span> {t("admin.cache", "Cache")}
-          </h1>
-          <p className="text-gray-500 text-sm font-mono tracking-widest uppercase">
-            {t("admin.assetManagement", "Gerenciamento de Ativos de Áudio e Vídeo")}
-          </p>
-        </header>
+        <AdminPageHeader
+          title={t("admin.songs", "Músicas")}
+          subtitle="Gerencie o cache de músicas do sistema: busque, filtre e remova itens."
+          actions={
+            <div className="text-right">
+              <div className="font-mono text-xl font-black text-[#00f5ff]">{songs.length}</div>
+              <div className="text-[10px] font-bold uppercase tracking-wider text-gray-500">no cache</div>
+            </div>
+          }
+        />
 
-        <div className="mb-8 flex flex-col md:flex-row gap-4">
-          <div className="relative group flex-1">
-            <input 
-              type="text" 
-              placeholder={t("admin.searchPlaceholder", "PESQUISAR_IDENTIFICADOR_OU_TITULO...")}
-              className="w-full bg-[#0d0d12] border border-white/5 px-6 py-4 text-xs font-mono tracking-widest placeholder:text-gray-700 focus:outline-none focus:border-[#00f5ff]/30 transition-all"
+        <div className="mb-8 flex flex-col gap-4 md:flex-row">
+          <div className="relative flex-1">
+            <input
+              type="text"
+              placeholder={t("admin.searchPlaceholder", "Buscar por título ou ID...")}
+              className="admin-input font-mono pl-10"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
-            <div className="absolute right-6 top-1/2 -translate-y-1/2 text-[10px] text-gray-700 font-mono hidden group-focus-within:block uppercase tracking-widest">Searching_Now...</div>
-          </div>
-          
-          <div className="flex-none">
-            <select 
-              className="w-full md:w-auto bg-[#0d0d12] text-gray-400 border border-white/5 px-6 py-4 h-full text-xs font-mono tracking-widest uppercase focus:outline-none focus:border-[#00f5ff]/30 transition-all cursor-pointer appearance-none"
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as any)}
+            <svg
+              className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
             >
-              <option value="newest">Últimas Adicionadas</option>
-              <option value="oldest">Mais Antigas</option>
-              <option value="most_played">Mais Tocadas</option>
-              <option value="az">A-Z</option>
-            </select>
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
           </div>
+          <select
+            className="admin-select admin-input md:w-auto"
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as any)}
+          >
+            <option value="newest">Últimas adicionadas</option>
+            <option value="oldest">Mais antigas</option>
+            <option value="most_played">Mais tocadas</option>
+            <option value="az">A-Z</option>
+          </select>
         </div>
 
         <div className="admin-card border border-white/5 bg-[#0d0d12]">
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="admin-table">
               <thead>
-                <tr className="admin-table-header text-gray-500 text-[10px] font-bold uppercase tracking-widest bg-black/50">
-                  <th className="px-10 py-5">{t("admin.visual", "Visual")}</th>
-                  <th className="px-10 py-5">{t("admin.metadata", "Metadata")}</th>
-                  <th className="px-10 py-5">{t("admin.metrics", "Métrica (Plays)")}</th>
-                  <th className="px-10 py-5 text-right">{t("admin.control", "Controle")}</th>
+                <tr>
+                  <th className="admin-th">Vídeo</th>
+                  <th className="admin-th">Música</th>
+                  <th className="admin-th">Reproduções</th>
+                  <th className="admin-th" align="right">Ação</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5 text-sm">
+              <tbody>
                 {currentSongs.map((song) => (
-                  <tr key={song.id} className="hover:bg-[#00f5ff]/[0.02] transition-colors group">
-                    <td className="px-10 py-5">
-                      <div className="w-24 aspect-video bg-[#050507] border border-white/5 overflow-hidden relative">
-                         <img 
-                          src={`https://img.youtube.com/vi/${song.videoId}/mqdefault.jpg`} 
-                          alt="Thumbnail" 
-                          className="w-full h-full object-cover opacity-50 grayscale group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-500"
+                  <tr key={song.id} className="admin-tr group">
+                    <td className="admin-td">
+                      <div className="relative aspect-video w-24 overflow-hidden border border-white/5 bg-[#050507]">
+                        <img
+                          src={`https://img.youtube.com/vi/${song.videoId}/mqdefault.jpg`}
+                          alt="Thumbnail"
+                          className="h-full w-full object-cover opacity-50 grayscale transition-all duration-500 group-hover:opacity-100 group-hover:grayscale-0"
                           onError={(e) => {
-                            (e.target as HTMLImageElement).src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180"><rect fill="%230d0d12" width="320" height="180"/><text x="160" y="90" text-anchor="middle" fill="%23333" font-family="monospace" font-size="12">NO_THUMBNAIL</text></svg>';
+                            (e.target as HTMLImageElement).src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180"><rect fill="%230d0d12" width="320" height="180"/><text x="160" y="90" text-anchor="middle" fill="%23333" font-family="monospace" font-size="12">SEM IMAGEM</text></svg>';
                           }}
                         />
-                         <div className="absolute inset-x-0 bottom-0 bg-[#00f5ff] h-[1px] scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-500"></div>
+                        <div className="absolute inset-x-0 bottom-0 h-[1px] origin-left scale-x-0 bg-[#00f5ff] transition-transform duration-500 group-hover:scale-x-100"></div>
                       </div>
                     </td>
-                    <td className="px-10 py-5">
-                      <div className="font-bold text-gray-200 mb-1 max-w-md truncate uppercase tracking-tighter">{song.title}</div>
-                      <div className="font-mono text-[10px] text-gray-600 tracking-widest uppercase">{song.id}</div>
+                    <td className="admin-td">
+                      <div className="mb-1 max-w-md truncate font-bold uppercase tracking-tighter text-gray-200">{song.title}</div>
+                      <div className="font-mono text-[10px] uppercase tracking-widest text-gray-600">{song.id}</div>
                     </td>
-                    <td className="px-10 py-5">
-                       <span className="font-mono text-xs font-black text-gray-500 group-hover:text-white transition-colors">
-                        {String(song.playCount || 0).padStart(4, '0')} PLAYS
-                       </span>
+                    <td className="admin-td">
+                      <span className="font-mono text-xs font-black text-gray-500 transition-colors group-hover:text-white">
+                        {String(song.playCount || 0).padStart(4, '0')} plays
+                      </span>
                     </td>
-                    <td className="px-10 py-5 text-right">
-                      <button 
-                         onClick={() => handleDelete(song.id)}
-                         className="text-[10px] font-mono font-bold text-gray-700 hover:text-red-500 transition-colors uppercase tracking-[0.2em]"
+                    <td className="admin-td text-right">
+                      <AdminButton
+                        variant="danger"
+                        size="sm"
+                        disabled={deletingId === song.id}
+                        onClick={() =>
+                          setConfirm({ id: song.id, title: song.title })
+                        }
                       >
-                        [REMOVE_CACHE]
-                      </button>
+                        Remover
+                      </AdminButton>
                     </td>
                   </tr>
                 ))}
-                {filteredSongs.length === 0 && !loading && (
+                {filteredSongs.length === 0 && (
                   <tr>
-                    <td colSpan={4} className="px-10 py-20 text-center text-gray-700 font-mono text-xs uppercase tracking-widest italic">
-                      --- DATABASE_EMPTY ---
-                    </td>
-                  </tr>
-                )}
-                {loading && (
-                  <tr>
-                    <td colSpan={4} className="px-10 py-20 text-center">
-                      <div className="flex items-center justify-center gap-2">
-                        <div className="w-2 h-2 bg-[#00f5ff] animate-ping"></div>
-                        <span className="text-gray-500 font-mono text-[10px] uppercase tracking-[0.3em]">Downloading_Registry...</span>
-                      </div>
+                    <td colSpan={4} className="admin-td">
+                      <AdminEmpty
+                        title={search ? "Nenhum resultado para a busca" : "Nenhuma música no cache"}
+                        hint={search ? `Não encontramos nada para "${search}".` : "Adicione músicas tocando nas salas ou use o aquecimento de cache."}
+                      />
                     </td>
                   </tr>
                 )}
@@ -169,27 +194,29 @@ export default function AdminSongs() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex justify-center items-center gap-6 mt-8">
-            <button 
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-              className="px-4 py-2 border border-white/10 bg-[#0d0d12] text-[10px] font-mono tracking-widest uppercase text-gray-400 hover:text-[#00f5ff] hover:border-[#00f5ff]/30 disabled:opacity-20 disabled:cursor-not-allowed transition-all"
-            >
-              [ ANTERIOR ]
-            </button>
-            <div className="text-[10px] font-mono tracking-widest text-[#00f5ff]">
-              PAGE {String(currentPage).padStart(2, '0')} <span className="text-gray-600 mx-2">/</span> {String(totalPages).padStart(2, '0')}
+          <div className="mt-8 flex items-center justify-between">
+            <AdminButton variant="outline" size="sm" disabled={currentPage === 1} onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}>
+              ← Anterior
+            </AdminButton>
+            <div className="font-mono text-xs uppercase tracking-widest text-[#00f5ff]">
+              Página {String(currentPage).padStart(2, "0")} <span className="mx-2 text-gray-600">/</span> {String(totalPages).padStart(2, "0")}
             </div>
-            <button 
-              disabled={currentPage === totalPages}
-              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-              className="px-4 py-2 border border-white/10 bg-[#0d0d12] text-[10px] font-mono tracking-widest uppercase text-gray-400 hover:text-[#00f5ff] hover:border-[#00f5ff]/30 disabled:opacity-20 disabled:cursor-not-allowed transition-all"
-            >
-              [ PRÓXIMA ]
-            </button>
+            <AdminButton variant="outline" size="sm" disabled={currentPage === totalPages} onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}>
+              Próxima →
+            </AdminButton>
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={!!confirm}
+        title="Remover música do cache"
+        message={confirm ? `Tem certeza que deseja remover "${confirm.title}" do cache?` : ""}
+        confirmLabel="Remover"
+        loading={deletingId === confirm?.id}
+        onConfirm={() => confirm && handleDelete(confirm.id)}
+        onCancel={() => setConfirm(null)}
+      />
     </AdminLayout>
   );
 }
