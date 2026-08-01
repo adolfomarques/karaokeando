@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import Logo from "../../components/Logo";
 import { useTranslation } from "react-i18next";
+import AdminCommandPalette, { type CommandPaletteItem } from "../../components/admin/AdminCommandPalette";
 
 const ICONS: Record<string, React.ReactNode> = {
   dashboard: (
@@ -66,12 +67,33 @@ function LogoutIcon() {
   );
 }
 
+function SearchIcon() {
+  return (
+    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+    </svg>
+  );
+}
+
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { t } = useTranslation();
   const { user, loading, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+
+  // Open the command palette with Cmd/Ctrl+K
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setPaletteOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   // Close the sidebar when navigating
   useEffect(() => {
@@ -146,6 +168,29 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { label: t("admin.scoreConfig", "Configuração de Score"), path: "/admin/score-config", icon: ICONS.score },
     { label: t("admin.blockedChannels", "Canais Bloqueados"), path: "/admin/blocked-channels", icon: ICONS.blocked },
     { label: t("admin.logins", "Logins"), path: "/admin/logins", icon: ICONS.logins },
+  ];
+
+  const paletteItems: CommandPaletteItem[] = [
+    ...navItems.map((item) => ({
+      id: item.path,
+      label: item.label,
+      icon: item.icon,
+      action: () => navigate(item.path),
+    })),
+    {
+      id: "site",
+      label: t("admin.goToSite", "Ir para o Site"),
+      icon: ICONS.site,
+      keywords: "home karaokefactory adolfo marques",
+      action: () => navigate("/"),
+    },
+    {
+      id: "signout",
+      label: t("admin.signOut", "Sair"),
+      icon: <LogoutIcon />,
+      keywords: "logout sair sair",
+      action: handleSignOut,
+    },
   ];
 
   return (
@@ -276,17 +321,36 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               {t("admin.systemOnline", "System Online")}
             </span>
           </div>
-          <button
-            onClick={handleSignOut}
-            className="flex items-center gap-2 rounded border border-white/10 px-4 py-2 text-xs font-bold uppercase tracking-widest text-gray-400 transition-all hover:border-red-500/40 hover:text-red-400"
-          >
-            <LogoutIcon />
-            {t("admin.signOut", "Sair")}
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setPaletteOpen(true)}
+              className="flex items-center gap-2 rounded border border-white/10 px-4 py-2 text-xs font-bold uppercase tracking-widest text-gray-400 transition-all hover:border-[#00f5ff]/50 hover:text-[#00f5ff]"
+              title="Navegação rápida (⌘K)"
+            >
+              <SearchIcon />
+              <span className="hidden lg:inline">Buscar</span>
+              <kbd className="rounded border border-white/15 bg-white/5 px-1.5 py-0.5 font-mono text-[9px] text-gray-500">
+                ⌘K
+              </kbd>
+            </button>
+            <button
+              onClick={handleSignOut}
+              className="flex items-center gap-2 rounded border border-white/10 px-4 py-2 text-xs font-bold uppercase tracking-widest text-gray-400 transition-all hover:border-red-500/40 hover:text-red-400"
+            >
+              <LogoutIcon />
+              {t("admin.signOut", "Sair")}
+            </button>
+          </div>
         </header>
 
         <div className="p-6 pt-20 md:p-10 md:pt-10">{children}</div>
       </main>
+
+      <AdminCommandPalette
+        open={paletteOpen}
+        onClose={() => setPaletteOpen(false)}
+        items={paletteItems}
+      />
     </div>
   );
 }

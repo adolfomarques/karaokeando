@@ -33,6 +33,18 @@ const METHOD_COLORS: Record<string, string> = {
 
 const PAGE_SIZE = 50;
 
+function timeAgo(date: string | Date): string {
+  const ms = Date.now() - new Date(date).getTime();
+  const mins = Math.floor(ms / 60000);
+  if (mins < 1) return "agora";
+  if (mins < 60) return `há ${mins} min`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `há ${hours} h`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `há ${days} d`;
+  return new Date(date).toLocaleDateString("pt-BR");
+}
+
 export default function AdminLogins() {
   const { t } = useTranslation();
   const [events, setEvents] = useState<LoginEvent[]>([]);
@@ -44,10 +56,13 @@ export default function AdminLogins() {
   const [search, setSearch] = useState("");
   const [methodFilter, setMethodFilter] = useState<string>("");
   const [searchInput, setSearchInput] = useState("");
+  const [, setNowTick] = useState(0);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  const load = useCallback(async (silent = false) => {
+    if (!silent) {
+      setLoading(true);
+      setError(null);
+    }
     try {
       const [data, s] = await Promise.all([
         getAdminLogins({
@@ -64,12 +79,22 @@ export default function AdminLogins() {
     } catch (err: any) {
       setError(t("admin.invalidKey", "Chave inválida ou erro ao carregar dados"));
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [page, search, methodFilter, t]);
 
   useEffect(() => {
     load();
+  }, [load]);
+
+  // Auto-refresh every 60s (silent) + ticker to keep relative times fresh
+  useEffect(() => {
+    const reload = setInterval(() => load(true), 60000);
+    const ticker = setInterval(() => setNowTick((n) => n + 1), 30000);
+    return () => {
+      clearInterval(reload);
+      clearInterval(ticker);
+    };
   }, [load]);
 
   const applySearch = () => {
@@ -94,6 +119,19 @@ export default function AdminLogins() {
         <AdminPageHeader
           title={t("admin.logins", "Logins")}
           subtitle="Registro de acessos ao sistema por todos os métodos de login."
+          actions={
+            <AdminButton
+              variant="outline"
+              size="md"
+              onClick={() => load()}
+              disabled={loading}
+            >
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              {loading ? "Carregando..." : "Recarregar"}
+            </AdminButton>
+          }
         />
 
         {/* Stats */}
@@ -224,8 +262,8 @@ export default function AdminLogins() {
                       <td className="admin-td max-w-xs truncate font-mono text-[10px] text-gray-600" title={e.userAgent || ""}>
                         {e.userAgent || "-"}
                       </td>
-                      <td className="admin-td text-right font-mono text-xs text-gray-500">
-                        {new Date(e.createdAt).toLocaleString("pt-BR")}
+                      <td className="admin-td text-right font-mono text-xs text-gray-500" title={new Date(e.createdAt).toLocaleString("pt-BR")}>
+                        {timeAgo(e.createdAt)}
                       </td>
                     </tr>
                   ))}
@@ -271,7 +309,7 @@ export default function AdminLogins() {
         </div>
 
         <p className="mt-4 font-mono text-xs text-gray-600">
-          * A coleta de logins começou agora. Eventos anteriores a esta versão não estão registrados.
+          * A coleta de logins começou agora. Eventos anteriores a esta versão não estão registrados. Atualiza automaticamente a cada 60s.
         </p>
       </div>
     </AdminLayout>

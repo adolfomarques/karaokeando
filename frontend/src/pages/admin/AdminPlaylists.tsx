@@ -157,7 +157,8 @@ export default function AdminPlaylists() {
 
               <div>
                 <label className="mb-4 block font-mono text-[10px] uppercase tracking-widest text-gray-500">
-                  Músicas selecionadas: {selectedSongIds.length}
+                  Músicas selecionadas: <span className="text-[#00f5ff]">{selectedSongIds.length}</span>
+                  {pickerSearch && <span className="text-gray-600"> · {visibleSongs.length} visíveis de {songs.length}</span>}
                 </label>
                 <input
                   type="text"
@@ -167,29 +168,32 @@ export default function AdminPlaylists() {
                   onChange={(e) => setPickerSearch(e.target.value)}
                 />
                 <div className="max-h-72 overflow-y-auto space-y-1 border border-white/5 bg-black/40 p-3">
-                  {visibleSongs.map(song => (
-                    <label key={song.id} className="group flex cursor-pointer items-center gap-3 p-2.5 transition-colors hover:bg-[#00f5ff]/5">
-                      <span className="relative flex h-4 w-4 shrink-0 items-center justify-center">
-                        <input
-                          type="checkbox"
-                          className="peer h-4 w-4 cursor-pointer appearance-none border border-white/20 bg-transparent transition-all checked:border-[#00f5ff] checked:bg-[#00f5ff]"
-                          checked={selectedSongIds.includes(song.id)}
-                          onChange={() => toggleSongSelection(song.id)}
-                        />
-                        <svg
-                          className="pointer-events-none absolute h-3 w-3 text-black opacity-0 transition-opacity peer-checked:opacity-100"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M5 13l4 4L19 7" />
-                        </svg>
-                      </span>
-                      <span className="truncate text-[11px] font-medium uppercase tracking-wider text-gray-400 group-hover:text-white">
-                        {song.title}
-                      </span>
-                    </label>
-                  ))}
+                  {visibleSongs.map(song => {
+                    const checked = selectedSongIds.includes(song.id);
+                    return (
+                      <label key={song.id} className={`group flex cursor-pointer items-center gap-3 p-2.5 transition-colors ${checked ? "bg-[#00f5ff]/10" : "hover:bg-[#00f5ff]/5"}`}>
+                        <span className="relative flex h-4 w-4 shrink-0 items-center justify-center">
+                          <input
+                            type="checkbox"
+                            className="peer h-4 w-4 cursor-pointer appearance-none border border-white/20 bg-transparent transition-all checked:border-[#00f5ff] checked:bg-[#00f5ff]"
+                            checked={checked}
+                            onChange={() => toggleSongSelection(song.id)}
+                          />
+                          <svg
+                            className="pointer-events-none absolute h-3 w-3 text-black opacity-0 transition-opacity peer-checked:opacity-100"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M5 13l4 4L19 7" />
+                          </svg>
+                        </span>
+                        <span className={`truncate text-[11px] font-medium uppercase tracking-wider ${checked ? "text-[#00f5ff]" : "text-gray-400 group-hover:text-white"}`}>
+                          {song.title}
+                        </span>
+                      </label>
+                    );
+                  })}
                   {visibleSongs.length === 0 && (
                     <div className="py-8 text-center font-mono text-[10px] uppercase tracking-widest text-gray-700">
                       Nenhuma música encontrada

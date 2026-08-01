@@ -52,8 +52,19 @@ export default function AdminDashboard() {
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const [confirm, setConfirm] = useState<ConfirmState | null>(null);
+  const [userSearch, setUserSearch] = useState("");
 
-  const selectableUsers = users.filter((user) => !user.isAdmin);
+  const filteredUsers = users.filter((user) => {
+    const q = userSearch.trim().toLowerCase();
+    if (!q) return true;
+    return (
+      user.name.toLowerCase().includes(q) ||
+      user.email.toLowerCase().includes(q) ||
+      (user.phone || "").toLowerCase().includes(q)
+    );
+  });
+
+  const selectableUsers = filteredUsers.filter((user) => !user.isAdmin);
   const selectableUserIds = selectableUsers.map((user) => user.id);
   const allSelectableChecked = selectableUserIds.length > 0 && selectableUserIds.every((id) => selectedUserIds.includes(id));
 
@@ -326,9 +337,37 @@ export default function AdminDashboard() {
             <h2 className="text-sm font-bold uppercase tracking-[0.3em] text-gray-400">
               {t("admin.allUsers", "Usuários Cadastrados")}
             </h2>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="relative">
+                <input
+                  type="text"
+                  value={userSearch}
+                  onChange={(e) => setUserSearch(e.target.value)}
+                  placeholder="Filtrar por nome, email ou telefone..."
+                  className="admin-input w-64 py-2 pl-9 text-xs"
+                />
+                <svg
+                  className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+              {userSearch && (
+                <button
+                  onClick={() => setUserSearch("")}
+                  className="font-mono text-[10px] uppercase tracking-widest text-gray-500 transition-colors hover:text-[#00f5ff]"
+                >
+                  Limpar filtro ✕
+                </button>
+              )}
+              <span className="font-mono text-[10px] uppercase tracking-widest text-gray-500">
+                {userSearch ? `${filteredUsers.length}/${users.length}` : users.length} usuário(s)
+              </span>
               {selectedUserIds.length > 0 && (
-                <span className="font-mono text-[10px] uppercase tracking-widest text-gray-500">
+                <span className="font-mono text-[10px] uppercase tracking-widest text-[#00f5ff]">
                   {selectedUserIds.length} selecionado(s)
                 </span>
               )}
@@ -372,12 +411,13 @@ export default function AdminDashboard() {
                   <th className="admin-th" align="center">{t("admin.user.canHost", "Anfitrião")}</th>
                   <th className="admin-th" align="center">{t("admin.user.isAdmin", "Admin")}</th>
                   <th className="admin-th" align="center">{t("admin.user.rooms", "Salas")}</th>
+                  <th className="admin-th" align="right">Último acesso</th>
                   <th className="admin-th" align="right">{t("admin.user.createdAt", "Criado em")}</th>
                   <th className="admin-th" align="right">Ações</th>
                 </tr>
               </thead>
               <tbody>
-                {users.map((user) => (
+                {filteredUsers.map((user) => (
                   <tr key={user.id} className="admin-tr">
                     <td className="admin-td" align="center">
                       <input
@@ -411,6 +451,9 @@ export default function AdminDashboard() {
                       <span className="font-mono text-white">{user.roomsCreated}</span>
                     </td>
                     <td className="admin-td text-right font-mono text-xs text-gray-500">
+                      {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString("pt-BR") : <span className="text-gray-700">nunca</span>}
+                    </td>
+                    <td className="admin-td text-right font-mono text-xs text-gray-500">
                       {new Date(user.createdAt).toLocaleString("pt-BR")}
                     </td>
                     <td className="admin-td text-right">
@@ -433,10 +476,13 @@ export default function AdminDashboard() {
                     </td>
                   </tr>
                 ))}
-                {users.length === 0 && (
+                {filteredUsers.length === 0 && (
                   <tr>
-                    <td colSpan={12} className="admin-td">
-                      <AdminEmpty title="Nenhum usuário cadastrado" />
+                    <td colSpan={13} className="admin-td">
+                      <AdminEmpty
+                        title={userSearch ? "Nenhum usuário encontrado" : "Nenhum usuário cadastrado"}
+                        hint={userSearch ? `Não encontramos ninguém para "${userSearch}".` : undefined}
+                      />
                     </td>
                   </tr>
                 )}

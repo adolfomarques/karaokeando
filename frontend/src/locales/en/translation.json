@@ -653,7 +653,7 @@
     "signOut": "Sign Out",
     "cache": "Cache",
     "assetManagement": "Audio and Video Asset Management",
-    "searchPlaceholder": "SEARCH_IDENTIFIER_OR_TITLE...",
+    "searchPlaceholder": "Search by title or ID...",
     "identifier": "Identifier",
     "owner": "Owner",
     "traffic": "Traffic",

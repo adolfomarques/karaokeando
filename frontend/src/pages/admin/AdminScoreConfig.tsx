@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import AdminLayout from "./AdminLayout";
 import {
   getAdminBackgrounds, addAdminBackground, updateAdminBackground, deleteAdminBackground,
@@ -37,6 +37,11 @@ export default function AdminScoreConfig() {
 
   const [saving, setSaving] = useState(false);
   const [confirm, setConfirm] = useState<ConfirmState | null>(null);
+
+  const bgFormRef = useRef<HTMLFormElement>(null);
+  const bgUrlRef = useRef<HTMLInputElement>(null);
+  const phraseFormRef = useRef<HTMLFormElement>(null);
+  const phraseTextRef = useRef<HTMLTextAreaElement>(null);
 
   const loadData = () => {
     Promise.all([getAdminBackgrounds(), getAdminPhrases()])
@@ -77,7 +82,11 @@ export default function AdminScoreConfig() {
   const handleEditBg = (bg: AdminBackground) => {
     setEditingBgId(bg.id);
     setBgUrl(bg.url);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    requestAnimationFrame(() => {
+      bgFormRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      bgUrlRef.current?.focus();
+      bgUrlRef.current?.select();
+    });
   };
 
   const handleCancelEditBg = () => {
@@ -114,7 +123,10 @@ export default function AdminScoreConfig() {
     setPhraseText(phrase.phrase);
     setMinScore(phrase.minScore);
     setMaxScore(phrase.maxScore);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    requestAnimationFrame(() => {
+      phraseFormRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      phraseTextRef.current?.focus();
+    });
   };
 
   const handleCancelEditPhrase = () => {
@@ -173,7 +185,7 @@ export default function AdminScoreConfig() {
               <div className="grid grid-cols-1 gap-10 lg:grid-cols-12">
                 {/* Form */}
                 <div className="lg:col-span-4">
-                  <form onSubmit={handleAddOrUpdateBackground} className="admin-card space-y-6 border border-white/5 bg-[#0d0d12] p-8">
+                  <form ref={bgFormRef} onSubmit={handleAddOrUpdateBackground} className={`admin-card space-y-6 border p-8 ${editingBgId ? "border-[#00f5ff]/40 shadow-[0_0_30px_rgba(0,245,255,0.15)]" : "border-white/5 bg-[#0d0d12]"}`}>
                     <h3 className="mb-4 text-[10px] font-bold uppercase tracking-[0.3em] text-gray-500">
                       {editingBgId ? t("admin.preview", "Editando Background") : t("admin.addBackground", "Novo Background")}
                     </h3>
@@ -182,6 +194,7 @@ export default function AdminScoreConfig() {
                         {t("admin.imageUrl", "URL da Imagem")}
                       </label>
                       <input
+                        ref={bgUrlRef}
                         id="bg-url"
                         type="url"
                         placeholder="https://..."
@@ -257,7 +270,7 @@ export default function AdminScoreConfig() {
               <div className="grid grid-cols-1 gap-10 lg:grid-cols-12">
                 {/* Form */}
                 <div className="lg:col-span-4">
-                  <form onSubmit={handleAddOrUpdatePhrase} className="admin-card space-y-8 border border-white/5 bg-[#0d0d12] p-8">
+                  <form ref={phraseFormRef} onSubmit={handleAddOrUpdatePhrase} className={`admin-card space-y-8 border p-8 ${editingPhraseId ? "border-[#00f5ff]/40 shadow-[0_0_30px_rgba(0,245,255,0.15)]" : "border-white/5 bg-[#0d0d12]"}`}>
                     <h3 className="mb-4 text-[10px] font-bold uppercase tracking-[0.3em] text-gray-500">
                       {editingPhraseId ? t("admin.preview", "Editando Frase") : t("admin.addPhrase", "Nova Frase")}
                     </h3>
@@ -266,6 +279,7 @@ export default function AdminScoreConfig() {
                         {t("admin.phraseText", "Mensagem a Exibir")}
                       </label>
                       <textarea
+                        ref={phraseTextRef}
                         id="phrase-text"
                         placeholder={t("admin.phrasePlaceholder", "Ex: Você cantou muito bem!")}
                         className="admin-input h-32 resize-none font-mono"

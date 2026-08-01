@@ -651,7 +651,7 @@
     "signOut": "Sair",
     "cache": "Cache",
     "assetManagement": "Gerenciamento de Ativos de Áudio e Vídeo",
-    "searchPlaceholder": "PESQUISAR_IDENTIFICADOR_OU_TITULO...",
+    "searchPlaceholder": "Buscar por título ou ID...",
     "identifier": "Identificador",
     "owner": "Proprietário",
     "traffic": "Tráfego",
