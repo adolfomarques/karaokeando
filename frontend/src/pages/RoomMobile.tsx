@@ -1394,6 +1394,9 @@ export default function RoomMobile() {
                     {state.queue[0].singers
                       ?.map(s => (typeof s === "string" ? s : s.name))
                       .join(" e ") || state.queue[0].requestedBy}
+                    {formatDuration(state.queue[0].duration) && (
+                      <span style={{ fontWeight: "600", color: "rgba(255,255,255,0.5)" }}>⏱ {formatDuration(state.queue[0].duration)}</span>
+                    )}
                   </div>
                   {isHost ? (
                     <button

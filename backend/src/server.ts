@@ -1182,6 +1182,19 @@ interface YouTubeSearchResult {
   duration?: number; // seconds
 }
 
+// Convert "3:45" or "1:02:33" text (youtubei.js) into seconds.
+function parseDurationText(value: unknown): number | undefined {
+  if (typeof value === "number" && value > 0) return value;
+  const obj = value as any;
+  if (obj && typeof obj.seconds === "number" && obj.seconds > 0) return obj.seconds;
+  const text = obj?.text ?? (typeof value === "string" ? value : "");
+  if (typeof text !== "string") return undefined;
+  const parts = text.split(":").map(Number);
+  if (parts.some(isNaN) || parts.length === 0 || parts.length > 3) return undefined;
+  const [a, b, c] = parts.length === 3 ? [parts[0], parts[1], parts[2]] : [0, parts[0], parts[1]];
+  return a * 3600 + b * 60 + c;
+}
+
 // Check if a YouTube video can be embedded using the free oEmbed API.
 // Returns true if embeddable, false otherwise. Never throws.
 async function checkEmbeddable(videoId: string): Promise<boolean> {
@@ -1227,7 +1240,7 @@ async function searchWithInnertube(
           thumbnail: (video as any).thumbnails?.[0]?.url || `https://i.ytimg.com/vi/${video.id}/mqdefault.jpg`,
           channelTitle: (video as any).author?.name || "",
           channelId: (video as any).author?.id || "",
-          duration: typeof (video as any).duration === "number" ? (video as any).duration : undefined,
+          duration: parseDurationText((video as any).duration),
         });
       }
     }
