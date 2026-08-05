@@ -958,6 +958,12 @@ export default function RoomMobile() {
 
     setAdding(addSongModal.videoId);
     try {
+      // Fetch missing duration (e.g. cached search results without it)
+      let duration = addSongModal.duration;
+      if (!duration) {
+        const info = await getVideoInfo(addSongModal.videoId).catch(() => null);
+        duration = info?.duration;
+      }
       const result = await enqueue(
         code,
         addSongModal.videoId,
@@ -967,7 +973,7 @@ export default function RoomMobile() {
         myUserId,
         partner?.id || undefined,
         deviceFP,
-        addSongModal.duration
+        duration
       );
       if (result?.error) {
         showToast(result.message || t("mobile.addError", "Não foi possível adicionar. Tente de novo."));
