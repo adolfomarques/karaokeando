@@ -149,6 +149,7 @@ export default async function authRoutes(app: FastifyInstance) {
   // Register as guest (name + email + phone)
   app.post<{ Body: { name: string; email: string; phone: string } }>(
     "/api/auth/register-guest",
+    { config: { rateLimit: { max: 10, timeWindow: "1 minute" } } },
     async (request, reply) => {
       const parsed = registerGuestSchema.safeParse(request.body);
       if (!parsed.success) {
@@ -227,7 +228,9 @@ export default async function authRoutes(app: FastifyInstance) {
       email: string;
       password: string;
     };
-  }>("/api/auth/register-host", async (request, reply) => {
+  }>("/api/auth/register-host",
+    { config: { rateLimit: { max: 10, timeWindow: "1 minute" } } },
+    async (request, reply) => {
     const { name, email, password } = request.body;
 
     // Validate basic fields
@@ -396,6 +399,7 @@ export default async function authRoutes(app: FastifyInstance) {
   // Login via Google
   app.post<{ Body: { accessToken: string } }>(
     "/api/auth/google",
+    { config: { rateLimit: { max: 10, timeWindow: "1 minute" } } },
     async (request, reply) => {
       const { accessToken } = request.body;
       if (!accessToken) {
@@ -479,6 +483,7 @@ export default async function authRoutes(app: FastifyInstance) {
   // Login via Facebook
   app.post<{ Body: { accessToken: string } }>(
     "/api/auth/facebook",
+    { config: { rateLimit: { max: 10, timeWindow: "1 minute" } } },
     async (request, reply) => {
       const { accessToken } = request.body;
       if (!accessToken) {
@@ -560,6 +565,7 @@ export default async function authRoutes(app: FastifyInstance) {
   // Login (email + password)
   app.post<{ Body: { email: string; password: string } }>(
     "/api/auth/login",
+    { config: { rateLimit: { max: 10, timeWindow: "1 minute" } } },
     async (request, reply) => {
       const parsed = loginSchema.safeParse(request.body);
       if (!parsed.success) {
@@ -706,6 +712,7 @@ export default async function authRoutes(app: FastifyInstance) {
   // Forgot Password (REAL)
   app.post<{ Body: { email: string; lng?: string } }>(
     "/api/auth/forgot-password",
+    { config: { rateLimit: { max: 5, timeWindow: "1 minute" } } },
     async (request, reply) => {
       const { email, lng = "pt" } = request.body;
       if (!email) {
@@ -778,6 +785,7 @@ export default async function authRoutes(app: FastifyInstance) {
   // Reset Password
   app.post<{ Body: { token: string; password: string } }>(
     "/api/auth/reset-password",
+    { config: { rateLimit: { max: 5, timeWindow: "1 minute" } } },
     async (request, reply) => {
       const bodySchema = z.object({
         token: z.string(),

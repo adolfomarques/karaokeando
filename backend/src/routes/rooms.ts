@@ -1,4 +1,5 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
+import { randomBytes } from "node:crypto";
 import { z } from "zod";
 import prisma from "../lib/prisma.js";
 import {
@@ -21,12 +22,13 @@ const tvLoginSchema = z.object({
   tvPassword: z.string().min(1, "Senha é obrigatória"),
 });
 
-// Generate room code (3 characters, uppercase alphanumeric)
+// Generate room code (6 chars, uppercase alphanumeric) using a CSPRNG
 function generateRoomCode(): string {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // Removed confusing chars (0, O, 1, I)
   let code = "";
-  for (let i = 0; i < 3; i++) {
-    code += chars[Math.floor(Math.random() * chars.length)];
+  const bytes = randomBytes(6);
+  for (let i = 0; i < 6; i++) {
+    code += chars[bytes[i] % chars.length];
   }
   return code;
 }

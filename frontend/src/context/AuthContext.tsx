@@ -23,6 +23,13 @@ function decodeJwtPayload(token: string): { exp?: number } | null {
   }
 }
 
+// fetch with a hard timeout so a sleeping server can't hang the UI forever
+function fetchWithTimeout(url: string, options: RequestInit = {}, timeoutMs: number): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timer));
+}
+
 function isTokenExpired(token: string): boolean {
   const payload = decodeJwtPayload(token);
   if (!payload || !payload.exp) return false; // malformed, let server decide
@@ -118,10 +125,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
+    // Render cached user immediately; revalidate in background so a sleeping
+    // backend doesn't block the whole page on first load
+    let cached: User | null = null;
+    try { cached = JSON.parse(localStorage.getItem(USER_KEY) || "null"); } catch {}
+    if (cached) {
+      setUser(cached);
+      setLoading(false);
+    }
+
     try {
-      const res = await fetch(`${API_BASE}/api/auth/me`, {
+      const res = await fetchWithTimeout(`${API_BASE}/api/auth/me`, {
         headers: { Authorization: `Bearer ${storedToken}` },
-      });
+      }, 12000);
 
       if (res.ok) {
         const data = await res.json();
@@ -144,10 +160,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setLoading(false);
       }
     } catch {
-      // Network error — use cached user if available
-      const cached = localStorage.getItem(USER_KEY);
-      if (cached) try { setUser(JSON.parse(cached)); } catch {}
-      setLoading(false);
+      // Network error or timeout — keep cached user if we have one
+      if (!cached) setLoading(false);
     }
   }, []);
 
@@ -165,11 +179,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Login
   const login = async (email: string, password: string) => {
     try {
-      const res = await fetch(`${API_BASE}/api/auth/login`, {
+      // 60s covers the worst-case Render cold start (up to 40s)
+      const res = await fetchWithTimeout(`${API_BASE}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
-      });
+      }, 60000);
 
       const data = await res.json();
 
@@ -189,11 +204,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Login with Google
   const loginWithGoogle = async (accessToken: string) => {
     try {
-      const res = await fetch(`${API_BASE}/api/auth/google`, {
+      const res = await fetchWithTimeout(`${API_BASE}/api/auth/google`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ accessToken }),
-      });
+      }, 60000);
 
       const data = await res.json();
 

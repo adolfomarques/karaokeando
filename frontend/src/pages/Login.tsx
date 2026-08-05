@@ -4,9 +4,6 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useGoogleLogin } from '@react-oauth/google';
-import FacebookLogin from '@greatsumini/react-facebook-login';
-
-const FACEBOOK_APP_ID = import.meta.env.VITE_FACEBOOK_APP_ID || "YOUR_FACEBOOK_APP_ID";
 
 const GoogleIcon = () => (
   <svg viewBox="0 0 24 24" width="18" height="18" xmlns="http://www.w3.org/2000/svg">
@@ -16,12 +13,6 @@ const GoogleIcon = () => (
       <path fill="#FBBC05" d="M -21.484 53.529 C -21.734 52.809 -21.864 52.039 -21.864 51.239 C -21.864 50.439 -21.724 49.669 -21.484 48.949 L -21.484 45.859 L -25.464 45.859 C -26.284 47.479 -26.754 49.299 -26.754 51.239 C -26.754 53.179 -26.284 54.999 -25.464 56.619 L -21.484 53.529 Z"/>
       <path fill="#EA4335" d="M -14.754 43.989 C -12.984 43.989 -11.404 44.599 -10.154 45.789 L -6.734 42.369 C -8.804 40.429 -11.514 39.239 -14.754 39.239 C -19.444 39.239 -23.494 41.939 -25.464 45.859 L -21.484 48.949 C -20.534 46.099 -17.884 43.989 -14.754 43.989 Z"/>
     </g>
-  </svg>
-);
-
-const FacebookIcon = () => (
-  <svg viewBox="0 0 24 24" width="18" height="18" xmlns="http://www.w3.org/2000/svg">
-    <path fill="#ffffff" d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
   </svg>
 );
 
@@ -67,7 +58,7 @@ export default function Login() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, loginWithGoogle, loginWithFacebook } = useAuth();
+  const { login, loginWithGoogle } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -76,7 +67,7 @@ export default function Login() {
 
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout>;
-    if (loading) timer = setTimeout(() => setIsWakingUp(true), 4000);
+    if (loading) timer = setTimeout(() => setIsWakingUp(true), 1200);
     else setIsWakingUp(false);
     return () => clearTimeout(timer);
   }, [loading]);
@@ -148,53 +139,6 @@ export default function Login() {
           <GoogleIcon />
           {t("login.googleBtn", "Entrar com Google")}
         </button>
-
-        {/* Facebook button */}
-        <FacebookLogin
-          appId={FACEBOOK_APP_ID}
-          onSuccess={async (response) => {
-            try {
-              setLoading(true);
-              const result = await loginWithFacebook(response.accessToken);
-              if (result.success) navigate(returnTo);
-              else setError(result.error || "Facebook login error");
-            } catch {
-              setError("Error authenticating via Facebook.");
-            } finally {
-              setLoading(false);
-            }
-          }}
-          onFail={(error) => {
-            setError("Failed to login with Facebook.");
-            console.error(error);
-          }}
-          render={({ onClick }) => (
-            <button
-              type="button"
-              disabled={loading}
-              onClick={onClick}
-              style={{
-                width: "100%", marginBottom: "20px",
-                background: "#1877F2", color: "#fff",
-                fontWeight: 600, fontSize: "0.95rem",
-                display: "flex", alignItems: "center", justifyContent: "center", gap: "10px",
-                border: "none", padding: "12px 24px", borderRadius: "999px",
-                boxShadow: "none",
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.background = "#166fe5";
-                e.currentTarget.style.transform = "scale(1.03)";
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.background = "#1877F2";
-                e.currentTarget.style.transform = "scale(1)";
-              }}
-            >
-              <FacebookIcon />
-              {t("login.facebookBtn", "Entrar com Facebook")}
-            </button>
-          )}
-        />
 
         {/* Divider */}
         <div style={{ display: "flex", alignItems: "center", marginBottom: "20px", gap: "12px" }}>

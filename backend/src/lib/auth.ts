@@ -3,8 +3,18 @@ import bcrypt from "bcrypt";
 
 // Validate JWT_SECRET in production
 const JWT_SECRET = process.env.JWT_SECRET;
+const WEAK_SECRETS = [
+  "supersecret123",
+  "dev-secret-change-in-production",
+  "dev-secret-change-in-production-abc123xyz",
+];
 if (!JWT_SECRET && process.env.NODE_ENV === "production") {
   throw new Error("JWT_SECRET must be set in production!");
+}
+if (JWT_SECRET && WEAK_SECRETS.includes(JWT_SECRET)) {
+  console.warn(
+    "⚠️  JWT_SECRET é fraca/conhecida. Gere uma nova (openssl rand -hex 64) e defina no Render."
+  );
 }
 const SECRET = JWT_SECRET || "dev-secret-change-in-production";
 

@@ -1,12 +1,13 @@
 import "dotenv/config";
 import Fastify from "fastify";
 import cors from "@fastify/cors";
+import rateLimit from "@fastify/rate-limit";
 import websocket from "@fastify/websocket";
 import type { WebSocket } from "ws";
 import { exec } from "child_process";
 import { promisify } from "util";
 import { promises as fs } from "fs";
-import authRoutes from "./routes/auth.js";
+import authRoutes, { getUserFromRequest } from "./routes/auth.js";
 import roomRoutes, {
   setRoomCallbacks,
   recordRoomVisit,
@@ -537,7 +538,20 @@ function broadcastParticipants(roomCode: string) {
 
 const app = Fastify({ logger: { level: "warn" }, trustProxy: true });
 
-await app.register(cors, { origin: true });
+await app.register(cors, {
+  origin: [
+    /^https:\/\/karaokefactory\.org$/,
+    /^https:\/\/[a-z0-9-]+\.netlify\.app$/, // Netlify deploy previews
+    /^http:\/\/localhost:\d+$/,
+    /^https?:\/\/\d{1,3}(\.\d{1,3}){3}:\d+$/, // LAN dev (e.g. 192.168.x.x)
+  ],
+});
+
+// Global rate limit per IP (auth routes apply stricter limits below)
+await app.register(rateLimit, {
+  max: 300,
+  timeWindow: "1 minute",
+});
 await app.register(websocket);
 
 // Register auth routes
@@ -634,7 +648,8 @@ app.post<{
   if (!videoId) return reply.code(400).send({ error: "missing_videoId" });
 
   // 3-minute cooldown for non-hosts
-  const isHost = odUserId === room.ownerId;
+  const authUser = await getUserFromRequest(req);
+  const isHost = !!authUser && authUser.userId === room.ownerId;
   const THREE_MINUTES = 3 * 60 * 1000;
   const now = Date.now();
 
@@ -705,11 +720,11 @@ app.post<{ Params: { roomCode: string }; Body: { userId?: string } }>(
     const room = await getOrRestoreRoom(req.params.roomCode);
     if (!room) return reply.code(404).send({ error: "room_not_found" });
 
-    const { userId } = req.body;
     const tvTokenHeader = req.headers["x-tv-token"] as string | undefined;
 
-    // Allow if: userId is owner, OR a valid tvToken for this room is provided
-    const isOwner = userId === room.ownerId;
+    // Allow if: authenticated owner, OR a valid tvToken for this room is provided
+    const authUser = await getUserFromRequest(req);
+    const isOwner = !!authUser && authUser.userId === room.ownerId;
     let isTvToken = false;
     if (!isOwner && tvTokenHeader) {
       const decoded = verifyToken(tvTokenHeader);
@@ -764,8 +779,9 @@ app.post<{
   const item = room.queue.find(i => i.id === itemId);
   if (!item) return reply.code(404).send({ error: "not_found" });
 
-  // Permissions: Host OR Requester OR TV
-  const isHost = userId === room.ownerId;
+  // Permissions: Authenticated Host OR Requester OR TV
+  const authUser = await getUserFromRequest(req);
+  const isHost = !!authUser && authUser.userId === room.ownerId;
   const isRequester = userId === item.requesterId;
   const tvTokenHeader = req.headers["x-tv-token"] as string | undefined;
   let isTvToken = false;
@@ -798,10 +814,10 @@ app.post<{
 
   const itemId = (req.body.itemId || "").trim();
   const direction = req.body.direction;
-  const { userId } = req.body as { userId?: string };
   const tvTokenHeader = req.headers["x-tv-token"] as string | undefined;
 
-  const isHost = userId === room.ownerId;
+  const authUser = await getUserFromRequest(req);
+  const isHost = !!authUser && authUser.userId === room.ownerId;
   let isTvToken = false;
   if (!isHost && tvTokenHeader) {
     const decoded = verifyToken(tvTokenHeader);
@@ -877,8 +893,9 @@ app.post<{ Params: { roomCode: string }; Body: { requester?: string; userId?: st
     const userId = (req.body.userId || "").trim();
     const tvTokenHeader = req.headers["x-tv-token"] as string | undefined;
 
-    // Allow if: userId is owner, OR a valid tvToken for this room is provided
-    const isOwner = userId === room.ownerId;
+    // Allow if: authenticated owner, OR a valid tvToken for this room is provided
+    const authUser = await getUserFromRequest(req);
+    const isOwner = !!authUser && authUser.userId === room.ownerId;
     let isTvToken = false;
     if (!isOwner && tvTokenHeader) {
       const decoded = verifyToken(tvTokenHeader);
@@ -1109,8 +1126,8 @@ app.post<{ Params: { roomCode: string }; Body: { action: string; userId?: string
     const room = await getOrRestoreRoom(req.params.roomCode);
     if (!room) return reply.code(404).send({ error: "room_not_found" });
 
-    const { userId } = req.body;
-    if (userId !== room.ownerId) {
+    const authUser = await getUserFromRequest(req);
+    if (!authUser || authUser.userId !== room.ownerId) {
       return reply.code(403).send({ error: "forbidden" });
     }
     touchRoom(req.params.roomCode);

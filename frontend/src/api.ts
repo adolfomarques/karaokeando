@@ -15,6 +15,12 @@ export const API_BASE =
     ? `http://${window.location.hostname}:8787`
     : "");
 
+// Authorization header with the logged-in user's JWT (proves host identity on the server)
+function authHeaders(): Record<string, string> {
+  const token = localStorage.getItem("karaokefactory_token");
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 // ─────────────────────────────────────────────────────────────
 // YouTube Search (with localStorage cache)
 // ─────────────────────────────────────────────────────────────
@@ -162,7 +168,7 @@ export async function enqueue(
 ) {
   const res = await fetch(`${API_BASE}/api/rooms/${roomCode}/enqueue`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...authHeaders() },
     body: JSON.stringify({
       videoId,
       title,
@@ -177,7 +183,7 @@ export async function enqueue(
 }
 
 export async function nextSong(roomCode: string, userId?: string, tvToken?: string | null) {
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  const headers: Record<string, string> = { "Content-Type": "application/json", ...authHeaders() };
   if (tvToken) headers["x-tv-token"] = tvToken;
   const res = await fetch(`${API_BASE}/api/rooms/${roomCode}/next`, {
     method: "POST",
@@ -188,7 +194,7 @@ export async function nextSong(roomCode: string, userId?: string, tvToken?: stri
 }
 
 export async function finalizeSong(roomCode: string, requester: string, userId?: string, tvToken?: string | null) {
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  const headers: Record<string, string> = { "Content-Type": "application/json", ...authHeaders() };
   if (tvToken) headers["x-tv-token"] = tvToken;
   const res = await fetch(`${API_BASE}/api/rooms/${roomCode}/finalize`, {
     method: "POST",
@@ -205,7 +211,7 @@ export async function sendPlayerCommand(
 ) {
   const res = await fetch(`${API_BASE}/api/rooms/${roomCode}/player`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...authHeaders() },
     body: JSON.stringify({ action, userId }),
   });
   return res.json();
@@ -225,7 +231,7 @@ export async function updateUserName(
 }
 
 export async function removeQueueItem(roomCode: string, itemId: string, userId?: string, tvToken?: string | null) {
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  const headers: Record<string, string> = { "Content-Type": "application/json", ...authHeaders() };
   if (tvToken) headers["x-tv-token"] = tvToken;
   const res = await fetch(`${API_BASE}/api/rooms/${roomCode}/queue/remove`, {
     method: "POST",
@@ -242,7 +248,7 @@ export async function moveQueueItem(
   userId?: string,
   tvToken?: string | null
 ) {
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  const headers: Record<string, string> = { "Content-Type": "application/json", ...authHeaders() };
   if (tvToken) headers["x-tv-token"] = tvToken;
   const res = await fetch(`${API_BASE}/api/rooms/${roomCode}/queue/move`, {
     method: "POST",
@@ -253,7 +259,7 @@ export async function moveQueueItem(
 }
 
 export async function queueItemToTop(roomCode: string, itemId: string, userId?: string, tvToken?: string | null) {
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  const headers: Record<string, string> = { "Content-Type": "application/json", ...authHeaders() };
   if (tvToken) headers["x-tv-token"] = tvToken;
   const res = await fetch(`${API_BASE}/api/rooms/${roomCode}/queue/to-top`, {
     method: "POST",
