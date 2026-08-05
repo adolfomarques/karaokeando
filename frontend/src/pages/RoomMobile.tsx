@@ -20,6 +20,7 @@ import {
   searchYouTube,
   getVideoInfo,
   updateUserName,
+  roomJoinUrl,
   type SavedSong,
   type TopSong,
   type YouTubeSearchResult,
@@ -37,6 +38,7 @@ interface QueueItem {
   requestedBy: string;
   requesterId: string;
   singers?: Singer[];
+  duration?: number;
 }
 
 interface DuetRankingEntry {
@@ -64,10 +66,19 @@ interface RoomState {
   showingScore: boolean;
   ownerId: string;
   lastEnqueueAt: Record<string, number>;
+  history: QueueItem[];
 }
 
-type Tab = "queue" | "ranking" | "saved";
+type Tab = "queue" | "ranking" | "saved" | "history";
 type RankingView = "solo" | "duet";
+
+// Format seconds as m:ss (e.g. 225 -> "3:45")
+function formatDuration(seconds?: number): string {
+  if (!seconds || seconds <= 0) return "";
+  const m = Math.floor(seconds / 60);
+  const s = Math.round(seconds % 60);
+  return `${m}:${String(s).padStart(2, "0")}`;
+}
 
 // Icon components
 const IconTrash = ({ size = 16 }: { size?: number }) => (
@@ -268,6 +279,42 @@ const IconLibrary = ({ size = 16 }: { size?: number }) => (
   </svg>
 );
 
+const IconHistory = ({ size = 16 }: { size?: number }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <polyline points="1 4 1 10 7 10"></polyline>
+    <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+    <polyline points="12 7 12 12 16 14"></polyline>
+  </svg>
+);
+
+const IconShare = ({ size = 16 }: { size?: number }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <circle cx="18" cy="5" r="3"></circle>
+    <circle cx="6" cy="12" r="3"></circle>
+    <circle cx="18" cy="19" r="3"></circle>
+    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+  </svg>
+);
+
 const IconAlertTriangle = ({ size = 16, style }: { size?: number; style?: React.CSSProperties }) => (
   <svg
     width={size}
@@ -409,6 +456,7 @@ export default function RoomMobile() {
     videoId: string;
     title: string;
     source: "search" | "library" | "top";
+    duration?: number;
   } | null>(null);
   const [modalPartner, setModalPartner] = useState<string>(""); // Partner ID selected in modal
   const [cooldownRemaining, setCooldownRemaining] = useState<number>(0);
@@ -456,6 +504,44 @@ export default function RoomMobile() {
     const x = Math.round(Math.random() * 48 - 24);
     setReactionBursts(prev => [...prev, { id, emoji, x }]);
     setTimeout(() => setReactionBursts(prev => prev.filter(b => b.id !== id)), 1000);
+  };
+
+  // Share the room invite via native share sheet (WhatsApp, Messenger, etc.)
+  const shareRoom = async () => {
+    if (!code) return;
+    const url = roomJoinUrl(code);
+    const text = t("mobile.shareText", `Vem cantar comigo no karaokê! Sala ${code}`, { code });
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: t("mobile.shareTitle", "Karaoke Factory"), text, url });
+        return;
+      } catch {
+        // user cancelled — fall through to clipboard
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      showToast(t("mobile.shareCopied", "Link copiado! Envie para seus amigos."));
+    } catch {
+      showToast(t("mobile.shareFailed", "Não foi possível compartilhar."));
+    }
+  };
+
+  // Re-request a previously played song (encore)
+  const handleEncore = async (song: QueueItem) => {
+    if (!code) return;
+    setAdding(song.videoId);
+    try {
+      const result = await enqueue(code, song.videoId, song.title, nickname, undefined, myUserId, undefined, undefined, song.duration);
+      if (result?.error) {
+        showToast(result.message || t("mobile.addError", "Não foi possível adicionar. Tente de novo."));
+      } else {
+        showToast(t("mobile.encoreAdded", "🔁 De volta à fila!"));
+      }
+    } catch {
+      showToast(t("mobile.addError", "Não foi possível adicionar. Tente de novo."));
+    }
+    setAdding(null);
   };
 
   // Check auth on mount
@@ -844,7 +930,7 @@ export default function RoomMobile() {
     if (cooldownRemaining > 0) return;
     const title =
       isLinkMode && customTitle.trim() ? customTitle.trim() : result.title;
-    openAddSongModal(result.videoId, title, "search");
+    openAddSongModal(result.videoId, title, "search", result.duration);
   };
 
   const handleDeleteSaved = async (songId: string) => {
@@ -856,9 +942,10 @@ export default function RoomMobile() {
   const openAddSongModal = (
     videoId: string,
     title: string,
-    source: "search" | "library" | "top"
+    source: "search" | "library" | "top",
+    duration?: number
   ) => {
-    setAddSongModal({ videoId, title, source });
+    setAddSongModal({ videoId, title, source, duration });
     setModalPartner(""); // Reset partner selection
   };
 
@@ -879,7 +966,8 @@ export default function RoomMobile() {
         partner?.name || undefined,
         myUserId,
         partner?.id || undefined,
-        deviceFP
+        deviceFP,
+        addSongModal.duration
       );
       if (result?.error) {
         showToast(result.message || t("mobile.addError", "Não foi possível adicionar. Tente de novo."));
@@ -1021,6 +1109,25 @@ export default function RoomMobile() {
 
         <div style={{ display: "flex", gap: "8px", alignItems: "center", flex: 1, justifyContent: "flex-end" }}>
           <button
+            onClick={shareRoom}
+            aria-label={t("mobile.share", "Convidar amigos")}
+            title={t("mobile.share", "Convidar amigos")}
+            style={{
+              padding: "10px",
+              background: "rgba(255,255,255,0.05)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              borderRadius: "50%",
+              width: "42px",
+              height: "42px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: "none"
+            }}
+          >
+            <IconShare size={20} />
+          </button>
+          <button
             onClick={() => { setNameInput(nickname); setNameError(null); setShowNameModal(true); }}
             aria-label={t("mobile.changeNickname", "Alterar Apelido")}
             style={{
@@ -1115,7 +1222,8 @@ export default function RoomMobile() {
         {[
           { id: "queue", label: t("mobile.queue", "Fila"), icon: <IconMusic size={16} /> },
           { id: "ranking", label: t("tv.ranking", "Ranking"), icon: <IconTrophy size={16} /> },
-          { id: "saved", label: t("mobile.songs", "Músicas"), icon: <IconLibrary size={16} /> }
+          { id: "saved", label: t("mobile.songs", "Músicas"), icon: <IconLibrary size={16} /> },
+          { id: "history", label: t("mobile.history", "Tocadas"), icon: <IconHistory size={16} /> }
         ].map(t_item => (
           <button
             key={t_item.id}
@@ -1329,22 +1437,35 @@ export default function RoomMobile() {
                 const singers = item.singers || [];
                 const singerNames = singers.map(s => typeof s === "string" ? s : s.name);
                 const singersDisplay = singerNames.length > 1 ? singerNames.join(" e ") : singerNames[0] || item.requestedBy;
+                const absIndex = i + (upNextInBox ? 1 : 0);
+                // Estimate time until this song starts (sum of durations of songs before it)
+                const before = (state?.queue ?? []).slice(0, absIndex);
+                const estMinutes = before.reduce((acc, it) => acc + (it.duration || 0), 0) > 0
+                  ? Math.max(1, Math.round(before.reduce((acc, it) => acc + (it.duration || 0), 0) / 60))
+                  : null;
+                const isMine = item.requesterId === myUserId;
                 return (
                   <div key={item.id} style={{
                     display: "flex", alignItems: "center", gap: "16px",
                     background: "rgba(255,255,255,0.03)", borderRadius: "16px",
-                    padding: "16px", marginBottom: "12px", border: "1px solid rgba(255,255,255,0.05)",
+                    padding: "16px", marginBottom: "12px", border: isMine ? "1px solid rgba(255,0,128,0.35)" : "1px solid rgba(255,255,255,0.05)",
                     transition: "all 0.2s ease"
                   }}>
                     <div style={{ fontSize: "1.1rem", fontWeight: "950", color: "#FF0080", minWidth: "28px", textAlign: "center", opacity: 0.8 }}>
-                      {String(i + 1 + (upNextInBox ? 1 : 0)).padStart(2, '0')}
+                      {String(absIndex + 1).padStart(2, '0')}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: "1rem", fontWeight: "700", color: "#fff", marginBottom: "4px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                         {item.title}
                       </div>
-                      <div style={{ fontSize: "0.85rem", color: "rgba(255,255,255,0.4)", display: "flex", alignItems: "center", gap: "4px" }}>
+                      <div style={{ fontSize: "0.85rem", color: "rgba(255,255,255,0.4)", display: "flex", alignItems: "center", gap: "8px" }}>
                         <span style={{ fontWeight: "700", color: "#B983FF" }}>{singersDisplay}</span>
+                        {formatDuration(item.duration) && (
+                          <span style={{ fontWeight: "600", color: "rgba(255,255,255,0.5)" }}>⏱ {formatDuration(item.duration)}</span>
+                        )}
+                        {isMine && estMinutes !== null && (
+                          <span style={{ fontWeight: "800", color: "#FF0080" }}>{t("mobile.yourTurn", "Sua vez em ~{{min}} min", { min: estMinutes })}</span>
+                        )}
                       </div>
                     </div>
                     {(isHost || item.requesterId === myUserId) && (
@@ -1985,6 +2106,48 @@ export default function RoomMobile() {
               </>
             )}
           </div>
+        </div>
+      )}
+
+      {tab === "history" && (
+        <div className="card">
+          <h3>{t("mobile.history", "Tocadas")} ({state?.history?.length ?? 0})</h3>
+          {(state?.history?.length ?? 0) === 0 && (
+            <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "0.9rem" }}>
+              {t("mobile.historyEmpty", "Nada tocado ainda nesta sala.")}
+            </p>
+          )}
+          {(state?.history ?? []).map(item => {
+            const singers = item.singers || [];
+            const singerNames = singers.map(s => typeof s === "string" ? s : s.name);
+            const singersDisplay = singerNames.length > 1 ? singerNames.join(" e ") : singerNames[0] || item.requestedBy;
+            return (
+              <div key={item.id} style={{
+                display: "flex", alignItems: "center", gap: "16px",
+                background: "rgba(255,255,255,0.03)", borderRadius: "16px",
+                padding: "14px 16px", marginBottom: "12px", border: "1px solid rgba(255,255,255,0.05)"
+              }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: "0.95rem", fontWeight: "700", color: "#fff", marginBottom: "4px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    {cleanTitle(item.title)}
+                  </div>
+                  <div style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.4)", display: "flex", alignItems: "center", gap: "8px" }}>
+                    <span style={{ fontWeight: "700", color: "#B983FF" }}>{singersDisplay}</span>
+                    {formatDuration(item.duration) && <span>⏱ {formatDuration(item.duration)}</span>}
+                  </div>
+                </div>
+                <button
+                  onClick={() => handleEncore(item)}
+                  disabled={adding === item.videoId || cooldownRemaining > 0}
+                  title={t("mobile.encore", "Tocar de novo")}
+                  className="glow-pulse"
+                  style={{ padding: "10px 14px", borderRadius: "12px", background: "#FF0080", color: "#fff", border: "none", fontWeight: "700", fontSize: "0.9rem", whiteSpace: "nowrap", opacity: adding === item.videoId ? 0.6 : 1 }}
+                >
+                  {adding === item.videoId ? "..." : t("mobile.encore", "Encore")}
+                </button>
+              </div>
+            );
+          })}
         </div>
       )}
 

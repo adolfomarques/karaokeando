@@ -202,6 +202,7 @@ interface QueueItem {
   requestedBy: string;
   requesterId: string; // ID of the user who added the song
   singers: Singer[]; // All singers with their IDs
+  duration?: number; // seconds (for "time until your turn" estimate)
 }
 
 interface RankingEntry {
@@ -229,6 +230,7 @@ interface RoomState {
   lastEnqueueAtByDevice: Record<string, number>; // deviceFingerprint -> timestamp (anti-abuse)
   lastFinalizeMs: number;
   showingScore: boolean; // true while TV is showing score overlay
+  history: QueueItem[]; // recently played songs (for encore)
 }
 
 interface RoomConnections {
@@ -377,7 +379,9 @@ function getRoomState(room: RoomState) {
       requestedBy: item.requestedBy,
       requesterId: item.requesterId,
       singers: item.singers,
+      duration: item.duration,
     })),
+    history: room.history,
     ranking: rankingForFrontend,
     duetRanking: duetRankingArray,
     showingScore: room.showingScore,
@@ -511,6 +515,7 @@ async function getOrRestoreRoom(roomCode: string): Promise<RoomState | null> {
       lastEnqueueAtByDevice: {},
       lastFinalizeMs: 0,
       showingScore: false,
+      history: [],
     };
     addRoom(code, room);
     connections.set(code, {
@@ -581,6 +586,7 @@ setRoomCallbacks({
         lastEnqueueAtByDevice: {},
         lastFinalizeMs: 0,
         showingScore: false,
+        history: [],
       });
       connections.set(roomCode, {
         tv: new Set(),
@@ -631,6 +637,7 @@ app.post<{
     userId?: string;
     partnerId?: string;
     deviceFingerprint?: string;
+    duration?: number;
   };
 }>("/api/rooms/:roomCode/enqueue", async (req, reply) => {
   const room = await getOrRestoreRoom(req.params.roomCode);
@@ -694,6 +701,7 @@ app.post<{
     requestedBy,
     requesterId: odUserId,
     singers,
+    duration: typeof req.body.duration === "number" && req.body.duration > 0 ? req.body.duration : undefined,
   };
   room.queue.push(item);
   room.lastEnqueueAt[odUserId] = now;
@@ -735,6 +743,12 @@ app.post<{ Params: { roomCode: string }; Body: { userId?: string } }>(
       return reply.code(403).send({ error: "forbidden" });
     }
     touchRoom(req.params.roomCode);
+
+    // Move the finished song into history before starting the next one
+    if (room.nowPlaying) {
+      room.history.unshift(room.nowPlaying);
+      room.history = room.history.slice(0, 15); // keep last 15 played
+    }
 
     room.nowPlaying = room.queue.shift() || null;
     broadcast(room.code, { type: "STATE", state: getRoomState(room) });
@@ -1165,6 +1179,7 @@ interface YouTubeSearchResult {
   channelTitle: string;
   channelId?: string;
   isEmbeddable?: boolean;
+  duration?: number; // seconds
 }
 
 // Check if a YouTube video can be embedded using the free oEmbed API.
@@ -1212,6 +1227,7 @@ async function searchWithInnertube(
           thumbnail: (video as any).thumbnails?.[0]?.url || `https://i.ytimg.com/vi/${video.id}/mqdefault.jpg`,
           channelTitle: (video as any).author?.name || "",
           channelId: (video as any).author?.id || "",
+          duration: typeof (video as any).duration === "number" ? (video as any).duration : undefined,
         });
       }
     }
@@ -1352,6 +1368,7 @@ app.get<{ Querystring: { videoId: string } }>(
         title: info.basic_info.title || "",
         thumbnail: info.basic_info.thumbnail?.[0]?.url || `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`,
         channelTitle: info.basic_info.author || "",
+        duration: typeof info.basic_info.duration === "number" ? info.basic_info.duration : undefined,
       };
 
       // Cache for 1 hour

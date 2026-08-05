@@ -172,7 +172,17 @@
     "sendReaction": "Enviar {{emoji}}",
     "removeFromQueue": "Remover da fila",
     "removeFromLibrary": "Remover da biblioteca",
-    "nameDesc": "Como as outras pessoas verão seu nome na sala e no ranking."
+    "nameDesc": "Como as outras pessoas verão seu nome na sala e no ranking.",
+    "history": "Tocadas",
+    "historyEmpty": "Nada tocado ainda nesta sala.",
+    "yourTurn": "Sua vez em ~{{min}} min",
+    "encore": "Encore",
+    "encoreAdded": "🔁 De volta à fila!",
+    "share": "Convidar amigos",
+    "shareTitle": "Karaoke Factory",
+    "shareText": "Vem cantar comigo no karaokê! Sala {{code}}",
+    "shareCopied": "Link copiado! Envie para seus amigos.",
+    "shareFailed": "Não foi possível compartilhar."
   },
   "tvLogin": {
     "title": "📺 Modo TV",

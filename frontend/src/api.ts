@@ -31,6 +31,7 @@ export interface YouTubeSearchResult {
   thumbnail: string;
   channelTitle: string;
   isEmbeddable?: boolean;
+  duration?: number;
 }
 
 const SEARCH_CACHE_TTL = 30 * 60 * 1000; // 30 minutes
@@ -164,7 +165,8 @@ export async function enqueue(
   partner?: string,
   userId?: string,
   partnerId?: string,
-  deviceFingerprint?: string
+  deviceFingerprint?: string,
+  duration?: number
 ) {
   const res = await fetch(`${API_BASE}/api/rooms/${roomCode}/enqueue`, {
     method: "POST",
@@ -177,9 +179,15 @@ export async function enqueue(
       userId,
       partnerId,
       deviceFingerprint,
+      duration,
     }),
   });
   return res.json();
+}
+
+// Shareable URL to join a room (used for share button and TV QR code)
+export function roomJoinUrl(roomCode: string): string {
+  return `${window.location.origin}/join/${roomCode.toUpperCase()}`;
 }
 
 export async function nextSong(roomCode: string, userId?: string, tvToken?: string | null) {

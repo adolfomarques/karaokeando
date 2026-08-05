@@ -174,7 +174,17 @@
     "sendReaction": "Send {{emoji}}",
     "removeFromQueue": "Remove from queue",
     "removeFromLibrary": "Remove from library",
-    "nameDesc": "How others will see your name in the room and ranking."
+    "nameDesc": "How others will see your name in the room and ranking.",
+    "history": "Played",
+    "historyEmpty": "Nothing has been played in this room yet.",
+    "yourTurn": "Your turn in ~{{min}} min",
+    "encore": "Encore",
+    "encoreAdded": "🔁 Back in the queue!",
+    "share": "Invite friends",
+    "shareTitle": "Karaoke Factory",
+    "shareText": "Come sing with me at karaoke! Room {{code}}",
+    "shareCopied": "Link copied! Send it to your friends.",
+    "shareFailed": "Could not share."
   },
   "tvLogin": {
     "title": "📺 TV Mode",
