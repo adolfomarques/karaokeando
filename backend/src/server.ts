@@ -45,6 +45,12 @@ initYoutube();
 
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours persistent cache
 
+// In-memory search cache (hot queries): TTL 10 min, max 200 entries.
+// Faster than the DB cache and survives the concurrency limiter queue.
+const SEARCH_MEM_TTL = 10 * 60 * 1000;
+const SEARCH_MEM_MAX = 200;
+const searchMemCache = new Map<string, { data: YouTubeSearchResult[]; expiresAt: number }>();
+
 // In-flight deduplication: same query that's still in progress shares one Promise
 const inFlightSearches = new Map<string, Promise<YouTubeSearchResult[]>>();
 
@@ -1197,15 +1203,19 @@ function parseDurationText(value: unknown): number | undefined {
 
 // Check if a YouTube video can be embedded using the free oEmbed API.
 // Returns true if embeddable, false otherwise. Never throws.
+// Results are cached in memory (24h) so repeated songs skip the network call.
+const EMBED_CACHE_TTL = 24 * 60 * 60 * 1000;
+const embedCache = new Map<string, { embeddable: boolean; expiresAt: number }>();
 async function checkEmbeddable(videoId: string): Promise<boolean> {
+  const cached = embedCache.get(videoId);
+  if (cached && Date.now() < cached.expiresAt) return cached.embeddable;
   const url = `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`;
   try {
     const res = await fetch(url, { method: "HEAD", signal: AbortSignal.timeout(2000) });
-    if (!res.ok) {
-      console.log(`[embed-check] Video ${videoId} BLOCKED (Status ${res.status})`);
-      return false;
-    }
-    return true;
+    const embeddable = res.ok;
+    embedCache.set(videoId, { embeddable, expiresAt: Date.now() + EMBED_CACHE_TTL });
+    if (!embeddable) console.log(`[embed-check] Video ${videoId} BLOCKED (Status ${res.status})`);
+    return embeddable;
   } catch (err) {
     console.warn(`[embed-check] Network error for ${videoId}, assuming embeddable`, err);
     return true; // assume embeddable on network error to avoid hiding results
@@ -1258,13 +1268,21 @@ async function searchWithInnertube(
     // Filter blocked and check embeddability
     const filteredResults = results.filter(r => !r.channelId || !blockedIds.has(r.channelId));
     
-    // oEmbed check still needed for strict licensing/embed policy verification
-    const embeddableFlags = await Promise.all(filteredResults.map(r => checkEmbeddable(r.videoId)));
+    // oEmbed check still needed for strict licensing/embed policy verification.
+    // Check a bit more than needed (15) so blocking some still yields 12; embedCache makes repeats free.
+    const embeddableFlags = await Promise.all(filteredResults.slice(0, 15).map(r => checkEmbeddable(r.videoId)));
 
-    const final = filteredResults.map((r, i) => ({
+    const final = filteredResults.slice(0, 15).map((r, i) => ({
       ...r,
       isEmbeddable: embeddableFlags[i],
     })).filter(r => r.isEmbeddable === true).slice(0, 12);
+
+    // Store in in-memory cache for instant repeat lookups
+    searchMemCache.set(cacheKey, { data: final, expiresAt: Date.now() + SEARCH_MEM_TTL });
+    if (searchMemCache.size > SEARCH_MEM_MAX) {
+      const oldest = searchMemCache.keys().next().value;
+      if (oldest) searchMemCache.delete(oldest);
+    }
 
     // Store in DB cache before returning (ignoring errors)
     try {
@@ -1313,6 +1331,14 @@ app.get<{ Querystring: { q: string; userId?: string; roomCode?: string } }>(
 
     const searchTerm = query + " karaoke";
     const cacheKey = searchTerm.toLowerCase();
+
+    // 0) In-memory cache hit → fastest path (no DB, no YouTube)
+    const memHit = searchMemCache.get(cacheKey);
+    if (memHit && Date.now() < memHit.expiresAt) {
+      console.log(`[search] MEM CACHE HIT: "${query}"`);
+      reply.header("Cache-Control", `public, max-age=600, stale-while-revalidate=60`);
+      return memHit.data.filter(r => r.isEmbeddable === true);
+    }
 
     // 1) DB Cache hit → check persistent storage
     try {
