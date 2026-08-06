@@ -2299,7 +2299,7 @@ export default function RoomMobile() {
             key={emoji} onClick={() => sendReaction(emoji)}
             aria-label={t("mobile.sendReaction", { emoji })}
             style={{
-              width: "48px", height: "48px", borderRadius: "50%", fontSize: "22px",
+              width: "48px", height: "48px", padding: "0", borderRadius: "50%", fontSize: "22px",
               background: "rgba(255,255,255,0.05)", border: "none",
               display: "flex", alignItems: "center", justifyContent: "center",
               transition: "transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275)"
@@ -2321,7 +2321,7 @@ export default function RoomMobile() {
           aria-label={t("mobile.moreReactions", "Mais reações")}
           title={t("mobile.moreReactions", "Mais reações")}
           style={{
-            width: "48px", height: "48px", borderRadius: "50%", fontSize: "22px",
+            width: "48px", height: "48px", padding: "0", borderRadius: "50%", fontSize: "22px",
             background: "rgba(255,255,255,0.05)", border: "1px dashed rgba(255,255,255,0.25)",
             display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: "700",
             transition: "transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275)"
@@ -2361,7 +2361,7 @@ export default function RoomMobile() {
               <button
                 onClick={() => setShowEmojiPicker(false)}
                 aria-label={t("common.close", "Fechar")}
-                style={{ background: "rgba(255,255,255,0.1)", border: "none", color: "#fff", width: "32px", height: "32px", borderRadius: "50%", fontSize: "16px", display: "flex", alignItems: "center", justifyContent: "center" }}
+                style={{ background: "rgba(255,255,255,0.1)", border: "none", color: "#fff", width: "32px", height: "32px", padding: "0", borderRadius: "50%", fontSize: "16px", display: "flex", alignItems: "center", justifyContent: "center" }}
               >
                 ✕
               </button>
@@ -2373,7 +2373,7 @@ export default function RoomMobile() {
                   onClick={() => { sendReaction(emoji); setShowEmojiPicker(false); }}
                   aria-label={t("mobile.sendReaction", { emoji })}
                   style={{
-                    width: "52px", height: "52px", fontSize: "26px", border: "none", borderRadius: "12px",
+                    width: "52px", height: "52px", padding: "0", fontSize: "26px", border: "none", borderRadius: "12px",
                     background: "rgba(255,255,255,0.04)", display: "flex", alignItems: "center", justifyContent: "center",
                     transition: "background 0.15s ease, transform 0.1s ease"
                   }}
