@@ -12,7 +12,8 @@
     "waitAction": "Aguarde",
     "backToHome": "← Voltar ao início",
     "welcome": "Olá",
-    "and": "e"
+    "and": "e",
+    "close": "Fechar"
   },
   "home": {
     "title": "KARAOKE FACTORY",
@@ -182,7 +183,9 @@
     "shareTitle": "Karaoke Factory",
     "shareText": "Vem cantar comigo no karaokê! Sala {{code}}",
     "shareCopied": "Link copiado! Envie para seus amigos.",
-    "shareFailed": "Não foi possível compartilhar."
+    "shareFailed": "Não foi possível compartilhar.",
+    "moreReactions": "Mais reações",
+    "pickReaction": "Escolha um emoji"
   },
   "tvLogin": {
     "title": "📺 Modo TV",

@@ -80,6 +80,11 @@ function formatDuration(seconds?: number): string {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
+// Extra emojis available through the "+" reaction picker
+const EXTRA_REACTIONS = [
+  "❤️","👍","🎉","🥳","🤩","😍","👑","💖","🫶","✌️","🤘","🎶","🎵","🎸","🎷","🥁","🎺","🎹","💃","🕺","🤣","😅","🙌","😎","🤠","🥰","😢","😭","💯","⭐","🌟","✨","💪","🤝","👋","🙏","😜","🤪","😇","🥺","🫡","🤯","😱","😈","💀","👻","🤖","🎭","🕶️","🎊","🎁","🍾","🥂","🍻","🍺","🎧","🎼","📢","💥","⚡","🌈","☀️","🦄","🐻","🦖","🌹","🌺","🌸","💫","🕊️","💜","💙","💚","🧡","💛","🩷","🖤","🤍","🏆","🥇","🥈","🥉","🎖️","🚀","⭐","🫶","😤","🤗","🫠","🥲","😳","🫣","🤔","😴","🥱","🤒","🩹","👀","👅","🫦","👍🏽","👌","🤙","👊","✊","🖐️","🤲","💅","🪩","🪅","🪇","🪗","🎺","🪕","🎻","🎤","🎫","🕹️","🎮","👾","🎱","⚽","🏀","🏈","⚾","🥎","🏐","🏉","🎳","🏓","🏸","⛳","⛸️","🛼","🛹","🎿","🏂","🏄","🏊","🚴","🧗","🤸","🧘","🏃","💨","🫧","🌊","🔥"
+];
+
 // Icon components
 const IconTrash = ({ size = 16 }: { size?: number }) => (
   <svg
@@ -489,6 +494,8 @@ export default function RoomMobile() {
 
   // Floating emojis were removed from mobile (they are now exclusive to TV).
   // The sender gets a small local burst as feedback that the reaction was sent.
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+
   const sendReaction = (emoji: string) => {
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       wsRef.current.send(
@@ -2309,7 +2316,77 @@ export default function RoomMobile() {
             {emoji}
           </button>
         ))}
+        <button
+          key="more" onClick={() => setShowEmojiPicker(true)}
+          aria-label={t("mobile.moreReactions", "Mais reações")}
+          title={t("mobile.moreReactions", "Mais reações")}
+          style={{
+            width: "48px", height: "48px", borderRadius: "50%", fontSize: "22px",
+            background: "rgba(255,255,255,0.05)", border: "1px dashed rgba(255,255,255,0.25)",
+            display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: "700",
+            transition: "transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275)"
+          }}
+          onPointerDown={e => (e.currentTarget.style.transform = "scale(0.85)")}
+          onPointerUp={e => { e.currentTarget.style.transform = "scale(1.15)"; setTimeout(() => { e.currentTarget.style.transform = "scale(1)"; }, 150); }}
+          onPointerCancel={e => (e.currentTarget.style.transform = "scale(1)")}
+          onPointerLeave={e => (e.currentTarget.style.transform = "scale(1)")}
+        >
+          +
+        </button>
       </div>
+      )}
+
+      {/* Emoji picker modal */}
+      {showEmojiPicker && (
+        <div
+          onClick={() => setShowEmojiPicker(false)}
+          style={{
+            position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", backdropFilter: "blur(10px)",
+            WebkitBackdropFilter: "blur(10px)", display: "flex", alignItems: "flex-end", justifyContent: "center", zIndex: 3000,
+            animation: "fadeIn 0.25s ease-out",
+          }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            className="glass-card"
+            style={{
+              padding: "24px", width: "100%", maxWidth: "420px", maxHeight: "70vh", display: "flex", flexDirection: "column",
+              borderBottomLeftRadius: 0, borderBottomRightRadius: 0, animation: "fadeInUp 0.35s cubic-bezier(0.22,1,0.36,1)"
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
+              <span style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.8rem", fontWeight: "900", letterSpacing: "1px", textTransform: "uppercase" }}>
+                {t("mobile.pickReaction", "Escolha um emoji")}
+              </span>
+              <button
+                onClick={() => setShowEmojiPicker(false)}
+                aria-label={t("common.close", "Fechar")}
+                style={{ background: "rgba(255,255,255,0.1)", border: "none", color: "#fff", width: "32px", height: "32px", borderRadius: "50%", fontSize: "16px", display: "flex", alignItems: "center", justifyContent: "center" }}
+              >
+                ✕
+              </button>
+            </div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "4px", overflowY: "auto" }}>
+              {EXTRA_REACTIONS.map(emoji => (
+                <button
+                  key={emoji}
+                  onClick={() => { sendReaction(emoji); setShowEmojiPicker(false); }}
+                  aria-label={t("mobile.sendReaction", { emoji })}
+                  style={{
+                    width: "52px", height: "52px", fontSize: "26px", border: "none", borderRadius: "12px",
+                    background: "rgba(255,255,255,0.04)", display: "flex", alignItems: "center", justifyContent: "center",
+                    transition: "background 0.15s ease, transform 0.1s ease"
+                  }}
+                  onPointerDown={e => (e.currentTarget.style.transform = "scale(0.9)")}
+                  onPointerUp={e => { e.currentTarget.style.transform = "scale(1.1)"; setTimeout(() => { e.currentTarget.style.transform = "scale(1)"; }, 150); }}
+                  onPointerLeave={e => (e.currentTarget.style.transform = "scale(1)")}
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

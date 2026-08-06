@@ -12,7 +12,8 @@
     "waitAction": "Wait",
     "backToHome": "← Back to home",
     "welcome": "Welcome",
-    "and": "and"
+    "and": "and",
+    "close": "Close"
   },
   "home": {
     "title": "KARAOKE FACTORY",
@@ -184,7 +185,9 @@
     "shareTitle": "Karaoke Factory",
     "shareText": "Come sing with me at karaoke! Room {{code}}",
     "shareCopied": "Link copied! Send it to your friends.",
-    "shareFailed": "Could not share."
+    "shareFailed": "Could not share.",
+    "moreReactions": "More reactions",
+    "pickReaction": "Pick an emoji"
   },
   "tvLogin": {
     "title": "📺 TV Mode",
