@@ -839,7 +839,8 @@ export default function RoomTV() {
 
     // Polling fallback to maintain state if WebSocket fails
     const pollInterval = setInterval(() => {
-      if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+      const wsState = wsRef.current?.readyState;
+      if (!wsRef.current || wsState !== WebSocket.OPEN) {
         getState(code)
           .then(s => {
             if (s && !s.error && !finalized) {
@@ -851,6 +852,13 @@ export default function RoomTV() {
             }
           })
           .catch(() => { });
+
+        // Auto-reconnect: if the WS is truly closed, force a fresh WS.
+        // Otherwise reactions (emoji) never arrive while the TV keeps
+        // looking alive via the HTTP polling above.
+        if (!wsRef.current || wsState === WebSocket.CLOSED || wsState === WebSocket.CLOSING) {
+          setReconnectKey(prev => prev + 1);
+        }
       }
     }, 5000);
 

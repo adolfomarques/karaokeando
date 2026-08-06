@@ -700,7 +700,8 @@ export default function RoomMobile() {
 
     // Polling fallback: if WS is dead, keep state updated via HTTP
     const pollInterval = setInterval(() => {
-      if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+      const wsState = wsRef.current?.readyState;
+      if (!wsRef.current || wsState !== WebSocket.OPEN) {
         getState(code)
           .then(s => {
             if (s && !s.error) setState(s);
@@ -712,6 +713,13 @@ export default function RoomMobile() {
             if (data.participants) setParticipants(data.participants);
           })
           .catch(() => { });
+
+        // Auto-reconnect: if the WS is truly closed, force a fresh WS.
+        // Without this, reactions and live updates silently stop while the
+        // room keeps looking alive via the HTTP polling above.
+        if (!wsRef.current || wsState === WebSocket.CLOSED || wsState === WebSocket.CLOSING) {
+          setReconnectKey(prev => prev + 1);
+        }
       }
     }, 10000); // 10s fallback
 
