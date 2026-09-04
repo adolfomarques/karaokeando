@@ -730,16 +730,18 @@ export default function RoomMobile() {
             showToast(t("mobile.nicknameAssigned", { nickname: m.nickname }), 5000);
           }
         } else if (m.type === "ERROR" && m.error === "room_not_found") {
-          // Double-check via HTTP before locking screen in case of temporary reconnect race
+          // If we are already in the room, don't kill the session, just attempt background refresh
           getState(code).then(s => {
             if (s && !s.error) {
               setState(s);
               setError(null);
-            } else {
+            } else if (!state) {
               setError(t("home.roomNotFound", "Room not found. Check the code."));
             }
           }).catch(() => {
-            setError(t("home.roomNotFound", "Room not found. Check the code."));
+            if (!state) {
+              setError(t("home.roomNotFound", "Room not found. Check the code."));
+            }
           });
         } else if (m.type === "ERROR" && m.error === "duplicate_name") {
           setError(
@@ -1090,8 +1092,8 @@ export default function RoomMobile() {
     );
   }
 
-  // Show error screen for room_not_found
-  if (error) {
+  // Show error screen ONLY if room state was never loaded
+  if (error && !state) {
     return (
       <div style={{ minHeight: "100vh", background: "#0A0A0A", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px" }}>
         <div className="glass-card" style={{ padding: "40px", textAlign: "center", maxWidth: "400px" }}>
@@ -1154,6 +1156,27 @@ export default function RoomMobile() {
       position: "relative",
       overflowX: "hidden"
     }}>
+      {/* Floating reconnecting banner if connection blipped while user was active */}
+      {error && state && (
+        <div style={{
+          position: "fixed", top: 12, left: "50%", transform: "translateX(-50%)",
+          zIndex: 9999, background: "rgba(220, 38, 38, 0.95)", color: "#fff",
+          padding: "8px 18px", borderRadius: 24, fontSize: "13px", fontWeight: 700,
+          display: "flex", alignItems: "center", gap: 10, backdropFilter: "blur(8px)",
+          boxShadow: "0 4px 20px rgba(0,0,0,0.6)"
+        }}>
+          <span>⚠️ {t("mobile.reconnecting", "Reconectando à sala...")}</span>
+          <button
+            onClick={() => {
+              setError(null);
+              setReconnectKey(k => k + 1);
+            }}
+            style={{ background: "none", border: "none", color: "#fff", textDecoration: "underline", cursor: "pointer", fontSize: "13px", fontWeight: 800 }}
+          >
+            {t("common.tryAgain", "Tentar agora")}
+          </button>
+        </div>
+      )}
       {/* Animated Blobs for depth */}
       <div className="blob blob-1" style={{ top: "10%", left: "5%" }}></div>
       <div className="blob blob-2" style={{ bottom: "20%", right: "10%" }}></div>

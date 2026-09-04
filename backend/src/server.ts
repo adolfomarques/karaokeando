@@ -501,37 +501,42 @@ async function getOrRestoreRoom(roomCode: string): Promise<RoomState | null> {
   let room = rooms.get(code);
 
   if (!room) {
-    // Check database
-    const dbRoom = await prisma.room.findUnique({
-      where: { code },
-    });
+    try {
+      // Check database
+      const dbRoom = await prisma.room.findUnique({
+        where: { code },
+      });
 
-    if (!dbRoom) return null;
+      if (!dbRoom) return null;
 
-    // Restore room in memory
-    room = {
-      code: dbRoom.code,
-      createdAt: dbRoom.createdAt.getTime(),
-      lastActivityAt: Date.now(),
-      nowPlaying: null,
-      queue: [],
-      ranking: {},
-      duetRanking: {},
-      currentSongScores: {},
-      ownerId: dbRoom.ownerId,
-      lastEnqueueAt: {},
-      lastEnqueueAtByDevice: {},
-      lastFinalizeMs: 0,
-      showingScore: false,
-      history: [],
-    };
-    addRoom(code, room);
-    connections.set(code, {
-      tv: new Set(),
-      mobile: new Set(),
-      participants: new Map(),
-      recentParticipants: new Map(),
-    });
+      // Restore room in memory
+      room = {
+        code: dbRoom.code,
+        createdAt: dbRoom.createdAt.getTime(),
+        lastActivityAt: Date.now(),
+        nowPlaying: null,
+        queue: [],
+        ranking: {},
+        duetRanking: {},
+        currentSongScores: {},
+        ownerId: dbRoom.ownerId,
+        lastEnqueueAt: {},
+        lastEnqueueAtByDevice: {},
+        lastFinalizeMs: 0,
+        showingScore: false,
+        history: [],
+      };
+      addRoom(code, room);
+      connections.set(code, {
+        tv: new Set(),
+        mobile: new Set(),
+        participants: new Map(),
+        recentParticipants: new Map(),
+      });
+    } catch (err) {
+      console.error(`[DB] Error looking up room ${code}:`, err);
+      return rooms.get(code) || null;
+    }
   }
 
   return room;

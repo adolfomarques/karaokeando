@@ -1003,7 +1003,8 @@ export default function RoomTV() {
     );
   }
 
-  if (error) {
+  // Only show full error screen if room was never loaded
+  if (error && !state) {
     return (
       <div
         className="container"
@@ -1104,6 +1105,18 @@ export default function RoomTV() {
         backgroundColor: "#000",
       }}
     >
+      {/* Floating reconnecting banner if connection blipped while TV was active */}
+      {error && state && (
+        <div style={{
+          position: "fixed", top: 20, right: 20, zIndex: 9999,
+          background: "rgba(220, 38, 38, 0.95)", color: "#fff",
+          padding: "8px 18px", borderRadius: 12, fontSize: "14px", fontWeight: 700,
+          boxShadow: "0 4px 20px rgba(0,0,0,0.6)"
+        }}>
+          ⚠️ Reconectando à sala...
+        </div>
+      )}
+
       {/* Overlay inicial para interação (Browsers bloqueiam autoplay) */}
       {!hasInteracted && (
         <div
