@@ -231,6 +231,7 @@ interface RoomState {
   queue: QueueItem[];
   ranking: Record<string, RankingEntry | number>; // odUserId -> { name, score } OR old format name -> score
   duetRanking?: Record<string, DuetRankingEntry>; // "id1|id2" -> { names, score, count }
+  currentSongScores?: Record<string, number>; // userId -> nota dada (0 a 100)
   ownerId: string; // The user who created the room
   lastEnqueueAt: Record<string, number>; // userId -> timestamp of last successful enqueue
   lastEnqueueAtByDevice: Record<string, number>; // deviceFingerprint -> timestamp (anti-abuse)
@@ -516,6 +517,7 @@ async function getOrRestoreRoom(roomCode: string): Promise<RoomState | null> {
       queue: [],
       ranking: {},
       duetRanking: {},
+      currentSongScores: {},
       ownerId: dbRoom.ownerId,
       lastEnqueueAt: {},
       lastEnqueueAtByDevice: {},
@@ -756,6 +758,9 @@ app.post<{ Params: { roomCode: string }; Body: { userId?: string } }>(
       room.history = room.history.slice(0, 15); // keep last 15 played
     }
 
+    // Reset scores for the next song
+    room.currentSongScores = {};
+
     room.nowPlaying = room.queue.shift() || null;
     broadcast(room.code, { type: "STATE", state: getRoomState(room) });
 
@@ -943,7 +948,19 @@ app.post<{ Params: { roomCode: string }; Body: { requester?: string; userId?: st
     const singers: Singer[] = room.nowPlaying.singers || [
       { id: `anon_${randomId()}`, name: room.nowPlaying.requestedBy },
     ];
-    const score = biasedPartyScore();
+    
+    // Calculate crowd-sourced score
+    let score = 0;
+    const crowdScores = room.currentSongScores ? Object.values(room.currentSongScores) : [];
+    if (crowdScores.length > 0) {
+      const sum = crowdScores.reduce((a, b) => a + b, 0);
+      score = Math.round(sum / crowdScores.length);
+    } else {
+      score = biasedPartyScore(); // fallback if nobody voted
+    }
+
+    // Clean up scores for the next song
+    room.currentSongScores = {};
 
     // Give points to ALL singers (individual ranking)
     for (const singer of singers) {
@@ -1765,6 +1782,12 @@ app.get<{ Params: { roomCode: string } }>(
             name: msg.name || name || "Convidado",
             userId: odUserId
           });
+        } else if (msg.type === "SUBMIT_SCORE") {
+          touchRoom(roomCode);
+          if (odUserId && typeof msg.score === "number") {
+            if (!room.currentSongScores) room.currentSongScores = {};
+            room.currentSongScores[odUserId] = msg.score;
+          }
         } else {
           socket.send(JSON.stringify({ type: "ACK" }));
         }

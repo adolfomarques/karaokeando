@@ -185,7 +185,10 @@
     "shareCopied": "Link copiado! Envie para seus amigos.",
     "shareFailed": "Não foi possível compartilhar.",
     "moreReactions": "Mais reações",
-    "pickReaction": "Escolha um emoji"
+    "pickReaction": "Escolha um emoji",
+    "rateSinger": "Avaliar Cantor",
+    "rateDescription": "Dê uma nota para a performance atual:",
+    "scoreSent": "Nota enviada!"
   },
   "tvLogin": {
     "title": "📺 Modo TV",

@@ -187,7 +187,10 @@
     "shareCopied": "Link copied! Send it to your friends.",
     "shareFailed": "Could not share.",
     "moreReactions": "More reactions",
-    "pickReaction": "Pick an emoji"
+    "pickReaction": "Pick an emoji",
+    "rateSinger": "Rate Singer",
+    "rateDescription": "Give a score for the current performance:",
+    "scoreSent": "Score sent!"
   },
   "tvLogin": {
     "title": "📺 TV Mode",

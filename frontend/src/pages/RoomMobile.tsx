@@ -513,6 +513,23 @@ export default function RoomMobile() {
     setTimeout(() => setReactionBursts(prev => prev.filter(b => b.id !== id)), 1000);
   };
 
+  const [showRatingModal, setShowRatingModal] = useState(false);
+
+  const sendScore = (stars: number) => {
+    const score = stars * 20; // 1 to 5 stars mapped to 20 to 100 points
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(
+        JSON.stringify({
+          type: "SUBMIT_SCORE",
+          score,
+          userId: myUserId
+        })
+      );
+    }
+    toast.success(t("mobile.scoreSent", "Nota enviada!"));
+    setShowRatingModal(false);
+  };
+
   // Share the room invite via native share sheet (WhatsApp, Messenger, etc.)
   const shareRoom = async () => {
     if (!code) return;
@@ -2294,10 +2311,17 @@ export default function RoomMobile() {
             {b.emoji}
           </span>
         ))}
-        {["👏", "🎤", "🔥", "😂"].map(emoji => (
+        {["👏", "🎤", "🔥", "⭐"].map(emoji => (
           <button
-            key={emoji} onClick={() => sendReaction(emoji)}
-            aria-label={t("mobile.sendReaction", { emoji })}
+            key={emoji} 
+            onClick={() => {
+              if (emoji === "⭐") {
+                setShowRatingModal(true);
+              } else {
+                sendReaction(emoji);
+              }
+            }}
+            aria-label={emoji === "⭐" ? t("mobile.rateSinger", "Avaliar Cantor") : t("mobile.sendReaction", { emoji })}
             style={{
               width: "48px", height: "48px", padding: "0", borderRadius: "50%", fontSize: "22px",
               background: "rgba(255,255,255,0.05)", border: "none",
@@ -2334,6 +2358,61 @@ export default function RoomMobile() {
           +
         </button>
       </div>
+      )}
+
+      {/* Rating picker modal */}
+      {showRatingModal && (
+        <div
+          onClick={() => setShowRatingModal(false)}
+          style={{
+            position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", backdropFilter: "blur(10px)",
+            WebkitBackdropFilter: "blur(10px)", display: "flex", alignItems: "flex-end", justifyContent: "center", zIndex: 3000,
+            animation: "fadeIn 0.25s ease-out",
+          }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              background: "#18181b", width: "100%", borderTopLeftRadius: "24px", borderTopRightRadius: "24px",
+              padding: "24px", paddingBottom: "max(24px, env(safe-area-inset-bottom))",
+              animation: "slideUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+              borderTop: "1px solid rgba(255,255,255,0.1)", textAlign: "center"
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
+              <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "700", color: "#fff" }}>
+                {t("mobile.rateSinger", "Avaliar Cantor")}
+              </h3>
+              <button
+                onClick={() => setShowRatingModal(false)}
+                style={{ background: "none", border: "none", color: "rgba(255,255,255,0.5)", fontSize: "28px", padding: "0 8px", cursor: "pointer" }}
+              >
+                &times;
+              </button>
+            </div>
+            
+            <p style={{ color: "rgba(255,255,255,0.7)", marginBottom: "24px" }}>
+              {t("mobile.rateDescription", "Dê uma nota para a performance atual:")}
+            </p>
+
+            <div style={{ display: "flex", justifyContent: "center", gap: "12px", marginBottom: "24px" }}>
+              {[1, 2, 3, 4, 5].map(star => (
+                <button
+                  key={star}
+                  onClick={() => sendScore(star)}
+                  style={{
+                    background: "none", border: "none", padding: "0", fontSize: "40px", cursor: "pointer",
+                    transition: "transform 0.1s"
+                  }}
+                  onPointerDown={e => (e.currentTarget.style.transform = "scale(0.85)")}
+                  onPointerUp={e => (e.currentTarget.style.transform = "scale(1)")}
+                >
+                  ⭐
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Emoji picker modal */}
