@@ -1673,7 +1673,7 @@ export default function RoomMobile() {
                       >
                         <img
                           src={`https://i.ytimg.com/vi/${song.videoId}/default.jpg`}
-                          alt=""
+                          alt="Thumbnail"
                           style={{
                             width: 112,
                             height: 84,
@@ -1855,7 +1855,7 @@ export default function RoomMobile() {
                       <div style={{ position: "relative", flexShrink: 0 }}>
                         <img
                           src={result.thumbnail}
-                          alt=""
+                          alt="Thumbnail"
                           style={{
                             width: 112,
                             height: 84,
