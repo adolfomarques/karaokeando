@@ -514,8 +514,10 @@ export default function RoomMobile() {
   };
 
   const [showRatingModal, setShowRatingModal] = useState(false);
+  const [selectedStar, setSelectedStar] = useState<number | null>(null);
 
   const sendScore = (stars: number) => {
+    setSelectedStar(stars);
     const score = stars * 20; // 1 to 5 stars mapped to 20 to 100 points
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       wsRef.current.send(
@@ -527,7 +529,13 @@ export default function RoomMobile() {
       );
     }
     toast.success(t("mobile.scoreSent", "Nota enviada!"));
-    setShowRatingModal(false);
+    
+    // Wait for the fill animation before closing
+    setTimeout(() => {
+      setShowRatingModal(false);
+      // Reset selected star after modal closes
+      setTimeout(() => setSelectedStar(null), 300);
+    }, 800);
   };
 
   // Share the room invite via native share sheet (WhatsApp, Messenger, etc.)
@@ -2311,7 +2319,7 @@ export default function RoomMobile() {
             {b.emoji}
           </span>
         ))}
-        {["👏", "🎤", "🔥", "⭐"].map(emoji => (
+        {["⭐", "👏", "🎤", "🔥"].map(emoji => (
           <button
             key={emoji} 
             onClick={() => {
@@ -2365,51 +2373,73 @@ export default function RoomMobile() {
         <div
           onClick={() => setShowRatingModal(false)}
           style={{
-            position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", backdropFilter: "blur(10px)",
-            WebkitBackdropFilter: "blur(10px)", display: "flex", alignItems: "flex-end", justifyContent: "center", zIndex: 3000,
+            position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)", display: "flex", alignItems: "flex-end", justifyContent: "center", zIndex: 3000,
             animation: "fadeIn 0.25s ease-out",
           }}
         >
           <div
             onClick={e => e.stopPropagation()}
             style={{
-              background: "#18181b", width: "100%", borderTopLeftRadius: "24px", borderTopRightRadius: "24px",
-              padding: "24px", paddingBottom: "max(24px, env(safe-area-inset-bottom))",
-              animation: "slideUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
-              borderTop: "1px solid rgba(255,255,255,0.1)", textAlign: "center"
+              background: "linear-gradient(180deg, #1f1f22 0%, #121214 100%)", width: "100%", 
+              borderTopLeftRadius: "32px", borderTopRightRadius: "32px",
+              padding: "32px 24px", paddingBottom: "max(32px, env(safe-area-inset-bottom))",
+              animation: "slideUp 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+              borderTop: "1px solid rgba(255,255,255,0.08)",
+              boxShadow: "0 -10px 40px rgba(0,0,0,0.5)",
+              textAlign: "center"
             }}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
-              <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "700", color: "#fff" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+              <h3 style={{ margin: 0, fontSize: "20px", fontWeight: "800", color: "#fff", letterSpacing: "-0.02em" }}>
                 {t("mobile.rateSinger", "Avaliar Cantor")}
               </h3>
               <button
                 onClick={() => setShowRatingModal(false)}
-                style={{ background: "none", border: "none", color: "rgba(255,255,255,0.5)", fontSize: "28px", padding: "0 8px", cursor: "pointer" }}
+                style={{ background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontSize: "28px", padding: "0 8px", cursor: "pointer" }}
               >
                 &times;
               </button>
             </div>
             
-            <p style={{ color: "rgba(255,255,255,0.7)", marginBottom: "24px" }}>
+            <p style={{ color: "rgba(255,255,255,0.6)", fontSize: "15px", marginBottom: "32px", lineHeight: 1.5 }}>
               {t("mobile.rateDescription", "Dê uma nota para a performance atual:")}
             </p>
 
-            <div style={{ display: "flex", justifyContent: "center", gap: "12px", marginBottom: "24px" }}>
-              {[1, 2, 3, 4, 5].map(star => (
-                <button
-                  key={star}
-                  onClick={() => sendScore(star)}
-                  style={{
-                    background: "none", border: "none", padding: "0", fontSize: "40px", cursor: "pointer",
-                    transition: "transform 0.1s"
-                  }}
-                  onPointerDown={e => (e.currentTarget.style.transform = "scale(0.85)")}
-                  onPointerUp={e => (e.currentTarget.style.transform = "scale(1)")}
-                >
-                  ⭐
-                </button>
-              ))}
+            <div style={{ display: "flex", justifyContent: "center", gap: "16px", marginBottom: "24px" }}>
+              {[1, 2, 3, 4, 5].map(star => {
+                const isActive = selectedStar !== null && star <= selectedStar;
+                return (
+                  <button
+                    key={star}
+                    onClick={() => sendScore(star)}
+                    style={{
+                      background: "none", border: "none", padding: "0", cursor: "pointer",
+                      outline: "none", WebkitTapHighlightColor: "transparent",
+                      transition: "transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1)",
+                      transform: isActive ? "scale(1.15)" : "scale(1)",
+                    }}
+                    onPointerDown={e => (e.currentTarget.style.transform = "scale(0.85)")}
+                    onPointerUp={e => (e.currentTarget.style.transform = isActive ? "scale(1.15)" : "scale(1)")}
+                    onPointerCancel={e => (e.currentTarget.style.transform = isActive ? "scale(1.15)" : "scale(1)")}
+                  >
+                    <svg 
+                      width="44" height="44" viewBox="0 0 24 24" 
+                      fill={isActive ? "#facc15" : "none"} 
+                      stroke={isActive ? "#facc15" : "rgba(255,255,255,0.15)"} 
+                      strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+                      style={{
+                        transition: "all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+                        transitionDelay: isActive ? `${star * 50}ms` : "0ms",
+                        filter: isActive ? "drop-shadow(0 0 12px rgba(250,204,21,0.6))" : "none",
+                        transform: isActive ? "rotate(0deg)" : "rotate(-5deg)",
+                      }}
+                    >
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                    </svg>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
