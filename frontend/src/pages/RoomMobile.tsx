@@ -80,10 +80,44 @@ function formatDuration(seconds?: number): string {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
-// Extra emojis available through the "+" reaction picker
-const EXTRA_REACTIONS = [
-  "❤️","👍","🎉","🥳","🤩","😍","👑","💖","🫶","✌️","🤘","🎶","🎵","🎸","🎷","🥁","🎺","🎹","💃","🕺","🤣","😅","🙌","😎","🤠","🥰","😢","😭","💯","⭐","🌟","✨","💪","🤝","👋","🙏","😜","🤪","😇","🥺","🫡","🤯","😱","😈","💀","👻","🤖","🎭","🕶️","🎊","🎁","🍾","🥂","🍻","🍺","🎧","🎼","📢","💥","⚡","🌈","☀️","🦄","🐻","🦖","🌹","🌺","🌸","💫","🕊️","💜","💙","💚","🧡","💛","🩷","🖤","🤍","🏆","🥇","🥈","🥉","🎖️","🚀","⭐","🫶","😤","🤗","🫠","🥲","😳","🫣","🤔","😴","🥱","🤒","🩹","👀","👅","🫦","👍🏽","👌","🤙","👊","✊","🖐️","🤲","💅","🪩","🪅","🪇","🪗","🎺","🪕","🎻","🎤","🎫","🕹️","🎮","👾","🎱","⚽","🏀","🏈","⚾","🥎","🏐","🏉","🎳","🏓","🏸","⛳","⛸️","🛼","🛹","🎿","🏂","🏄","🏊","🚴","🧗","🤸","🧘","🏃","💨","🫧","🌊","🔥"
-];
+// Categorized reactions for the mobile emoji picker
+const EMOJI_CATEGORIES = [
+  { id: "all", label: "Tudo", icon: "✨" },
+  { id: "party", label: "Festa", icon: "🔥" },
+  { id: "music", label: "Música", icon: "🎤" },
+  { id: "cheer", label: "Torcida", icon: "❤️" },
+  { id: "fun", label: "Humor", icon: "😂" }
+] as const;
+
+type EmojiCategory = (typeof EMOJI_CATEGORIES)[number]["id"];
+
+const CATEGORIZED_EMOJIS: Record<EmojiCategory, string[]> = {
+  all: [
+    "🔥", "👏", "🎤", "⭐", "❤️", "🎉", "🥳", "🤩", "😍", "👑",
+    "💖", "🫶", "✌️", "🤘", "🎶", "🎵", "🎸", "🎷", "🥁", "🎺",
+    "🎹", "💃", "🕺", "🤣", "😅", "🙌", "😎", "🤠", "🥰", "😭",
+    "💯", "🌟", "✨", "💪", "🤝", "👋", "🙏", "😜", "🤪", "🤯",
+    "😱", "😈", "💀", "👻", "🤖", "🎭", "🕶️", "🎊", "🍾", "🥂",
+    "🍻", "💥", "⚡", "🌈", "☀️", "🦄", "🌹", "💫", "🏆", "🥇",
+    "🚀", "🫠", "👀", "🪩", "🎮", "🌊"
+  ],
+  party: [
+    "🔥", "🎉", "🥳", "🎊", "🍾", "🥂", "🍻", "🍺", "💥", "⚡",
+    "🚀", "💯", "🪅", "🪩", "✨", "🌟", "🕶️", "💃", "🕺", "🤩"
+  ],
+  music: [
+    "🎤", "🎵", "🎶", "🎸", "🎷", "🥁", "🎺", "🎹", "🪗", "🪕",
+    "🎻", "🎧", "🎼", "📢", "🎙️", "📻", "💃", "🕺", "🤘", "🪩"
+  ],
+  cheer: [
+    "❤️", "💖", "🫶", "😍", "🥰", "👑", "🏆", "🥇", "⭐", "👏",
+    "🙌", "✌️", "💪", "🤝", "🙏", "🌹", "🌺", "💫", "🕊️", "🌈"
+  ],
+  fun: [
+    "🤣", "😅", "😜", "🤪", "🤠", "😎", "🫠", "🤯", "😱", "😈",
+    "💀", "👻", "🤖", "🎭", "👀", "👅", "🫡", "🥺", "😭", "🥱"
+  ]
+};
 
 // Icon components
 const IconTrash = ({ size = 16 }: { size?: number }) => (
@@ -495,8 +529,12 @@ export default function RoomMobile() {
   // Floating emojis were removed from mobile (they are now exclusive to TV).
   // The sender gets a small local burst as feedback that the reaction was sent.
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [selectedEmojiCategory, setSelectedEmojiCategory] = useState<EmojiCategory>("all");
 
   const sendReaction = (emoji: string) => {
+    if (typeof window !== "undefined" && window.navigator?.vibrate) {
+      window.navigator.vibrate(10);
+    }
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       wsRef.current.send(
         JSON.stringify({
@@ -2374,36 +2412,91 @@ export default function RoomMobile() {
         toastOptions={{ duration: 4000 }}
       />
       {!searchOpen && (
-      <div style={{
-        position: "fixed", bottom: "30px", left: "50%", transform: "translateX(-50%)",
-        display: "flex", gap: "12px", zIndex: 100, background: "rgba(10, 10, 10, 0.6)",
-        backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
-        padding: "10px 16px", borderRadius: "32px", border: "1px solid rgba(255, 255, 255, 0.1)",
-        boxShadow: "0 10px 40px rgba(0,0,0,0.5)"
-      }}>
+      <aside
+        aria-label={t("mobile.reactionsBar", "Barra de Reações e Avaliação")}
+        style={{
+          position: "fixed",
+          bottom: "max(22px, calc(env(safe-area-inset-bottom, 0px) + 14px))",
+          left: "50%",
+          transform: "translateX(-50%)",
+          display: "flex",
+          alignItems: "center",
+          gap: "10px",
+          zIndex: 100,
+          background: "rgba(14, 14, 18, 0.82)",
+          backdropFilter: "blur(24px)",
+          WebkitBackdropFilter: "blur(24px)",
+          padding: "8px 12px",
+          borderRadius: "40px",
+          border: "1px solid rgba(255, 255, 255, 0.12)",
+          boxShadow: "0 16px 40px -8px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.12)"
+        }}
+      >
         {reactionBursts.map(b => (
           <span key={b.id} className="reaction-burst" style={{ left: `calc(50% + ${b.x}px)` }}>
             {b.emoji}
           </span>
         ))}
-        {["⭐", "👏", "🎤", "🔥"].map(emoji => (
+
+        {/* ⭐ Avaliar Cantor (Destaque Dourado com Halo de Luz) */}
+        <button
+          onClick={() => {
+            if (typeof window !== "undefined" && window.navigator?.vibrate) {
+              window.navigator.vibrate(12);
+            }
+            setShowRatingModal(true);
+          }}
+          aria-label={t("mobile.rateSinger", "Avaliar Cantor")}
+          title={t("mobile.rateSinger", "Avaliar Cantor")}
+          style={{
+            width: "48px",
+            height: "48px",
+            padding: 0,
+            borderRadius: "50%",
+            fontSize: "23px",
+            background: "linear-gradient(135deg, rgba(250, 204, 21, 0.22), rgba(250, 204, 21, 0.06))",
+            border: "1.5px solid rgba(250, 204, 21, 0.5)",
+            boxShadow: "0 0 16px rgba(250, 204, 21, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.25)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer",
+            transition: "transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease"
+          }}
+          onPointerDown={e => (e.currentTarget.style.transform = "scale(0.86)")}
+          onPointerUp={e => {
+            const el = e.currentTarget;
+            el.style.transform = "scale(1.2)";
+            setTimeout(() => { el.style.transform = "scale(1)"; }, 150);
+          }}
+          onPointerCancel={e => (e.currentTarget.style.transform = "scale(1)")}
+          onPointerLeave={e => (e.currentTarget.style.transform = "scale(1)")}
+        >
+          ⭐
+        </button>
+
+        {/* Reações Rápidas */}
+        {["👏", "🎤", "🔥"].map(emoji => (
           <button
             key={emoji} 
-            onClick={() => {
-              if (emoji === "⭐") {
-                setShowRatingModal(true);
-              } else {
-                sendReaction(emoji);
-              }
-            }}
-            aria-label={emoji === "⭐" ? t("mobile.rateSinger", "Avaliar Cantor") : t("mobile.sendReaction", { emoji })}
+            onClick={() => sendReaction(emoji)}
+            aria-label={t("mobile.sendReaction", { emoji })}
             style={{
-              width: "48px", height: "48px", padding: "0", borderRadius: "50%", fontSize: "22px",
-              background: "rgba(255,255,255,0.05)", border: "none",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              transition: "transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275)"
+              width: "46px",
+              height: "46px",
+              padding: 0,
+              borderRadius: "50%",
+              fontSize: "22px",
+              background: "rgba(255, 255, 255, 0.06)",
+              border: "1px solid rgba(255, 255, 255, 0.08)",
+              boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.08)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              transition: "transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.15s ease"
             }}
-            onPointerDown={e => (e.currentTarget.style.transform = "scale(0.85)")}
+            onPointerDown={e => (e.currentTarget.style.transform = "scale(0.86)")}
             onPointerUp={e => {
               const el = e.currentTarget;
               el.style.transform = "scale(1.2)";
@@ -2415,24 +2508,67 @@ export default function RoomMobile() {
             {emoji}
           </button>
         ))}
+
+        {/* Divisor vertical suave */}
+        <div
+          style={{
+            width: "1px",
+            height: "22px",
+            background: "rgba(255, 255, 255, 0.12)",
+            margin: "0 2px"
+          }}
+        />
+
+        {/* Botão + Estilizado (Sem tracejado, vidro refinado) */}
         <button
-          key="more" onClick={() => setShowEmojiPicker(true)}
+          key="more"
+          onClick={() => {
+            if (typeof window !== "undefined" && window.navigator?.vibrate) {
+              window.navigator.vibrate(8);
+            }
+            setShowEmojiPicker(true);
+          }}
           aria-label={t("mobile.moreReactions", "Mais reações")}
           title={t("mobile.moreReactions", "Mais reações")}
           style={{
-            width: "48px", height: "48px", padding: "0", borderRadius: "50%", fontSize: "22px",
-            background: "rgba(255,255,255,0.05)", border: "1px dashed rgba(255,255,255,0.25)",
-            display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: "700",
-            transition: "transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275)"
+            width: "44px",
+            height: "44px",
+            padding: 0,
+            borderRadius: "50%",
+            background: "rgba(255, 255, 255, 0.08)",
+            border: "1px solid rgba(255, 255, 255, 0.14)",
+            boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.1)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "rgba(255, 255, 255, 0.9)",
+            cursor: "pointer",
+            transition: "transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.15s ease"
           }}
-          onPointerDown={e => (e.currentTarget.style.transform = "scale(0.85)")}
-          onPointerUp={e => { e.currentTarget.style.transform = "scale(1.15)"; setTimeout(() => { e.currentTarget.style.transform = "scale(1)"; }, 150); }}
+          onPointerDown={e => (e.currentTarget.style.transform = "scale(0.86)")}
+          onPointerUp={e => {
+            const el = e.currentTarget;
+            el.style.transform = "scale(1.15)";
+            setTimeout(() => { el.style.transform = "scale(1)"; }, 150);
+          }}
           onPointerCancel={e => (e.currentTarget.style.transform = "scale(1)")}
           onPointerLeave={e => (e.currentTarget.style.transform = "scale(1)")}
         >
-          +
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
         </button>
-      </div>
+      </aside>
       )}
 
       {/* Rating picker modal (Granular 1-100 score) */}
@@ -2663,50 +2799,198 @@ export default function RoomMobile() {
         </div>
       )}
 
-      {/* Emoji picker modal */}
+      {/* Emoji picker modal (Polished Bottom Sheet) */}
       {showEmojiPicker && (
         <div
           onClick={() => setShowEmojiPicker(false)}
           style={{
-            position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", backdropFilter: "blur(10px)",
-            WebkitBackdropFilter: "blur(10px)", display: "flex", alignItems: "flex-end", justifyContent: "center", zIndex: 3000,
-            animation: "fadeIn 0.25s ease-out",
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0, 0, 0, 0.8)",
+            backdropFilter: "blur(14px)",
+            WebkitBackdropFilter: "blur(14px)",
+            display: "flex",
+            alignItems: "flex-end",
+            justifyContent: "center",
+            zIndex: 3000,
+            animation: "fadeIn 0.2s ease-out"
           }}
         >
           <div
             onClick={e => e.stopPropagation()}
-            className="glass-card"
             style={{
-              padding: "24px", width: "100%", maxWidth: "420px", maxHeight: "70vh", display: "flex", flexDirection: "column",
-              borderBottomLeftRadius: 0, borderBottomRightRadius: 0, animation: "fadeInUp 0.35s cubic-bezier(0.22,1,0.36,1)"
+              width: "100%",
+              maxWidth: "440px",
+              background: "rgba(18, 18, 22, 0.96)",
+              backdropFilter: "blur(32px)",
+              WebkitBackdropFilter: "blur(32px)",
+              borderTopLeftRadius: "28px",
+              borderTopRightRadius: "28px",
+              border: "1px solid rgba(255, 255, 255, 0.1)",
+              borderBottom: "none",
+              boxShadow: "0 -20px 60px rgba(0, 0, 0, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.14)",
+              padding: "16px 20px max(24px, calc(env(safe-area-inset-bottom, 0px) + 16px)) 20px",
+              display: "flex",
+              flexDirection: "column",
+              maxHeight: "82vh",
+              animation: "fadeInUp 0.3s cubic-bezier(0.22, 1, 0.36, 1)"
             }}
           >
+            {/* Native Mobile Sheet Drag Handle */}
+            <div
+              style={{
+                width: "40px",
+                height: "4px",
+                borderRadius: "999px",
+                background: "rgba(255, 255, 255, 0.25)",
+                margin: "0 auto 16px auto"
+              }}
+            />
+
+            {/* Header */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
-              <span style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.8rem", fontWeight: "900", letterSpacing: "1px", textTransform: "uppercase" }}>
-                {t("mobile.pickReaction", "Escolha um emoji")}
-              </span>
+              <div>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <span style={{ fontSize: "1.15rem" }}>🎉</span>
+                  <h3 style={{ margin: 0, fontSize: "1.05rem", fontWeight: "800", color: "#FFFFFF", letterSpacing: "-0.01em" }}>
+                    {t("mobile.pickReaction", "Reações da Torcida")}
+                  </h3>
+                </div>
+                <p style={{ margin: "2px 0 0 0", fontSize: "0.78rem", color: "rgba(255, 255, 255, 0.55)" }}>
+                  Toque para animar o telão ao vivo
+                </p>
+              </div>
+
               <button
-                onClick={() => setShowEmojiPicker(false)}
+                type="button"
+                onClick={() => {
+                  if (typeof window !== "undefined" && window.navigator?.vibrate) {
+                    window.navigator.vibrate(6);
+                  }
+                  setShowEmojiPicker(false);
+                }}
                 aria-label={t("common.close", "Fechar")}
-                style={{ background: "rgba(255,255,255,0.1)", border: "none", color: "#fff", width: "32px", height: "32px", padding: "0", borderRadius: "50%", fontSize: "16px", display: "flex", alignItems: "center", justifyContent: "center" }}
+                style={{
+                  background: "rgba(255, 255, 255, 0.08)",
+                  border: "1px solid rgba(255, 255, 255, 0.1)",
+                  color: "rgba(255, 255, 255, 0.8)",
+                  width: "32px",
+                  height: "32px",
+                  padding: "0",
+                  borderRadius: "50%",
+                  fontSize: "14px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                  boxShadow: "none",
+                  transition: "background 0.15s ease, transform 0.1s ease"
+                }}
+                onPointerDown={e => (e.currentTarget.style.transform = "scale(0.9)")}
+                onPointerUp={e => (e.currentTarget.style.transform = "scale(1)")}
               >
                 ✕
               </button>
             </div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "4px", overflowY: "auto" }}>
-              {EXTRA_REACTIONS.map(emoji => (
+
+            {/* Category Filter Tabs */}
+            <div
+              style={{
+                display: "flex",
+                gap: "8px",
+                overflowX: "auto",
+                paddingBottom: "12px",
+                marginBottom: "12px",
+                scrollbarWidth: "none",
+                msOverflowStyle: "none"
+              }}
+            >
+              {EMOJI_CATEGORIES.map(cat => {
+                const isActive = selectedEmojiCategory === cat.id;
+                return (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => {
+                      if (typeof window !== "undefined" && window.navigator?.vibrate) {
+                        window.navigator.vibrate(6);
+                      }
+                      setSelectedEmojiCategory(cat.id);
+                    }}
+                    style={{
+                      padding: "7px 14px",
+                      borderRadius: "999px",
+                      fontSize: "0.82rem",
+                      fontWeight: isActive ? 700 : 500,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      whiteSpace: "nowrap",
+                      cursor: "pointer",
+                      background: isActive ? "#FFFFFF" : "rgba(255, 255, 255, 0.06)",
+                      color: isActive ? "#0A0A0A" : "rgba(255, 255, 255, 0.75)",
+                      border: isActive ? "1px solid #FFFFFF" : "1px solid rgba(255, 255, 255, 0.08)",
+                      boxShadow: isActive ? "0 4px 14px rgba(255, 255, 255, 0.22)" : "none",
+                      transition: "all 0.15s cubic-bezier(0.2, 0, 0, 1)"
+                    }}
+                  >
+                    <span>{cat.icon}</span>
+                    <span>{cat.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Emoji Grid */}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(6, 1fr)",
+                gap: "8px",
+                overflowY: "auto",
+                maxHeight: "340px",
+                padding: "4px 2px",
+                scrollBehavior: "smooth"
+              }}
+            >
+              {CATEGORIZED_EMOJIS[selectedEmojiCategory].map(emoji => (
                 <button
                   key={emoji}
-                  onClick={() => { sendReaction(emoji); setShowEmojiPicker(false); }}
+                  type="button"
+                  onClick={() => {
+                    sendReaction(emoji);
+                    setShowEmojiPicker(false);
+                  }}
                   aria-label={t("mobile.sendReaction", { emoji })}
                   style={{
-                    width: "52px", height: "52px", padding: "0", fontSize: "26px", border: "none", borderRadius: "12px",
-                    background: "rgba(255,255,255,0.04)", display: "flex", alignItems: "center", justifyContent: "center",
-                    transition: "background 0.15s ease, transform 0.1s ease"
+                    width: "100%",
+                    aspectRatio: "1",
+                    padding: "0",
+                    fontSize: "24px",
+                    border: "1px solid rgba(255, 255, 255, 0.06)",
+                    borderRadius: "14px",
+                    background: "rgba(255, 255, 255, 0.04)",
+                    boxShadow: "none",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer",
+                    transition: "transform 0.12s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.12s ease"
                   }}
-                  onPointerDown={e => (e.currentTarget.style.transform = "scale(0.9)")}
-                  onPointerUp={e => { e.currentTarget.style.transform = "scale(1.1)"; setTimeout(() => { e.currentTarget.style.transform = "scale(1)"; }, 150); }}
-                  onPointerLeave={e => (e.currentTarget.style.transform = "scale(1)")}
+                  onPointerDown={e => {
+                    e.currentTarget.style.transform = "scale(0.85)";
+                    e.currentTarget.style.background = "rgba(255, 255, 255, 0.15)";
+                  }}
+                  onPointerUp={e => {
+                    e.currentTarget.style.transform = "scale(1.15)";
+                    setTimeout(() => {
+                      if (e.currentTarget) e.currentTarget.style.transform = "scale(1)";
+                    }, 120);
+                  }}
+                  onPointerLeave={e => {
+                    e.currentTarget.style.transform = "scale(1)";
+                    e.currentTarget.style.background = "rgba(255, 255, 255, 0.04)";
+                  }}
                 >
                   {emoji}
                 </button>
