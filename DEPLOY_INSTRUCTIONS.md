@@ -1,47 +1,32 @@
-# Guia de Deploy (GitOps)
+# Guia de Deploy Automatizado (One-Click)
 
-Este projeto utiliza o fluxo de **GitOps** para deploy contínuo. Isso significa que você não deve realizar deploys manuais através da sua máquina local usando CLIs. O repositório cuida de tudo.
+Este projeto possui um script inteligente de automação de deploy que realiza tudo para você com apenas um comando, mantendo a qualidade e sincronizando com o GitHub.
 
 ## O Workflow (Como fazer deploy)
 
-Sempre que você quiser publicar novas alterações, o fluxo é um só:
+Sempre que você quiser publicar novas alterações, abra o terminal na raiz do projeto e execute:
 
-1. **Validação**: Rode o checklist de qualidade localmente:
-   ```bash
-   python3 .agent/scripts/checklist.py .
-   ```
-   *(Não prossiga se houver erros de UX/SEO ou quebra de build).*
+```bash
+./deploy.sh "sua mensagem de commit aqui"
+```
 
-2. **Commit e Push**: Se o checklist passar 100%, envie o código para a branch `main`:
-   ```bash
-   git add .
-   git commit -m "sua alteração"
-   git push
-   ```
-
-**Pronto!** Não há necessidade de rodar nenhum comando de build na sua máquina.
-
----
-
-## Como a Integração Funciona
-
-### Frontend (Netlify)
-O repositório do GitHub está conectado diretamente à plataforma Netlify. 
-Ao receber um push na branch `main`, a Netlify captura o evento automaticamente, executa as instruções descritas no `netlify.toml` (`cd frontend && npm run build`) e publica a pasta `frontend/dist`.
-
-### Backend (Render)
-O GitHub Actions gerencia os avisos para o Render através do workflow `/.github/workflows/deploy-backend.yml`.
-Ao receber o push na branch `main`, o Actions dispara uma requisição POST na URL secreta `RENDER_DEPLOY_HOOK_URL`, fazendo com que o servidor do Render baixe o novo código e se reinicie sozinho.
+### O que esse script faz?
+O script `deploy.sh` executa as seguintes etapas automaticamente de forma sequencial:
+1. **Validação**: Roda o checklist de qualidade local (`python3 .agent/scripts/checklist.py .`). Se houver qualquer erro de programação, UX ou SEO, o deploy é imediatamente cancelado para proteger a produção.
+2. **Frontend (Netlify)**: Se o checklist for aprovado 100%, ele faz o build local e envia os arquivos do React direto para a Netlify.
+3. **Sincronização (Git)**: Ele pega todos os seus arquivos novos, cria um commit com a mensagem que você escreveu e faz o `git push` para o GitHub.
+4. **Backend (Render)**: Assim que o código chega no GitHub (passo 3), a automação de CI/CD (GitHub Actions) notifica o Render, e seu backend é reiniciado automaticamente com a nova versão.
 
 ---
 
 ## ⚠️ Troubleshooting (Em caso de Falha)
 
+**Se o script exibir ERRO no Passo 1 (Checklist):**
+- Leia a mensagem no terminal para ver qual teste falhou (ex: UX Audit detectou uma cor proibida, ou o Lint encontrou um erro). Corrija o código e rode o `./deploy.sh` novamente.
+
 **Se o Frontend não atualizou:**
-- Abra o painel do Netlify e verifique os "Deploys".
-- Garanta que o projeto do Netlify foi linkado a este repositório do GitHub e configurado para observar a branch `main`.
-- Verifique se o `netlify.toml` na raiz não foi apagado. Ele é obrigatório para projetos monorepo como este e para evitar erro 404 em rotas do React.
+- Verifique se a sua conexão com a internet caiu durante a etapa `[2/4]` ou se a sua CLI do Netlify não está logada (rode `npx netlify login` se for o caso).
 
 **Se o Backend não atualizou:**
-- A URL do Frontend (`VITE_API_URL` em `frontend/.env.production`) aponta para `https://karaokeando.onrender.com`.
-- Se as mudanças do backend não aparecerem lá, olhe a aba "Actions" no GitHub. Se estiver falhando com a mensagem `Missing secret: RENDER_DEPLOY_HOOK_URL`, significa que a configuração de segurança do repositório no GitHub está faltando a URL do Hook do Render.
+- O script completou o Passo 3 (`git push`) com sucesso? 
+- Se sim, o problema está no GitHub Actions. Olhe a aba "Actions" no seu repositório no GitHub. Se o workflow `.github/workflows/deploy-backend.yml` estiver falhando, provavelmente o Segredo `RENDER_DEPLOY_HOOK_URL` está ausente ou inválido nas configurações do seu repositório.

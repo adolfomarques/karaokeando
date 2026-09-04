@@ -190,6 +190,8 @@
     "pickReaction": "Pick an emoji",
     "rateSinger": "Rate Singer",
     "rateDescription": "Give a score for the current performance:",
+    "confirmScore": "Submit Score",
+    "scoreHint": "Slide or tap to adjust score precisely",
     "scoreSent": "Score sent!"
   },
   "tvLogin": {

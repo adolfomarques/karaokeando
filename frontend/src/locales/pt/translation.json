@@ -188,6 +188,8 @@
     "pickReaction": "Escolha um emoji",
     "rateSinger": "Avaliar Cantor",
     "rateDescription": "Dê uma nota para a performance atual:",
+    "confirmScore": "Enviar Nota",
+    "scoreHint": "Arraste ou toque para ajustar a nota com precisão",
     "scoreSent": "Nota enviada!"
   },
   "tvLogin": {

@@ -514,11 +514,11 @@ export default function RoomMobile() {
   };
 
   const [showRatingModal, setShowRatingModal] = useState(false);
-  const [selectedStar, setSelectedStar] = useState<number | null>(null);
+  const [scoreValue, setScoreValue] = useState<number>(85);
+  const [isSubmittingScore, setIsSubmittingScore] = useState(false);
 
-  const sendScore = (stars: number) => {
-    setSelectedStar(stars);
-    const score = stars * 20; // 1 to 5 stars mapped to 20 to 100 points
+  const submitScore = (score: number) => {
+    setIsSubmittingScore(true);
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       wsRef.current.send(
         JSON.stringify({
@@ -529,13 +529,13 @@ export default function RoomMobile() {
       );
     }
     toast.success(t("mobile.scoreSent", "Nota enviada!"));
-    
-    // Wait for the fill animation before closing
+    if (typeof window !== "undefined" && window.navigator?.vibrate) {
+      window.navigator.vibrate([25, 40, 25]);
+    }
     setTimeout(() => {
       setShowRatingModal(false);
-      // Reset selected star after modal closes
-      setTimeout(() => setSelectedStar(null), 300);
-    }, 800);
+      setIsSubmittingScore(false);
+    }, 450);
   };
 
   // Share the room invite via native share sheet (WhatsApp, Messenger, etc.)
@@ -2368,10 +2368,10 @@ export default function RoomMobile() {
       </div>
       )}
 
-      {/* Rating picker modal */}
+      {/* Rating picker modal (Granular 1-100 score) */}
       {showRatingModal && (
         <div
-          onClick={() => setShowRatingModal(false)}
+          onClick={() => !isSubmittingScore && setShowRatingModal(false)}
           style={{
             position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", backdropFilter: "blur(12px)",
             WebkitBackdropFilter: "blur(12px)", display: "flex", alignItems: "flex-end", justifyContent: "center", zIndex: 3000,
@@ -2381,66 +2381,217 @@ export default function RoomMobile() {
           <div
             onClick={e => e.stopPropagation()}
             style={{
-              background: "linear-gradient(180deg, #1f1f22 0%, #121214 100%)", width: "100%", 
+              background: "linear-gradient(180deg, #1f1f22 0%, #121214 100%)", width: "100%", maxWidth: "480px",
               borderTopLeftRadius: "32px", borderTopRightRadius: "32px",
-              padding: "32px 24px", paddingBottom: "max(32px, env(safe-area-inset-bottom))",
+              padding: "28px 24px", paddingBottom: "max(28px, env(safe-area-inset-bottom))",
               animation: "slideUp 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
               borderTop: "1px solid rgba(255,255,255,0.08)",
               boxShadow: "0 -10px 40px rgba(0,0,0,0.5)",
               textAlign: "center"
             }}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-              <h3 style={{ margin: 0, fontSize: "20px", fontWeight: "800", color: "#fff", letterSpacing: "-0.02em" }}>
-                {t("mobile.rateSinger", "Avaliar Cantor")}
-              </h3>
+            {/* Header */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <span style={{ fontSize: "20px" }}>⭐</span>
+                <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "800", color: "#fff", letterSpacing: "-0.02em" }}>
+                  {t("mobile.rateSinger", "Avaliar Cantor")}
+                </h3>
+              </div>
               <button
                 onClick={() => setShowRatingModal(false)}
+                disabled={isSubmittingScore}
                 style={{ background: "none", border: "none", color: "rgba(255,255,255,0.4)", fontSize: "28px", padding: "0 8px", cursor: "pointer" }}
               >
                 &times;
               </button>
             </div>
             
-            <p style={{ color: "rgba(255,255,255,0.6)", fontSize: "15px", marginBottom: "32px", lineHeight: 1.5 }}>
-              {t("mobile.rateDescription", "Dê uma nota para a performance atual:")}
+            <p style={{ color: "rgba(255,255,255,0.55)", fontSize: "13px", margin: "0 0 16px 0" }}>
+              {t("mobile.scoreHint", "Arraste ou toque para ajustar a nota com precisão")}
             </p>
 
-            <div style={{ display: "flex", justifyContent: "center", gap: "16px", marginBottom: "24px" }}>
+            {/* Big Neon Score Counter & Sentiment Badge */}
+            <div style={{ marginBottom: "16px", display: "flex", flexDirection: "column", alignItems: "center" }}>
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", gap: "4px" }}>
+                <span style={{
+                  fontSize: "56px",
+                  fontWeight: "900",
+                  color: "#facc15",
+                  textShadow: "0 0 30px rgba(250,204,21,0.5)",
+                  lineHeight: 1,
+                  letterSpacing: "-0.04em",
+                  fontVariantNumeric: "tabular-nums"
+                }}>
+                  {scoreValue}
+                </span>
+                <span style={{ fontSize: "18px", fontWeight: "700", color: "rgba(255,255,255,0.35)" }}>
+                  / 100
+                </span>
+              </div>
+              
+              <div style={{
+                marginTop: "8px",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px",
+                padding: "4px 14px",
+                borderRadius: "20px",
+                background: scoreValue >= 85 ? "rgba(250,204,21,0.15)" : scoreValue >= 70 ? "rgba(16,185,129,0.15)" : "rgba(255,255,255,0.08)",
+                border: scoreValue >= 85 ? "1px solid rgba(250,204,21,0.3)" : scoreValue >= 70 ? "1px solid rgba(16,185,129,0.3)" : "1px solid rgba(255,255,255,0.1)",
+                color: scoreValue >= 85 ? "#facc15" : scoreValue >= 70 ? "#34d399" : "rgba(255,255,255,0.7)",
+                fontSize: "13px",
+                fontWeight: "700"
+              }}>
+                {scoreValue >= 90 ? "🔥 Espetacular!" : scoreValue >= 80 ? "👏 Mandou muito!" : scoreValue >= 65 ? "🎵 Bom ritmo!" : scoreValue >= 50 ? "🎤 Na média!" : "😅 No talento!"}
+              </div>
+            </div>
+
+            {/* 5 Partial-Fill SVG Stars */}
+            <div style={{ display: "flex", justifyContent: "center", gap: "10px", marginBottom: "20px" }}>
               {[1, 2, 3, 4, 5].map(star => {
-                const isActive = selectedStar !== null && star <= selectedStar;
+                const starMin = (star - 1) * 20;
+                const fillPercent = Math.max(0, Math.min(100, Math.round(((scoreValue - starMin) / 20) * 100)));
+                const isFull = fillPercent === 100;
+                const isPart = fillPercent > 0 && fillPercent < 100;
+
                 return (
                   <button
                     key={star}
-                    onClick={() => sendScore(star)}
+                    type="button"
+                    onClick={() => {
+                      setScoreValue(star * 20);
+                      if (typeof window !== "undefined" && window.navigator?.vibrate) {
+                        window.navigator.vibrate(15);
+                      }
+                    }}
                     style={{
                       background: "none", border: "none", padding: "0", cursor: "pointer",
                       outline: "none", WebkitTapHighlightColor: "transparent",
                       transition: "transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1)",
-                      transform: isActive ? "scale(1.15)" : "scale(1)",
+                      transform: isFull ? "scale(1.1)" : isPart ? "scale(1.05)" : "scale(1)",
                     }}
-                    onPointerDown={e => (e.currentTarget.style.transform = "scale(0.85)")}
-                    onPointerUp={e => (e.currentTarget.style.transform = isActive ? "scale(1.15)" : "scale(1)")}
-                    onPointerCancel={e => (e.currentTarget.style.transform = isActive ? "scale(1.15)" : "scale(1)")}
+                    onPointerDown={e => (e.currentTarget.style.transform = "scale(0.9)")}
+                    onPointerUp={e => (e.currentTarget.style.transform = isFull ? "scale(1.1)" : "scale(1)")}
+                    aria-label={`Definir nota ${star * 20}`}
                   >
-                    <svg 
-                      width="44" height="44" viewBox="0 0 24 24" 
-                      fill={isActive ? "#facc15" : "none"} 
-                      stroke={isActive ? "#facc15" : "rgba(255,255,255,0.15)"} 
-                      strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
-                      style={{
-                        transition: "all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
-                        transitionDelay: isActive ? `${star * 50}ms` : "0ms",
-                        filter: isActive ? "drop-shadow(0 0 12px rgba(250,204,21,0.6))" : "none",
-                        transform: isActive ? "rotate(0deg)" : "rotate(-5deg)",
-                      }}
-                    >
-                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                    <svg width="42" height="42" viewBox="0 0 24 24">
+                      <defs>
+                        <linearGradient id={`star-grad-${star}`} x1="0%" y1="0%" x2="100%" y2="0%">
+                          <stop offset={`${fillPercent}%`} stopColor="#facc15" />
+                          <stop offset={`${fillPercent}%`} stopColor="rgba(255,255,255,0.12)" />
+                        </linearGradient>
+                      </defs>
+                      <polygon
+                        points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+                        fill={`url(#star-grad-${star})`}
+                        stroke={fillPercent > 0 ? "#facc15" : "rgba(255,255,255,0.2)"}
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        style={{
+                          filter: isFull ? "drop-shadow(0 0 10px rgba(250,204,21,0.6))" : isPart ? "drop-shadow(0 0 5px rgba(250,204,21,0.3))" : "none",
+                          transition: "filter 0.2s ease"
+                        }}
+                      />
                     </svg>
                   </button>
                 );
               })}
             </div>
+
+            {/* Glowing Range Slider */}
+            <div style={{ padding: "0 8px", marginBottom: "16px" }}>
+              <input
+                type="range"
+                min="1"
+                max="100"
+                value={scoreValue}
+                onChange={e => {
+                  const val = Number(e.target.value);
+                  setScoreValue(val);
+                  if (typeof window !== "undefined" && window.navigator?.vibrate) {
+                    window.navigator.vibrate(5);
+                  }
+                }}
+                style={{
+                  width: "100%",
+                  height: "8px",
+                  borderRadius: "6px",
+                  accentColor: "#facc15",
+                  outline: "none",
+                  background: `linear-gradient(to right, #facc15 0%, #facc15 ${scoreValue}%, rgba(255,255,255,0.15) ${scoreValue}%, rgba(255,255,255,0.15) 100%)`,
+                  cursor: "pointer",
+                  appearance: "none",
+                  WebkitAppearance: "none",
+                }}
+              />
+              <div style={{ display: "flex", justifyContent: "space-between", marginTop: "8px", fontSize: "11px", color: "rgba(255,255,255,0.4)", fontWeight: "600" }}>
+                <span>1</span>
+                <span>50</span>
+                <span>75</span>
+                <span>100</span>
+              </div>
+            </div>
+
+            {/* Quick Preset Buttons */}
+            <div style={{ display: "flex", justifyContent: "center", gap: "8px", marginBottom: "22px" }}>
+              {[50, 70, 80, 90, 100].map(preset => (
+                <button
+                  key={preset}
+                  type="button"
+                  onClick={() => {
+                    setScoreValue(preset);
+                    if (typeof window !== "undefined" && window.navigator?.vibrate) {
+                      window.navigator.vibrate(10);
+                    }
+                  }}
+                  style={{
+                    background: scoreValue === preset ? "rgba(250,204,21,0.2)" : "rgba(255,255,255,0.06)",
+                    border: scoreValue === preset ? "1px solid #facc15" : "1px solid rgba(255,255,255,0.1)",
+                    color: scoreValue === preset ? "#facc15" : "rgba(255,255,255,0.7)",
+                    borderRadius: "12px",
+                    padding: "6px 12px",
+                    fontSize: "12px",
+                    fontWeight: "700",
+                    cursor: "pointer",
+                    transition: "all 0.15s"
+                  }}
+                >
+                  {preset}
+                </button>
+              ))}
+            </div>
+
+            {/* Confirm / Submit Button */}
+            <button
+              type="button"
+              onClick={() => submitScore(scoreValue)}
+              disabled={isSubmittingScore}
+              style={{
+                width: "100%",
+                padding: "16px 20px",
+                background: isSubmittingScore ? "rgba(250,204,21,0.5)" : "linear-gradient(135deg, #facc15 0%, #eab308 100%)",
+                color: "#000",
+                fontWeight: "800",
+                fontSize: "16px",
+                borderRadius: "18px",
+                border: "none",
+                cursor: isSubmittingScore ? "default" : "pointer",
+                boxShadow: "0 6px 24px rgba(250, 204, 21, 0.35)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "8px",
+                transition: "transform 0.1s, box-shadow 0.2s",
+                transform: isSubmittingScore ? "scale(0.98)" : "scale(1)",
+              }}
+              onPointerDown={e => !isSubmittingScore && (e.currentTarget.style.transform = "scale(0.97)")}
+              onPointerUp={e => !isSubmittingScore && (e.currentTarget.style.transform = "scale(1)")}
+            >
+              <span style={{ fontSize: "18px" }}>⭐</span>
+              <span>{t("mobile.confirmScore", "Enviar Nota")} ({scoreValue})</span>
+            </button>
           </div>
         </div>
       )}
