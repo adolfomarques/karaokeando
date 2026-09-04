@@ -1651,9 +1651,9 @@ app.post("/api/admin/prewarm", async (req, reply) => {
 app.get<{ Params: { roomCode: string } }>(
   "/ws/:roomCode",
   { websocket: true },
-  (socket, req) => {
-    const roomCode = req.params.roomCode;
-    const room = rooms.get(roomCode);
+  async (socket, req) => {
+    const roomCode = (req.params.roomCode || "").trim().toUpperCase();
+    const room = await getOrRestoreRoom(roomCode);
     let role: "tv" | "mobile" = "mobile";
     let name = "";
     let odUserId = "";
@@ -1668,7 +1668,16 @@ app.get<{ Params: { roomCode: string } }>(
       try {
         const msg = JSON.parse(raw.toString());
         if (msg.type === "HELLO") {
-          const conns = connections.get(roomCode)!;
+          let conns = connections.get(roomCode);
+          if (!conns) {
+            conns = {
+              tv: new Set(),
+              mobile: new Set(),
+              participants: new Map(),
+              recentParticipants: new Map(),
+            };
+            connections.set(roomCode, conns);
+          }
           touchRoom(roomCode); // Marca atividade na sala
 
           // New auth flow: token-based

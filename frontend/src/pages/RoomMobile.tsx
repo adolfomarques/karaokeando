@@ -667,17 +667,29 @@ export default function RoomMobile() {
 
     const token = getToken();
 
-    // Fallback: fetch state via HTTP in case WS is slow
-    const refreshState = async () => {
+    // Fallback: fetch state via HTTP in case WS is slow (with retry for server wake-ups)
+    let isCancelled = false;
+    const refreshState = async (retries = 2) => {
       try {
         const s = await getState(code);
+        if (isCancelled) return;
         if (s && s.error === "room_not_found") {
+          if (retries > 0) {
+            setTimeout(() => {
+              if (!isCancelled) refreshState(retries - 1);
+            }, 1200);
+            return;
+          }
           setError(t("home.roomNotFound", "Room not found. Check the code."));
         } else if (s && !s.error) {
+          setError(null);
           setState(s);
         }
       } catch (e) {
         console.error("Failed to refresh state", e);
+        if (retries > 0 && !isCancelled) {
+          setTimeout(() => refreshState(retries - 1), 1200);
+        }
       }
     };
 
@@ -718,7 +730,17 @@ export default function RoomMobile() {
             showToast(t("mobile.nicknameAssigned", { nickname: m.nickname }), 5000);
           }
         } else if (m.type === "ERROR" && m.error === "room_not_found") {
-          setError(t("home.roomNotFound", "Room not found. Check the code."));
+          // Double-check via HTTP before locking screen in case of temporary reconnect race
+          getState(code).then(s => {
+            if (s && !s.error) {
+              setState(s);
+              setError(null);
+            } else {
+              setError(t("home.roomNotFound", "Room not found. Check the code."));
+            }
+          }).catch(() => {
+            setError(t("home.roomNotFound", "Room not found. Check the code."));
+          });
         } else if (m.type === "ERROR" && m.error === "duplicate_name") {
           setError(
             m.message || t("mobile.nameAlreadyUsed", "This name is already used. Choose another.")
@@ -1078,9 +1100,31 @@ export default function RoomMobile() {
           <p style={{ color: "rgba(255,255,255,0.5)", marginBottom: "32px", lineHeight: 1.6 }}>
             {t("mobile.invalidCode", "O código da sala parece ser inválido ou expirou.")}
           </p>
-          <button onClick={() => navigate("/")} className="glow-pulse" style={{ width: "100%" }}>
-            {t("common.backToHome", "Voltar ao Início")}
-          </button>
+          <div style={{ display: "flex", flexDirection: "column", gap: "12px", width: "100%" }}>
+            <button
+              onClick={() => {
+                setError(null);
+                window.location.reload();
+              }}
+              style={{
+                width: "100%",
+                padding: "14px",
+                background: "linear-gradient(135deg, #facc15 0%, #eab308 100%)",
+                color: "#000",
+                fontWeight: "800",
+                fontSize: "15px",
+                borderRadius: "14px",
+                border: "none",
+                cursor: "pointer",
+                boxShadow: "0 4px 15px rgba(250, 204, 21, 0.3)"
+              }}
+            >
+              🔄 {t("common.tryAgain", "Tentar Novamente")}
+            </button>
+            <button onClick={() => navigate("/")} style={{ width: "100%", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "14px", padding: "12px", color: "rgba(255,255,255,0.7)", cursor: "pointer", fontWeight: "600" }}>
+              {t("common.backToHome", "Voltar ao Início")}
+            </button>
+          </div>
         </div>
       </div>
     );

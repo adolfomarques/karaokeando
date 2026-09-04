@@ -755,18 +755,29 @@ export default function RoomTV() {
 
     const tvToken = localStorage.getItem(`tvToken_${code}`);
 
-    // Fallback: fetch state via HTTP in case WS is slow
-    getState(code)
-      .then(s => {
-        if (s && s.error === "room_not_found") {
-          setError("Sala não encontrada. Verifique o código.");
-        } else if (s && !s.error) {
-          setState(s);
-        }
-      })
-      .catch(err => {
-        console.error("[TV] HTTP state error", err);
-      });
+    // Fallback: fetch state via HTTP in case WS is slow (with retry for server cold starts)
+    const fetchInitialState = (retries = 2) => {
+      getState(code)
+        .then(s => {
+          if (s && s.error === "room_not_found") {
+            if (retries > 0) {
+              setTimeout(() => fetchInitialState(retries - 1), 1200);
+            } else {
+              setError("Sala não encontrada. Verifique o código.");
+            }
+          } else if (s && !s.error) {
+            setError(null);
+            setState(s);
+          }
+        })
+        .catch(err => {
+          console.error("[TV] HTTP state error", err);
+          if (retries > 0) {
+            setTimeout(() => fetchInitialState(retries - 1), 1200);
+          }
+        });
+    };
+    fetchInitialState();
 
     const ws = connectWS(
       code,
@@ -800,7 +811,17 @@ export default function RoomTV() {
             setIsTransitioning(false);
           }
         } else if (m.type === "ERROR" && m.error === "room_not_found") {
-          setError(t("home.roomNotFound", "Room not found. Check the code."));
+          // Double check via HTTP before locking screen in case of temporary reconnect race
+          getState(code).then(s => {
+            if (s && !s.error) {
+              setState(s);
+              setError(null);
+            } else {
+              setError(t("home.roomNotFound", "Room not found. Check the code."));
+            }
+          }).catch(() => {
+            setError(t("home.roomNotFound", "Room not found. Check the code."));
+          });
         } else if (m.type === "PARTICIPANTS" && m.participants) {
           setParticipantsCount(m.participants.length);
         } else if (m.type === "FINALIZED") {
@@ -1001,12 +1022,38 @@ export default function RoomTV() {
         <p style={{ color: "#888", marginTop: 16 }}>
           {t("tv.noRoomFound", "Go back and create a new room.")}
         </p>
-        <a
-          href="/"
-          style={{ color: "#3498db", marginTop: 20, display: "inline-block" }}
-        >
-          {t("common.backToHome", "← Back to home")}
-        </a>
+        <div style={{ marginTop: 24, display: "flex", justifyContent: "center", gap: 16 }}>
+          <button
+            onClick={() => {
+              setError(null);
+              window.location.reload();
+            }}
+            style={{
+              padding: "10px 20px",
+              background: "#10b981",
+              color: "#fff",
+              fontWeight: 700,
+              borderRadius: 8,
+              border: "none",
+              cursor: "pointer"
+            }}
+          >
+            🔄 {t("common.tryAgain", "Tentar Novamente")}
+          </button>
+          <a
+            href="/"
+            style={{
+              padding: "10px 20px",
+              background: "rgba(255,255,255,0.1)",
+              color: "#fff",
+              borderRadius: 8,
+              textDecoration: "none",
+              display: "inline-block"
+            }}
+          >
+            {t("common.backToHome", "← Back to home")}
+          </a>
+        </div>
       </div>
     );
   }

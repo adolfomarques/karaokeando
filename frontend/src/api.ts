@@ -141,7 +141,8 @@ export async function createRoom(): Promise<{ roomCode: string }> {
 }
 
 export async function getState(roomCode: string) {
-  const res = await fetch(`${API_BASE}/api/rooms/${roomCode}/state`);
+  const code = (roomCode || "").trim().toUpperCase();
+  const res = await fetch(`${API_BASE}/api/rooms/${code}/state`);
   return res.json();
 }
 
@@ -341,15 +342,16 @@ export function connectWS(
   token?: string | null
 ): WebSocket {
   let url = "";
+  const code = (roomCode || "").trim().toUpperCase();
 
   if (API_BASE) {
     // Se temos uma API_BASE definida (URL completa), usamos ela trocando http por ws
-    url = API_BASE.replace(/^http/, "ws") + `/ws/${roomCode}`;
+    url = API_BASE.replace(/^http/, "ws") + `/ws/${code}`;
   } else {
     // Fallback relativo (mesmo domínio do frontend)
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const host = window.location.host;
-    url = `${protocol}//${host}/ws/${roomCode}`;
+    url = `${protocol}//${host}/ws/${code}`;
   }
 
   const ws = new WebSocket(url);
