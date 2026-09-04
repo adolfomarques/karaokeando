@@ -231,7 +231,7 @@ interface RoomState {
   queue: QueueItem[];
   ranking: Record<string, RankingEntry | number>; // odUserId -> { name, score } OR old format name -> score
   duetRanking?: Record<string, DuetRankingEntry>; // "id1|id2" -> { names, score, count }
-  currentSongScores?: Record<string, number>; // userId -> nota dada (0 a 100)
+  currentSongScores?: Record<string, number[]>; // odUserId -> lista de notas dadas (1 a 100)
   ownerId: string; // The user who created the room
   lastEnqueueAt: Record<string, number>; // userId -> timestamp of last successful enqueue
   lastEnqueueAtByDevice: Record<string, number>; // deviceFingerprint -> timestamp (anti-abuse)
@@ -949,12 +949,22 @@ app.post<{ Params: { roomCode: string }; Body: { requester?: string; userId?: st
       { id: `anon_${randomId()}`, name: room.nowPlaying.requestedBy },
     ];
     
-    // Calculate crowd-sourced score
+    // Calculate crowd-sourced score (balanced average per participant)
     let score = 0;
-    const crowdScores = room.currentSongScores ? Object.values(room.currentSongScores) : [];
-    if (crowdScores.length > 0) {
-      const sum = crowdScores.reduce((a, b) => a + b, 0);
-      score = Math.round(sum / crowdScores.length);
+    if (room.currentSongScores && Object.keys(room.currentSongScores).length > 0) {
+      const userAverages: number[] = [];
+      for (const scores of Object.values(room.currentSongScores)) {
+        if (Array.isArray(scores) && scores.length > 0) {
+          const userSum = scores.reduce((a, b) => a + b, 0);
+          userAverages.push(userSum / scores.length);
+        }
+      }
+      if (userAverages.length > 0) {
+        const totalSum = userAverages.reduce((a, b) => a + b, 0);
+        score = Math.round(totalSum / userAverages.length);
+      } else {
+        score = biasedPartyScore();
+      }
     } else {
       score = biasedPartyScore(); // fallback if nobody voted
     }
@@ -1784,9 +1794,11 @@ app.get<{ Params: { roomCode: string } }>(
           });
         } else if (msg.type === "SUBMIT_SCORE") {
           touchRoom(roomCode);
-          if (odUserId && typeof msg.score === "number") {
+          if (odUserId && typeof msg.score === "number" && !isNaN(msg.score)) {
             if (!room.currentSongScores) room.currentSongScores = {};
-            room.currentSongScores[odUserId] = msg.score;
+            if (!room.currentSongScores[odUserId]) room.currentSongScores[odUserId] = [];
+            const validScore = Math.max(1, Math.min(100, Math.round(msg.score)));
+            room.currentSongScores[odUserId].push(validScore);
           }
         } else {
           socket.send(JSON.stringify({ type: "ACK" }));
