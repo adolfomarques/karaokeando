@@ -414,6 +414,18 @@ export default function RoomTV() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [reactions, setReactions] = useState<Reaction[]>([]);
   const [recentlyMoved, setRecentlyMoved] = useState<string[]>([]);
+  const [currentTime, setCurrentTime] = useState("");
+
+  useEffect(() => {
+    const update = () => {
+      const now = new Date();
+      setCurrentTime(now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));
+    };
+    update();
+    const interval = setInterval(update, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   const [reconnectKey, setReconnectKey] = useState(0);
   const isTransitioningRef = useRef(false);
   const wsRef = useRef<WebSocket | null>(null);
@@ -1448,276 +1460,262 @@ export default function RoomTV() {
           style={{
             height: "100vh",
             overflow: "hidden",
-            padding: "2vw 3vw",
-            background: "#0A0A0A",
+            padding: "20px 36px 16px 36px",
+            background: "radial-gradient(circle at 50% 0%, rgba(255, 0, 128, 0.18) 0%, transparent 60%), radial-gradient(circle at 85% 90%, rgba(250, 204, 21, 0.05) 0%, transparent 45%), #070709",
             display: "flex",
             flexDirection: "column",
+            justifyContent: "space-between",
             position: "relative",
             zIndex: 1,
+            boxSizing: "border-box",
           }}
         >
-          <div className="tv-background-blobs" />
           <style>{`
-            @keyframes slideIn {
-                from { opacity: 0; transform: translateY(20px); }
-                to { opacity: 1; transform: translateY(0); }
+            @keyframes eqPulse {
+              0%, 100% { transform: scaleY(0.25); }
+              50% { transform: scaleY(1); }
             }
-            .tv-glass-card {
-              background: rgba(255, 255, 255, 0.03);
-              backdrop-filter: blur(24px);
-              -webkit-backdrop-filter: blur(24px);
-              border: 1px solid rgba(255, 255, 255, 0.08);
-              border-radius: 24px;
-              box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), 0 0 30px rgba(255, 0, 128, 0.08);
-              overflow: hidden;
-              animation: slideIn 0.8s ease-out forwards;
-              padding: 24px;
+            .custom-tv-scrollbar::-webkit-scrollbar { width: 5px; }
+            .custom-tv-scrollbar::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); border-radius: 10px; }
+            .custom-tv-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,0,128,0.3); border-radius: 10px; }
+            .custom-tv-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,0,128,0.5); }
+            .tv-action-btn {
+              transition: all 0.2s ease;
             }
-            .tv-header-separator {
-              padding-bottom: 2vh;
-              border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-            }
-            .tv-gradient-text {
-              background: linear-gradient(135deg, #FF0080, #FF4D6D);
-              -webkit-background-clip: text;
-              -webkit-text-fill-color: transparent;
-              background-clip: text;
-              font-weight: 900;
-              text-shadow: 0 0 20px rgba(255, 0, 128, 0.3);
-            }
-            .tv-neon-text {
-                color: #FF0080;
-                text-shadow: 0 0 15px rgba(255, 0, 128, 0.6), 0 0 30px rgba(255, 0, 128, 0.3);
-            }
-            .tv-btn-glass {
-              background: rgba(255, 255, 255, 0.05);
-              border: 1px solid rgba(255, 255, 255, 0.1);
-              color: rgba(255, 255, 255, 0.7);
-              padding: 10px 20px;
-              border-radius: 12px;
-              font-size: 0.95rem;
-              font-weight: 600;
-              cursor: pointer;
-              transition: all 0.25s ease;
-              display: flex;
-              align-items: center;
-              gap: 8px;
-            }
-            .tv-btn-glass.active {
-              background: linear-gradient(135deg, #FF0080, #FF4D6D);
-              border-color: transparent;
-              color: #fff;
-              box-shadow: 0 0 25px rgba(255, 0, 128, 0.45);
+            .tv-action-btn:hover {
               transform: translateY(-2px);
-            }
-            @media (hover: hover) {
-              .tv-btn-glass:hover {
-                background: linear-gradient(135deg, #FF0080, #FF4D6D);
-                border-color: transparent;
-                color: #fff;
-                box-shadow: 0 0 25px rgba(255, 0, 128, 0.45);
-                transform: translateY(-2px);
-              }
-            }
-            .tv-item-box {
-              background: rgba(255, 255, 255, 0.02);
-              border: 1px solid rgba(255, 255, 255, 0.05);
-              border-radius: 16px;
-              padding: 12px 16px;
-              transition: all 0.3s ease;
-              line-height: 1.4;
-              min-height: 60px;
-            }
-            .tv-item-box:hover {
-                border-color: rgba(255, 0, 128, 0.3);
-                background: rgba(255, 255, 255, 0.04);
+              filter: brightness(1.15);
             }
             .tv-item-box.moved {
-                animation: slideUp 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+              animation: tvSlideUp 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
             }
-            @keyframes slideUp {
-                0% { opacity: 0.5; transform: translateY(10px); }
-                50% { background: rgba(255, 0, 128, 0.15); border-color: rgba(255, 0, 128, 0.5); }
-                100% { opacity: 1; transform: translateY(0); }
+            @keyframes tvSlideUp {
+              0% { opacity: 0.5; transform: translateY(10px); }
+              50% { background: rgba(255, 0, 128, 0.15); border-color: rgba(255, 0, 128, 0.5); }
+              100% { opacity: 1; transform: translateY(0); }
             }
             .tv-item-box.moving-down {
-                animation: slideDown 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+              animation: tvSlideDown 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
             }
-            @keyframes slideDown {
-                0% { opacity: 0.5; transform: translateY(-10px); }
-                50% { background: rgba(255, 0, 128, 0.15); border-color: rgba(255, 0, 128, 0.5); }
-                100% { opacity: 1; transform: translateY(0); }
-            }
-            .tv-background-blobs {
-                position: fixed;
-                inset: 0;
-                pointer-events: none;
-                z-index: -1;
-            }
-            .tv-background-blobs::before,
-            .tv-background-blobs::after {
-              content: "";
-              position: absolute;
-              border-radius: 50%;
-              filter: blur(90px);
-            }
-            .tv-background-blobs::before {
-              width: 500px; height: 500px;
-              top: -10%; left: -5%;
-              background: radial-gradient(circle, rgba(255, 0, 128, 0.15) 0%, transparent 70%);
-              animation: drift 15s ease-in-out infinite alternate;
-            }
-            .tv-background-blobs::after {
-              width: 600px; height: 600px;
-              bottom: -15%; right: -10%;
-              background: radial-gradient(circle, rgba(121, 40, 202, 0.12) 0%, transparent 70%);
-              animation: drift2 20s ease-in-out infinite alternate;
-            }
-            @keyframes drift {
-              from { transform: translate(0, 0); }
-              to   { transform: translate(50px, 100px); }
-            }
-            @keyframes drift2 {
-              from { transform: translate(0, 0); }
-              to   { transform: translate(-80px, -60px); }
+            @keyframes tvSlideDown {
+              0% { opacity: 0.5; transform: translateY(-10px); }
+              50% { background: rgba(255, 0, 128, 0.15); border-color: rgba(255, 0, 128, 0.5); }
+              100% { opacity: 1; transform: translateY(0); }
             }
           `}</style>
-          
-          {/* Header */}
-          <header className="w-full flex justify-between items-start gap-4 px-2 md:px-0 shrink-0">
-            {/* Esquerda: Logout - menor e mais discreto */}
-            <div className="flex justify-start" style={{ paddingTop: 8 }}>
-                <button
-                    onClick={() => navigate("/")}
-                    style={{
-                    background: "rgba(255, 255, 255, 0.03)",
-                    border: "1px solid rgba(255, 255, 255, 0.08)",
-                    borderRadius: "999px",
-                    padding: "6px 14px",
-                    color: "rgba(255, 255, 255, 0.4)",
-                    fontSize: "0.7rem",
-                    fontWeight: 600,
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 6,
-                    transition: "all 0.3s ease",
-                    textTransform: "uppercase",
-                    letterSpacing: "1px"
-                    }}
-                    onMouseEnter={e => {
-                        e.currentTarget.style.background = "rgba(255, 255, 255, 0.08)";
-                        e.currentTarget.style.color = "#fff";
-                    }}
-                    onMouseLeave={e => {
-                        e.currentTarget.style.background = "rgba(255, 255, 255, 0.03)";
-                        e.currentTarget.style.color = "rgba(255, 255, 255, 0.4)";
-                    }}
-                >
-                    <IconSkipBack size={12} />
-                    {t("auth.logout", "Sair")}
-                </button>
+
+          {/* ── 1. HEADER COM GRID 3 COLUNAS MATEMATICAMENTE CENTRALIZADO (1fr auto 1fr) ── */}
+          <header
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr auto 1fr",
+              alignItems: "center",
+              padding: "12px 28px",
+              background: "rgba(14, 14, 18, 0.85)",
+              backdropFilter: "blur(28px)",
+              WebkitBackdropFilter: "blur(28px)",
+              borderRadius: "28px",
+              border: "1px solid rgba(255, 255, 255, 0.1)",
+              boxShadow: "0 16px 40px -10px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.12)",
+              marginBottom: "20px",
+              width: "100%",
+              boxSizing: "border-box",
+            }}
+          >
+            {/* Coluna Esquerda: Sair + Status de Transmissão */}
+            <div style={{ justifySelf: "start", display: "flex", alignItems: "center", gap: "14px" }}>
+              <button
+                type="button"
+                onClick={() => navigate("/")}
+                style={{
+                  padding: "8px 16px",
+                  borderRadius: "16px",
+                  background: "rgba(255, 255, 255, 0.05)",
+                  border: "1px solid rgba(255, 255, 255, 0.08)",
+                  fontSize: "0.82rem",
+                  fontWeight: 700,
+                  color: "rgba(255, 255, 255, 0.75)",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  cursor: "pointer",
+                }}
+                className="tv-action-btn"
+                title={t("auth.logout", "Sair da TV")}
+              >
+                <IconSkipBack size={14} />
+                {t("auth.logout", "Sair da TV")}
+              </button>
+              <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.8rem", color: "rgba(255,255,255,0.45)", fontWeight: 600 }}>
+                <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#10b981", boxShadow: "0 0 10px #10b981" }} />
+                {t("tv.liveStatus", "Telão Ativo")}
+              </div>
             </div>
 
-            {/* Centro: Logo e Room Code */}
-            <div className="flex-1 flex flex-col items-center justify-start" style={{ maxWidth: '180px', marginTop: -10 }}>
-                <div style={{ transform: 'scale(0.45)', transformOrigin: 'center top', width: '336px', marginBottom: '-120px' }}><Logo /></div>
-                <div className="flex items-center gap-3 text-white tracking-[0.2em]" style={{ paddingBottom: 20, paddingTop: 8 }}>
-                    <span className="opacity-50 font-light" style={{ fontSize: '1.5em', letterSpacing: '0.15em' }}>ROOM</span>
-                    <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: '1.2em' }}>—</span>
-                    <span className="tv-neon-text font-black" style={{ fontSize: 24, fontWeight: 'bold', color: '#FF0080', textShadow: '0 0 15px rgba(255,0,128,0.5)' }}>{code}</span>
-                </div>
-            </div>
-            
-            {/* Direita: QR Code */}
-            <div className="flex justify-end" style={{ paddingTop: 8 }}>
-              <div style={{
-                  background: "rgba(255, 255, 255, 0.03)",
-                  backdropFilter: "blur(12px)",
-                  padding: 8,
-                  borderRadius: 12,
-                  border: "1px solid rgba(255, 255, 255, 0.08)",
-              }}>
-                  <img
-                    src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(
-                      window.location.origin + "/join/" + code
-                    )}&color=000000&bgcolor=ffffff`}
-                    alt="QR"
-                    loading="lazy"
-                    style={{ width: 120, height: 120, borderRadius: 8, background: "rgb(255, 255, 255)", padding: 4 }}
-                  />
-                  <div style={{
-                    color: "rgba(255,255,255,0.35)",
-                    fontSize: "0.55rem",
-                    fontWeight: 600,
-                    marginTop: 4,
-                    width: 120,
-                    textAlign: "center",
-                    letterSpacing: "1.5px",
-                    textTransform: "uppercase",
-                  }}>
-                    {t("tv.scanToAdd", "QR Code to add songs!")}
-                  </div>
+            {/* Coluna Central: LOGO MAJESTOSO NO CENTRO EXATO + CÓDIGO DA SALA EMBAIXO */}
+            <div style={{ justifySelf: "center", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
+              <Logo width={220} style={{ marginBottom: "6px", marginTop: 0 }} />
+              <div
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  background: "linear-gradient(135deg, rgba(255, 0, 128, 0.2), rgba(255, 0, 128, 0.05))",
+                  border: "1px solid rgba(255, 0, 128, 0.45)",
+                  borderRadius: "999px",
+                  padding: "5px 20px",
+                  boxShadow: "0 0 20px rgba(255, 0, 128, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15)",
+                }}
+              >
+                <span style={{ fontSize: "0.72rem", fontWeight: 800, letterSpacing: "2px", color: "#FF0080", textTransform: "uppercase" }}>
+                  {t("tv.roomCode", "CÓDIGO DA SALA")}
+                </span>
+                <span style={{ fontSize: "1.35rem", fontWeight: 900, letterSpacing: "3px", color: "#FFFFFF", fontFamily: "monospace" }}>
+                  {code}
+                </span>
               </div>
+            </div>
+
+            {/* Coluna Direita: Cantores na Sala + Relógio Digital + Tela Cheia */}
+            <div style={{ justifySelf: "end", display: "flex", alignItems: "center", gap: "14px" }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  background: "rgba(16, 185, 129, 0.12)",
+                  border: "1px solid rgba(16, 185, 129, 0.3)",
+                  padding: "8px 16px",
+                  borderRadius: "20px",
+                }}
+              >
+                <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#10b981", boxShadow: "0 0 10px #10b981" }} />
+                <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "#10b981" }}>
+                  {participantsCount} {participantsCount === 1 ? t("tv.participant", "Cantor na Sala") : t("tv.participants", "Cantores na Sala")}
+                </span>
+              </div>
+              <div
+                style={{
+                  padding: "8px 18px",
+                  borderRadius: "20px",
+                  background: "rgba(255, 255, 255, 0.05)",
+                  border: "1px solid rgba(255, 255, 255, 0.08)",
+                  fontSize: "1.15rem",
+                  fontWeight: 800,
+                  color: "#fff",
+                  letterSpacing: "1px",
+                }}
+              >
+                {currentTime}
+              </div>
+              <button
+                type="button"
+                onClick={toggleFullscreen}
+                style={{
+                  padding: "8px 14px",
+                  borderRadius: "18px",
+                  background: "rgba(255, 255, 255, 0.05)",
+                  border: "1px solid rgba(255, 255, 255, 0.08)",
+                  color: "#fff",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+                className="tv-action-btn"
+                title={isFullscreen ? t("tv.exitFullscreen", "Sair da Tela Cheia") : t("tv.fullscreen", "Tela Cheia")}
+              >
+                {isFullscreen ? <IconMinimize size={18} /> : <IconMaximize size={18} />}
+              </button>
             </div>
           </header>
 
-          {/* Conteúdo principal */}
-          <main className="flex-1 grid grid-cols-2 gap-8 items-stretch max-w-[1800px] w-full mx-auto min-h-0 overflow-hidden" style={{ gap: 32 }}>
-            {/* Próxima música / Fila */}
-            <div className="tv-glass-card flex flex-col overflow-hidden">
+          {/* ── 2. MAIN STAGE SPLIT (1.45fr Palco / 1fr Lateral) ── */}
+          <div style={{ flex: 1, display: "grid", gridTemplateColumns: "1.45fr 1fr", gap: "24px", minHeight: 0 }}>
+            {/* LADO ESQUERDO: PALCO PRINCIPAL (ARENA) */}
+            <div
+              style={{
+                background: "rgba(14, 14, 18, 0.8)",
+                backdropFilter: "blur(24px)",
+                WebkitBackdropFilter: "blur(24px)",
+                borderRadius: "28px",
+                border: "1px solid rgba(255, 255, 255, 0.1)",
+                boxShadow: "0 20px 50px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255,255,255,0.1)",
+                padding: "24px",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
+                position: "relative",
+                overflow: "hidden",
+                boxSizing: "border-box",
+                minHeight: 0,
+              }}
+            >
               {state.queue.length > 0 ? (
-                <>
-                  <div className="tv-header-separator" style={{ padding: "1.5vh 3vh", textAlign: "center" }}>
-                    <div style={{ fontSize: "1rem", color: "#FF0080", textTransform: "uppercase", letterSpacing: "3px", fontWeight: 900, marginBottom: "8px", display: "flex", alignItems: "center", justifyContent: "center", gap: "12px" }}>
-                      <IconMusic size={16} /> 
-                      <span>{t("tv.nextSong", "PRÓXIMA MÚSICA")}</span>
-                      <span style={{ color: "rgba(255,255,255,0.15)", fontSize: "0.8rem" }}>—</span>
-                      <span style={{ color: "#fff", fontWeight: 600, fontSize: "0.95rem", display: "flex", alignItems: "center", gap: 6 }}>
-                        <IconMic size={14} />
+                /* FILA ATIVA / PRÓXIMO NO PALCO */
+                <div style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
+                  {/* Header do Palco */}
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "14px", flexShrink: 0 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                      <span style={{ background: "#FF0080", color: "#fff", fontSize: "0.75rem", fontWeight: 900, padding: "5px 12px", borderRadius: "10px", letterSpacing: "1.5px", display: "flex", alignItems: "center", gap: 6 }}>
+                        <IconMusic size={14} />
+                        ● {t("tv.nextUp", "PRÓXIMO NO PALCO")}
+                      </span>
+                      <span style={{ fontSize: "1.1rem", fontWeight: 800, color: "#fff", display: "flex", alignItems: "center", gap: 6 }}>
+                        <IconMic size={16} />
                         {state.queue[0].singers?.map(s => (typeof s === "string" ? s : s.name)).join(" e ") || state.queue[0].requestedBy}
                       </span>
                     </div>
-                    <div style={{ 
-                      fontSize: "clamp(18px, 1.8vw, 20px)", 
-                      fontWeight: 900, 
-                      color: "#fff", 
-                      marginBottom: "0.5vh", 
-                      lineHeight: 1.1, 
-                      textTransform: "uppercase",
-                      display: "-webkit-box",
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: "vertical",
-                      overflow: "hidden"
-                    }}>
+                  </div>
+
+                  {/* Card Destaque da Próxima Música */}
+                  <div
+                    style={{
+                      borderRadius: "20px",
+                      background: "linear-gradient(135deg, rgba(255, 0, 128, 0.08), rgba(250, 204, 21, 0.04))",
+                      border: "1px solid rgba(255, 255, 255, 0.12)",
+                      padding: "20px 24px",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      textAlign: "center",
+                      position: "relative",
+                      boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <div style={{ fontSize: "0.8rem", color: "#facc15", fontWeight: 800, letterSpacing: "2px", textTransform: "uppercase", marginBottom: "6px" }}>
+                      {t("tv.nextSongTitle", "Música Selecionada")}
+                    </div>
+                    <div style={{ fontSize: "clamp(1.15rem, 1.7vw, 1.5rem)", fontWeight: 900, color: "#fff", textTransform: "uppercase", marginBottom: "16px", maxWidth: "90%", lineHeight: 1.2 }}>
                       {state.queue[0].title}
                     </div>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 12, justifyContent: "center" }}>
+
+                    {/* Botões de Ação do Próximo */}
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 12, justifyContent: "center", alignItems: "center" }}>
                       <button
+                        type="button"
                         onClick={() => {
                           setAutoPlayCountdown(null);
                           if (code) nextSong(code, undefined, tvToken);
                         }}
-                        className="glow-pulse"
                         style={{
                           background: "linear-gradient(135deg, #FF0080, #FF4D6D)",
                           color: "#fff",
                           border: "none",
-                          fontSize: "clamp(12px, 1vw, 16px)",
-                          padding: "8px 16px",
+                          fontSize: "0.95rem",
+                          padding: "10px 24px",
                           fontWeight: 800,
-                          borderRadius: '999px',
+                          borderRadius: "999px",
                           textTransform: "uppercase",
                           letterSpacing: "1px",
                           display: "flex",
                           alignItems: "center",
-                          minHeight: "36px",
-                          whiteSpace: "nowrap",
-                          gap: 6,
-                          boxShadow: "0 0 20px rgba(255, 0, 128, 0.4)",
+                          gap: 8,
+                          boxShadow: "0 0 25px rgba(255, 0, 128, 0.5)",
                           cursor: "pointer",
-                          transition: "all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)"
                         }}
+                        className="tv-action-btn"
                       >
                         <IconPlay size={18} />
                         {autoPlayCountdown !== null
@@ -1727,265 +1725,420 @@ export default function RoomTV() {
 
                       {autoPlayCountdown !== null && (
                         <button
+                          type="button"
                           onClick={() => setIsPaused(!isPaused)}
                           style={{
                             background: "rgba(255, 255, 255, 0.05)",
-                            color: isPaused ? "#00e5ff" : "rgba(255, 255, 255, 0.6)",
-                            border: `1px solid ${isPaused ? "#00e5ff" : "rgba(255, 255, 255, 0.1)"}`,
-                            borderRadius: '999px',
-                            padding: "8px 14px",
+                            color: isPaused ? "#facc15" : "rgba(255, 255, 255, 0.8)",
+                            border: `1px solid ${isPaused ? "#facc15" : "rgba(255, 255, 255, 0.15)"}`,
+                            borderRadius: "999px",
+                            padding: "10px 18px",
                             display: "flex",
                             alignItems: "center",
-                            justifyContent: "center",
-                            minHeight: "36px",
-                            whiteSpace: "nowrap",
                             cursor: "pointer",
-                            transition: "all 0.2s",
-                            boxShadow: isPaused ? "0 0 20px rgba(0, 229, 255, 0.2)" : "none"
+                            gap: 8,
+                            fontSize: "0.85rem",
+                            fontWeight: 700,
+                            textTransform: "uppercase",
                           }}
-                          title={isPaused ? "Retomar" : "Pausar"}
+                          className="tv-action-btn"
                         >
-                          {isPaused ? <IconPlay size={22} /> : <IconPause size={22} />}
-                          <span style={{ marginLeft: 8, fontSize: "clamp(12px, 1vw, 16px)", fontWeight: 700, textTransform: "uppercase" }}>
-                            {isPaused ? t("common.resume", "Retomar") : t("common.pause", "Pausar")}
-                          </span>
+                          {isPaused ? <IconPlay size={18} /> : <IconPause size={18} />}
+                          {isPaused ? t("common.resume", "Retomar") : t("common.pause", "Pausar")}
                         </button>
                       )}
 
                       <button
+                        type="button"
                         onClick={() => handleQueueRemove(state.queue[0].id, state.queue[0].title)}
                         disabled={deletingId === state.queue[0].id}
                         style={{
                           background: "rgba(255, 255, 255, 0.05)",
-                          color: deletingId === state.queue[0].id ? "rgba(255,0,0,0.8)" : "rgba(255, 255, 255, 0.4)",
+                          color: deletingId === state.queue[0].id ? "rgba(255,0,0,0.8)" : "rgba(255, 255, 255, 0.5)",
                           border: "1px solid rgba(255, 255, 255, 0.1)",
-                          borderRadius: '999px',
-                          padding: "1vh 2vw",
+                          borderRadius: "999px",
+                          padding: "10px 18px",
                           display: "flex",
                           alignItems: "center",
-                          justifyContent: "center",
                           cursor: "pointer",
-                          transition: "all 0.2s"
+                          gap: 6,
+                          fontSize: "0.85rem",
+                          fontWeight: 700,
+                          textTransform: "uppercase",
                         }}
-                        onMouseEnter={e => {
-                          e.currentTarget.style.background = "rgba(255,0,0,0.15)";
-                          e.currentTarget.style.color = "#ff4444";
-                          e.currentTarget.style.borderColor = "rgba(255,68,68,0.3)";
-                        }}
-                        onMouseLeave={e => {
-                          e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)";
-                          e.currentTarget.style.color = "rgba(255, 255, 255, 0.4)";
-                          e.currentTarget.style.borderColor = "rgba(255, 255, 255, 0.1)";
-                        }}
-                        title="Remover da fila"
+                        className="tv-action-btn"
+                        title={t("tv.removeFromQueue", "Remover da fila")}
                       >
-                        <IconTrash size={20} />
+                        <IconTrash size={16} />
+                        <span>{t("common.remove", "Remover")}</span>
                       </button>
                     </div>
                   </div>
 
+                  {/* Fila Restante */}
                   {state.queue.length > 1 && (
-                    <div className="flex-1 overflow-y-auto custom-scrollbar" style={{ padding: "12px 20px", maxHeight: "400px" }}>
-                      <style>{`
-                        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-                        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); border-radius: 10px; }
-                        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,0,128,0.3); border-radius: 10px; }
-                        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,0,128,0.5); }
-                      `}</style>
-                      <h3 style={{ margin: "0 0 12px", fontSize: "1rem", color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "2px", fontWeight: 700 }}>
-                        {t("tv.queueTitle")} ({state.queue.length - 1} {t("tv.remaining")})
-                      </h3>
+                    <div style={{ flex: 1, overflowY: "auto", marginTop: "14px", minHeight: 0 }} className="custom-tv-scrollbar">
+                      <div style={{ fontSize: "0.82rem", fontWeight: 800, color: "rgba(255,255,255,0.4)", letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: "8px" }}>
+                        {t("tv.queueTitle", "FILA DE ESPERA")} ({state.queue.length - 1} {t("tv.remaining", "músicas")})
+                      </div>
                       <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                         {state.queue.slice(1, 7).map((item) => {
-                            const isMoved = recentlyMoved[0] === item.id;
-                            const moveDirection = isMoved ? recentlyMoved[1] : null;
-                            const animClass = isMoved ? (moveDirection === "up" ? "moved" : "moving-down") : "";
-                            return (
-                              <div
-                                key={item.id}
-                                className={`tv-item-box ${animClass}`}
-                            style={{
-                              display: "flex",
-                              justifyContent: "space-between",
-                              alignItems: "center",
-                              gap: 16,
-                            }}
-                          >
-                            <div style={{ flex: 1, overflow: "hidden" }}>
-                              <div style={{ fontSize: "0.9rem", fontWeight: 800, color: "#fff", marginBottom: "2px", textTransform: "uppercase" }}>
-                                <TruncatedText text={item.title} maxLength={40} />
+                          const isMoved = recentlyMoved[0] === item.id;
+                          const moveDirection = isMoved ? recentlyMoved[1] : null;
+                          const animClass = isMoved ? (moveDirection === "up" ? "moved" : "moving-down") : "";
+                          return (
+                            <div
+                              key={item.id}
+                              className={`tv-item-box ${animClass}`}
+                              style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                                gap: 12,
+                                background: "rgba(255, 255, 255, 0.03)",
+                                border: "1px solid rgba(255, 255, 255, 0.06)",
+                                borderRadius: "14px",
+                                padding: "10px 14px",
+                              }}
+                            >
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <div style={{ fontSize: "0.9rem", fontWeight: 800, color: "#fff", textTransform: "uppercase", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                                  <TruncatedText text={item.title} maxLength={38} />
+                                </div>
+                                <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.78rem", display: "flex", alignItems: "center", gap: "6px", marginTop: "2px" }}>
+                                  <IconUser size={12} />
+                                  {item.singers?.map(s => (typeof s === "string" ? s : s.name)).join(" e ") || item.requestedBy}
+                                </div>
                               </div>
-                              <div style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.8rem", display: "flex", alignItems: "center", gap: "8px" }}>
-                                <IconUser size={14} />
-                                {item.singers?.map(s => (typeof s === "string" ? s : s.name)).join(" e ") || item.requestedBy}
+                              <div style={{ display: "flex", gap: 5 }}>
+                                <button className="tv-action-btn" style={{ padding: 6, borderRadius: 8, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", cursor: "pointer" }} onClick={() => handleQueueMove(item.id, "up")} title="Subir"><IconChevronUp /></button>
+                                <button className="tv-action-btn" style={{ padding: 6, borderRadius: 8, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", cursor: "pointer" }} onClick={() => handleQueueMove(item.id, "down")} title="Descer"><IconChevronDown /></button>
+                                <button className="tv-action-btn" style={{ padding: 6, borderRadius: 8, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", cursor: "pointer" }} onClick={() => handleQueueToTop(item.id)} title="Mover para o topo"><IconChevronsUp /></button>
+                                <button className="tv-action-btn" style={{ padding: 6, borderRadius: 8, background: "rgba(255,0,0,0.1)", border: "1px solid rgba(255,80,80,0.3)", color: deletingId === item.id ? "rgba(255,0,0,0.8)" : "rgba(255,255,255,0.8)", cursor: "pointer" }} onClick={() => handleQueueRemove(item.id, item.title)} disabled={deletingId === item.id} title="Remover"><IconTrash size={14} /></button>
                               </div>
                             </div>
-                            <div style={{ display: "flex", gap: 6 }}>
-                              <button className="tv-btn-glass" style={{ padding: 8, minWidth: 36, minHeight: 36, justifyContent: "center" }} onClick={() => handleQueueMove(item.id, "up")} title="Subir"><IconChevronUp /></button>
-                              <button className="tv-btn-glass" style={{ padding: 8, minWidth: 36, minHeight: 36, justifyContent: "center" }} onClick={() => handleQueueMove(item.id, "down")} title="Descer"><IconChevronDown /></button>
-                              <button className="tv-btn-glass" style={{ padding: 8, minWidth: 36, minHeight: 36, justifyContent: "center" }} onClick={() => handleQueueToTop(item.id)} title="Mover para o topo"><IconChevronsUp /></button>
-                              <button className="tv-btn-glass tv-btn-trash" 
-                                style={{ padding: 8, minWidth: 36, minHeight: 36, justifyContent: "center", color: deletingId === item.id ? "rgba(255,0,0,0.8)" : "rgba(255,255,255,0.8)", borderColor: "rgba(255,80,80,0.3)" }} 
-                                onClick={() => handleQueueRemove(item.id, item.title)} 
-                                title="Remover"
-                                disabled={deletingId === item.id}
-                              >
-                                <IconTrash />
-                              </button>
-                            </div>
-                          </div>
-                        );
-                      })}
+                          );
+                        })}
                       </div>
-                      {state.queue.length > 6 && (
-                        <div style={{ color: "rgba(255,255,255,0.2)", marginTop: 24, textAlign: "center", fontWeight: 700, fontSize: "1rem", letterSpacing: "2px" }}>
-                          + {state.queue.length - 6} {t("tv.songsInQueue")}
+                      {state.queue.length > 7 && (
+                        <div style={{ color: "rgba(255,255,255,0.3)", marginTop: 10, textAlign: "center", fontWeight: 700, fontSize: "0.85rem", letterSpacing: "1.5px" }}>
+                          + {state.queue.length - 7} {t("tv.songsInQueue", "músicas na fila")}
                         </div>
                       )}
                     </div>
                   )}
-                </>
+                </div>
               ) : (
-                <div className="flex-1" style={{ padding: "8vh 2vw", textAlign: "center", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-                  <div style={{ fontSize: "5vw", marginBottom: "2vh", color: "#FF0080", opacity: 0.9, textShadow: "0 0 30px rgba(255, 0, 128, 0.4)", display: "flex", justifyContent: "center" }}>
-                    <IconMusic size={80} />
+                /* EMPTY QUEUE: ALINHAMENTO CENTRAL PERFEITO COM CALL TO ACTION */
+                <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "20px" }}>
+                  {/* Concentric Microphone Halo */}
+                  <div
+                    style={{
+                      width: "90px",
+                      height: "90px",
+                      borderRadius: "50%",
+                      background: "radial-gradient(circle, rgba(255, 0, 128, 0.25) 0%, transparent 70%)",
+                      border: "1.5px solid rgba(255, 0, 128, 0.4)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: "2.5rem",
+                      marginBottom: "20px",
+                      boxShadow: "0 0 35px rgba(255, 0, 128, 0.3)",
+                    }}
+                  >
+                    🎤
                   </div>
-                  <h2 className="tv-vip-title" style={{ fontSize: "2.5vw", marginBottom: "2vh", whiteSpace: "normal" }}>{t("tv.emptyQueue", "Fila vazia")}</h2>
-                  <p style={{ color: "#00e5ff", fontSize: "1.2vw", fontWeight: 600, letterSpacing: "1px" }}>
-                    {t("tv.scanToAdd", "QR Code to add songs!")}
+
+                  {/* Soundwave Equalizer Animado */}
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px", height: "48px", marginBottom: "20px" }}>
+                    {[30, 60, 85, 45, 95, 65, 80, 50, 70, 40, 85, 30].map((h, i) => (
+                      <span
+                        key={i}
+                        style={{
+                          width: "5px",
+                          height: `${h}%`,
+                          borderRadius: "6px",
+                          background: i % 2 === 0 ? "linear-gradient(180deg, #FF0080, #facc15)" : "linear-gradient(180deg, #10b981, #06b6d4)",
+                          animation: `eqPulse 1.2s ease-in-out infinite alternate ${i * 0.1}s`,
+                          transformOrigin: "bottom",
+                        }}
+                      />
+                    ))}
+                  </div>
+
+                  <h2 style={{ fontSize: "2.3rem", fontWeight: 900, letterSpacing: "-0.02em", margin: "0 0 10px 0", color: "#FFFFFF" }}>
+                    {t("tv.emptyQueueTitle", "O Palco Está Livre!")}
+                  </h2>
+                  <p style={{ fontSize: "1.1rem", color: "rgba(255, 255, 255, 0.7)", maxWidth: "440px", lineHeight: 1.5, margin: "0 0 28px 0" }}>
+                    {t("tv.emptyQueueDesc", "Aproxime seu celular no QR Code ao lado para escolher sua música e ser a próxima estrela.")}
                   </p>
+
+                  {/* Steps Horizontais com Alinhamento Concêntrico */}
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: "20px",
+                      background: "rgba(255,255,255,0.05)",
+                      padding: "12px 28px",
+                      borderRadius: "24px",
+                      border: "1px solid rgba(255,255,255,0.08)",
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.88rem", color: "rgba(255,255,255,0.85)", fontWeight: 600 }}>
+                      <span style={{ width: "24px", height: "24px", borderRadius: "50%", background: "#FF0080", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: "0.75rem" }}>1</span>
+                      {t("tv.step1", "Aponte a Câmera")}
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.88rem", color: "rgba(255,255,255,0.85)", fontWeight: 600 }}>
+                      <span style={{ width: "24px", height: "24px", borderRadius: "50%", background: "#FF0080", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: "0.75rem" }}>2</span>
+                      {t("tv.step2", "Escolha a Música")}
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.88rem", color: "rgba(255,255,255,0.85)", fontWeight: 600 }}>
+                      <span style={{ width: "24px", height: "24px", borderRadius: "50%", background: "#FF0080", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: "0.75rem" }}>3</span>
+                      {t("tv.step3", "Cante no Palco!")}
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
 
-            {/* Ranking */}
-            <div className="tv-glass-card flex flex-col overflow-hidden">
-              <div className="tv-header-separator" style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                padding: "3vh"
-              }}>
-                <h2 className="tv-gradient-text" style={{ fontSize: "1.6vw", display: "flex", alignItems: "center", gap: 15, margin: 0 }}>
-                  <IconTrophy size={32} /> RANKING
-                </h2>
-                {/* Toggle Solo/Duplas */}
-                <div style={{ display: "flex", gap: 12 }}>
-                  <button className={`tv-btn-glass ${rankingView === "solo" ? "active" : ""}`} onClick={() => { setRankingView("solo"); setAutoRotate(false); }}>
-                    <span style={{ display: "flex", alignItems: "center", gap: 8 }}><IconUser size={18} /> SOLO</span>
-                  </button>
-                  <button className={`tv-btn-glass ${rankingView === "duet" ? "active" : ""}`} onClick={() => { setRankingView("duet"); setAutoRotate(false); }}>
-                    <span style={{ display: "flex", alignItems: "center", gap: 8 }}><IconUsers size={18} /> DUPLAS</span>
-                  </button>
+            {/* LADO DIREITO: HALL DA FAMA + QR PASS DOCK */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "20px", height: "100%", minHeight: 0 }}>
+              {/* CARD 1: HALL DA FAMA */}
+              <div
+                style={{
+                  flex: 1,
+                  background: "rgba(14, 14, 18, 0.8)",
+                  backdropFilter: "blur(24px)",
+                  WebkitBackdropFilter: "blur(24px)",
+                  borderRadius: "28px",
+                  border: "1px solid rgba(255, 255, 255, 0.1)",
+                  boxShadow: "0 20px 50px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255,255,255,0.1)",
+                  padding: "22px",
+                  display: "flex",
+                  flexDirection: "column",
+                  boxSizing: "border-box",
+                  minHeight: 0,
+                }}
+              >
+                {/* Header com Segmented Buttons */}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px", flexShrink: 0 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                    <IconTrophy size={24} />
+                    <span style={{ fontSize: "1.15rem", fontWeight: 900, letterSpacing: "1px", color: "#FFFFFF" }}>
+                      {t("tv.rankingTitle", "HALL DA FAMA")}
+                    </span>
+                  </div>
+
+                  {/* Segmented Buttons Solo / Duplas */}
+                  <div style={{ display: "flex", background: "rgba(255, 255, 255, 0.06)", padding: "3px", borderRadius: "16px" }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRankingView("solo");
+                        setAutoRotate(false);
+                      }}
+                      style={{
+                        padding: "6px 16px",
+                        borderRadius: "12px",
+                        fontSize: "0.82rem",
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        background: rankingView === "solo" ? "#FF0080" : "transparent",
+                        color: "#fff",
+                        border: "none",
+                        boxShadow: rankingView === "solo" ? "0 2px 10px rgba(255,0,128,0.4)" : "none",
+                        transition: "all 0.2s ease",
+                      }}
+                    >
+                      {t("tv.solo", "Solo")}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRankingView("duet");
+                        setAutoRotate(false);
+                      }}
+                      style={{
+                        padding: "6px 16px",
+                        borderRadius: "12px",
+                        fontSize: "0.82rem",
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        background: rankingView === "duet" ? "#FF0080" : "transparent",
+                        color: "#fff",
+                        border: "none",
+                        boxShadow: rankingView === "duet" ? "0 2px 10px rgba(255,0,128,0.4)" : "none",
+                        transition: "all 0.2s ease",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                      }}
+                    >
+                      <IconUsers size={14} />
+                      {t("tv.duet", "Duplas")}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Lista de Ranking com 3 Colunas Fixas */}
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px", overflowY: "auto", flex: 1, minHeight: 0 }} className="custom-tv-scrollbar">
+                  {rankingView === "solo" ? (
+                    Object.keys(state.ranking).length === 0 ? (
+                      <div style={{ padding: "30px 20px", textAlign: "center", color: "rgba(255,255,255,0.4)", fontSize: "0.95rem", lineHeight: 1.6 }}>
+                        {t("tv.nobodyScored", "Ninguém pontuou ainda.")}
+                        <br />
+                        <span style={{ color: "#FF0080", fontWeight: 700, letterSpacing: "1px" }}>
+                          {t("tv.singToAppear", "CANTE UMA MÚSICA PARA APARECER AQUI!")}
+                        </span>
+                      </div>
+                    ) : (
+                      Object.entries(state.ranking)
+                        .sort(([, a], [, b]) => b.score - a.score)
+                        .slice(0, 6)
+                        .map(([userId, entry], idx) => {
+                          const badge = idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : `${idx + 1}º`;
+                          return (
+                            <div
+                              key={userId}
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "12px",
+                                padding: "10px 14px",
+                                borderRadius: "16px",
+                                background: idx === 0 ? "linear-gradient(135deg, rgba(250, 204, 21, 0.16), rgba(250, 204, 21, 0.04))" : "rgba(255, 255, 255, 0.03)",
+                                border: idx === 0 ? "1px solid rgba(250, 204, 21, 0.4)" : "1px solid rgba(255, 255, 255, 0.05)",
+                              }}
+                            >
+                              <span style={{ fontSize: idx < 3 ? "1.25rem" : "0.9rem", fontWeight: 900, width: "32px", textAlign: "center", color: idx === 0 ? "#facc15" : "rgba(255,255,255,0.7)" }}>
+                                {badge}
+                              </span>
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <div style={{ fontSize: "0.95rem", fontWeight: 700, color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", textTransform: "uppercase" }}>
+                                  {entry.name}
+                                </div>
+                              </div>
+                              <div style={{ textAlign: "right", minWidth: "60px" }}>
+                                <span style={{ fontSize: "1.2rem", fontWeight: 900, color: idx === 0 ? "#facc15" : "#FF0080", letterSpacing: "-0.02em" }}>
+                                  {entry.score}
+                                </span>
+                                <span style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.4)", display: "block" }}>pts</span>
+                              </div>
+                            </div>
+                          );
+                        })
+                    )
+                  ) : (
+                    !state.duetRanking || state.duetRanking.length === 0 ? (
+                      <div style={{ padding: "30px 20px", textAlign: "center", color: "rgba(255,255,255,0.4)", fontSize: "0.95rem", lineHeight: 1.6 }}>
+                        {t("tv.noDuetScored", "Nenhuma dupla pontuou ainda.")}
+                        <br />
+                        <span style={{ color: "#FF0080", fontWeight: 700, letterSpacing: "1px" }}>
+                          {t("tv.singDuetToAppear", "CANTE EM DUPLA PARA APARECER AQUI!")}
+                        </span>
+                      </div>
+                    ) : (
+                      [...state.duetRanking]
+                        .sort((a, b) => b.score - a.score)
+                        .slice(0, 6)
+                        .map((duet, idx) => {
+                          const badge = idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : `${idx + 1}º`;
+                          return (
+                            <div
+                              key={duet.names.join("-")}
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "12px",
+                                padding: "10px 14px",
+                                borderRadius: "16px",
+                                background: idx === 0 ? "linear-gradient(135deg, rgba(250, 204, 21, 0.16), rgba(250, 204, 21, 0.04))" : "rgba(255, 255, 255, 0.03)",
+                                border: idx === 0 ? "1px solid rgba(250, 204, 21, 0.4)" : "1px solid rgba(255, 255, 255, 0.05)",
+                              }}
+                            >
+                              <span style={{ fontSize: idx < 3 ? "1.25rem" : "0.9rem", fontWeight: 900, width: "32px", textAlign: "center", color: idx === 0 ? "#facc15" : "rgba(255,255,255,0.7)" }}>
+                                {badge}
+                              </span>
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <div style={{ fontSize: "0.95rem", fontWeight: 700, color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", textTransform: "uppercase" }}>
+                                  {duet.names[0]} & {duet.names[1]}
+                                </div>
+                                <div style={{ fontSize: "0.76rem", color: "rgba(255, 255, 255, 0.5)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                                  {duet.count} {duet.count > 1 ? t("tv.songs", "Músicas") : t("tv.songs", "Música")}
+                                </div>
+                              </div>
+                              <div style={{ textAlign: "right", minWidth: "60px" }}>
+                                <span style={{ fontSize: "1.2rem", fontWeight: 900, color: idx === 0 ? "#facc15" : "#FF0080", letterSpacing: "-0.02em" }}>
+                                  {duet.score}
+                                </span>
+                                <span style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.4)", display: "block" }}>pts</span>
+                              </div>
+                            </div>
+                          );
+                        })
+                    )
+                  )}
                 </div>
               </div>
 
-              <div className="flex-1 overflow-y-auto custom-scrollbar" style={{ padding: "1vh 3vh 3vh" }}>
-              {rankingView === "solo" ? (
-                // Solo ranking
-                Object.keys(state.ranking).length === 0 ? (
-                  <div style={{ padding: "4vh", textAlign: "center", color: "#888", fontSize: "1.2vw", lineHeight: 1.6 }}>
-                    {t("tv.nobodyScored", "Ninguém pontuou ainda.")}
-                    <br />
-                    <span style={{ color: "#FF0080", fontWeight: 700, letterSpacing: "1px" }}>{t("tv.singToAppear", "CANTE UMA MÚSICA PARA APARECER AQUI!")}</span>
+              {/* CARD 2: INTEGRATED QR PASS DOCK */}
+              <div
+                style={{
+                  background: "linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02))",
+                  backdropFilter: "blur(20px)",
+                  WebkitBackdropFilter: "blur(20px)",
+                  borderRadius: "24px",
+                  border: "1px solid rgba(255, 255, 255, 0.12)",
+                  padding: "16px 20px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "20px",
+                  boxSizing: "border-box",
+                  flexShrink: 0,
+                }}
+              >
+                <div style={{ background: "#fff", padding: "6px", borderRadius: "16px", boxShadow: "0 8px 24px rgba(0,0,0,0.6)" }}>
+                  <img
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(
+                      window.location.origin + "/join/" + code
+                    )}&bgcolor=ffffff&color=0a0a0a&margin=1`}
+                    alt="QR Code"
+                    loading="lazy"
+                    style={{ width: "90px", height: "90px", display: "block", borderRadius: "10px" }}
+                  />
+                </div>
+                <div>
+                  <div style={{ fontSize: "0.75rem", fontWeight: 800, color: "#FF0080", textTransform: "uppercase", letterSpacing: "1.5px" }}>
+                    {t("tv.joinMobile", "ENTRE PELO CELULAR")}
                   </div>
-                ) : (
-                  <div style={{ display: "flex", flexDirection: "column", gap: "1.5vh" }}>
-                    {Object.entries(state.ranking)
-                      .sort(([, a], [, b]) => b.score - a.score)
-                      .map(([odUserId, entry], i) => (
-                        <div key={odUserId} className="tv-item-box" style={{ 
-                          display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1vh 2vh",
-                          border: i === 0 ? "1px solid #FFD700" : i === 1 ? "1px solid #C0C0C0" : i === 2 ? "1px solid #CD7F32" : "1px solid rgba(255, 255, 255, 0.08)",
-                          boxShadow: i === 0 ? "0 0 20px rgba(255, 215, 0, 0.2)" : "none",
-                          background: i === 0 ? "rgba(255, 215, 0, 0.05)" : "rgba(255, 255, 255, 0.02)"
-                        }}>
-                          <span style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                            <span style={{
-                              width: 36, height: 36, borderRadius: "50%",
-                              background: i === 0 ? "linear-gradient(45deg, #FFD700, #FFA500)" : i === 1 ? "linear-gradient(45deg, #eee, #aaa)" : i === 2 ? "linear-gradient(45deg, #e6a181, #cd7f32)" : "rgba(255, 255, 255, 0.05)",
-                              color: i < 3 ? "#000" : "#fff",
-                              display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.1rem", fontWeight: 800,
-                              boxShadow: i < 3 ? "0 0 15px rgba(0,0,0,0.5)" : "none"
-                            }}>
-                              {i + 1}
-                            </span>
-                            <span style={{ fontSize: "1.2rem", fontWeight: i < 3 ? 900 : 700, color: "#fff", textTransform: "uppercase" }}>{entry.name}</span>
-                          </span>
-                          <span style={{ fontSize: "1.5vw", fontWeight: 900, color: i === 0 ? "#FFD700" : i === 1 ? "#ddd" : i === 2 ? "#cd7f32" : "#FF0080", textShadow: i === 0 ? "0 0 15px rgba(255,215,0,0.5)" : "none" }}>
-                            {entry.score} pts
-                          </span>
-                        </div>
-                      ))}
+                  <div style={{ fontSize: "1.1rem", fontWeight: 800, color: "#fff", marginTop: "3px" }}>
+                    {t("tv.scanToAdd", "Aponte a câmera para cantar")}
                   </div>
-                )
-              ) : // Duet ranking
-                !state.duetRanking || state.duetRanking.length === 0 ? (
-                  <div style={{ padding: "4vh", textAlign: "center", color: "rgba(255,255,255,0.3)", fontSize: "1.2vw", lineHeight: 1.6 }}>
-                    {t("tv.noDuetScored", "Nenhuma dupla pontuou ainda.")}
-                    <br />
-                    <span style={{ color: "#FF0080", fontWeight: 700, letterSpacing: "1px" }}>{t("tv.singDuetToAppear", "CANTE EM DUPLA PARA APARECER AQUI!")}</span>
+                  <div style={{ fontSize: "0.82rem", color: "rgba(255,255,255,0.65)", marginTop: "4px" }}>
+                    Acesse <strong style={{ color: "#fff" }}>karaokefactory.org</strong> com a sala <strong style={{ color: "#FF0080" }}>{code}</strong>
                   </div>
-                ) : (
-                  <div style={{ display: "flex", flexDirection: "column", gap: "1.5vh" }}>
-                    {[...state.duetRanking]
-                      .sort((a, b) => b.score - a.score)
-                      .map((duet, i) => (
-                        <div key={duet.names.join("-")} className="tv-item-box" style={{ 
-                          display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1vh 2vh",
-                          border: i === 0 ? "1px solid #FFD700" : i === 1 ? "1px solid #C0C0C0" : i === 2 ? "1px solid #CD7F32" : "1px solid rgba(255, 255, 255, 0.08)",
-                          boxShadow: i === 0 ? "0 0 20px rgba(255, 215, 0, 0.2)" : "none",
-                          background: i === 0 ? "rgba(255, 215, 0, 0.05)" : "rgba(255, 255, 255, 0.02)"
-                        }}>
-                          <span style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                            <span style={{
-                              width: 36, height: 36, borderRadius: "50%",
-                              background: i === 0 ? "linear-gradient(45deg, #FFD700, #FFA500)" : i === 1 ? "linear-gradient(45deg, #eee, #aaa)" : i === 2 ? "linear-gradient(45deg, #e6a181, #cd7f32)" : "rgba(255, 255, 255, 0.05)",
-                              color: i < 3 ? "#000" : "#fff",
-                              display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.1rem", fontWeight: 800,
-                              boxShadow: i < 3 ? "0 0 15px rgba(0,0,0,0.5)" : "none"
-                            }}>
-                              {i + 1}
-                            </span>
-                            <span style={{ fontSize: "1.1rem", fontWeight: i < 3 ? 900 : 700, color: "#fff", textTransform: "uppercase" }}>{duet.names[0]} & {duet.names[1]}</span>
-                          </span>
-                          <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
-                            <span style={{ fontSize: "1.5vw", fontWeight: 900, color: i === 0 ? "#FFD700" : i === 1 ? "#ddd" : i === 2 ? "#cd7f32" : "#FF0080", textShadow: i === 0 ? "0 0 15px rgba(255,215,0,0.5)" : "none" }}>
-                              {duet.score} pts
-                            </span>
-                            <span style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "1px", fontWeight: 700 }}>
-                              {duet.count} {duet.count > 1 ? t("tv.songs", "Músicas") : t("tv.songs", "Música")}
-                            </span>
-                          </span>
-                        </div>
-                      ))}
-                  </div>
-                )}
+                </div>
               </div>
             </div>
-          </main>
+          </div>
 
-          {/* Footer Informativo */}
-          <footer style={{ 
-            marginTop: "auto", 
-            padding: "2vh 0", 
-            borderTop: "1px solid rgba(255, 255, 255, 0.05)",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            opacity: 0.6,
-            fontSize: "0.9rem",
-            letterSpacing: "1px",
-            textTransform: "uppercase"
-          }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 15 }}>
-                <div style={{ 
-                    width: 8, height: 8, borderRadius: "50%", background: "#2ecc71", boxShadow: "0 0 10px #2ecc71"
-                }} />
-                <span>{participantsCount} {t("tv.participants", "Participantes")}</span>
-            </div>
-            <div>{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-            <div style={{ fontWeight: 700 }}>KARAOKE FACTORY &copy; 2025</div>
+          {/* ── 3. FOOTER DISCRETO ── */}
+          <footer
+            style={{
+              marginTop: "16px",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              fontSize: "0.8rem",
+              color: "rgba(255, 255, 255, 0.4)",
+              padding: "0 10px",
+              letterSpacing: "1px",
+              textTransform: "uppercase",
+            }}
+          >
+            <span>KARAOKE FACTORY • LIVE STAGE EXPERIENCE</span>
+            <span>SISTEMA DE PONTUAÇÃO AO VIVO • ALTA PRECISÃO</span>
           </footer>
         </div>
       )}
