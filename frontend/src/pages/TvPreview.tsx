@@ -4,7 +4,7 @@ import Logo from "../components/Logo";
 // Mock data to demonstrate both Empty Queue and Active Playing states
 const MOCK_ROOM = "3BBEP2";
 const MOCK_JOIN_URL = `https://karaokefactory.org/join/${MOCK_ROOM}`;
-const MOCK_QR = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(MOCK_JOIN_URL)}&bgcolor=ffffff&color=0a0a0a&margin=1`;
+const MOCK_QR = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(MOCK_JOIN_URL)}&bgcolor=ffffff&color=0a0a0a&margin=1`;
 
 const MOCK_SOLO_RANKING = [
   { rank: 1, name: "Mariana Silva", score: 96, song: "Como Nossos Pais", badge: "🥇" },
@@ -27,7 +27,7 @@ const MOCK_QUEUE = [
 ];
 
 export default function TvPreview() {
-  const [selectedConcept, setSelectedConcept] = useState<"electric" | "cyber" | "arcade">("electric");
+  const [selectedConcept, setSelectedConcept] = useState<"electric" | "electric_banner" | "cyber" | "arcade">("electric");
   const [hasActiveSong, setHasActiveSong] = useState(false);
   const [rankingTab, setRankingTab] = useState<"solo" | "duet">("solo");
   const [currentTime, setCurrentTime] = useState("");
@@ -60,8 +60,8 @@ export default function TvPreview() {
           position: "sticky",
           top: 0,
           zIndex: 1000,
-          background: "rgba(10, 10, 14, 0.94)",
-          backdropFilter: "blur(20px)",
+          background: "rgba(10, 10, 14, 0.96)",
+          backdropFilter: "blur(24px)",
           borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
           padding: "10px 24px",
           display: "flex",
@@ -73,10 +73,10 @@ export default function TvPreview() {
       >
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <span style={{ fontSize: "0.85rem", textTransform: "uppercase", letterSpacing: "1.5px", fontWeight: "800", color: "#FF0080" }}>
-            🎨 PROPOSTAS TELÃO (TV)
+            🎨 PREVIEW DO TELÃO
           </span>
-          <span style={{ fontSize: "0.75rem", background: "rgba(255,255,255,0.08)", padding: "3px 8px", borderRadius: "12px", color: "rgba(255,255,255,0.6)" }}>
-            3 Versões Impecáveis
+          <span style={{ fontSize: "0.75rem", background: "rgba(255,255,255,0.08)", padding: "3px 10px", borderRadius: "12px", color: "rgba(255,255,255,0.7)" }}>
+            Alinhamento Perfeito & Polish
           </span>
         </div>
 
@@ -86,7 +86,7 @@ export default function TvPreview() {
             type="button"
             onClick={() => setSelectedConcept("electric")}
             style={{
-              padding: "8px 16px",
+              padding: "8px 18px",
               borderRadius: "20px",
               fontSize: "0.82rem",
               fontWeight: 700,
@@ -98,7 +98,25 @@ export default function TvPreview() {
               transition: "all 0.2s ease",
             }}
           >
-            ⚡ 1. Electric Stage (Show)
+            ⚡ 1. Electric Stage (Central Majestoso)
+          </button>
+          <button
+            type="button"
+            onClick={() => setSelectedConcept("electric_banner")}
+            style={{
+              padding: "8px 16px",
+              borderRadius: "20px",
+              fontSize: "0.82rem",
+              fontWeight: 700,
+              cursor: "pointer",
+              background: selectedConcept === "electric_banner" ? "linear-gradient(135deg, #FF0080, #FF4D6D)" : "transparent",
+              color: "#fff",
+              border: "none",
+              boxShadow: selectedConcept === "electric_banner" ? "0 4px 15px rgba(255,0,128,0.4)" : "none",
+              transition: "all 0.2s ease",
+            }}
+          >
+            ⚡ 1B. Electric (Header Panorâmico)
           </button>
           <button
             type="button"
@@ -147,14 +165,14 @@ export default function TvPreview() {
               padding: "7px 14px",
               borderRadius: "12px",
               fontSize: "0.78rem",
-              fontWeight: 600,
+              fontWeight: 700,
               cursor: "pointer",
-              background: hasActiveSong ? "rgba(16, 185, 129, 0.15)" : "rgba(255, 255, 255, 0.08)",
-              color: hasActiveSong ? "#10b981" : "rgba(255, 255, 255, 0.8)",
-              border: hasActiveSong ? "1px solid rgba(16, 185, 129, 0.4)" : "1px solid rgba(255, 255, 255, 0.1)",
+              background: hasActiveSong ? "rgba(16, 185, 129, 0.18)" : "rgba(255, 255, 255, 0.08)",
+              color: hasActiveSong ? "#10b981" : "rgba(255, 255, 255, 0.85)",
+              border: hasActiveSong ? "1px solid rgba(16, 185, 129, 0.4)" : "1px solid rgba(255, 255, 255, 0.12)",
             }}
           >
-            {hasActiveSong ? "▶ Tocando Música" : "⏸ Fila Vazia"} (Clique para Alternar)
+            {hasActiveSong ? "▶ Tocando Música" : "⏸ Fila Vazia"} (Alternar Estado)
           </button>
           <button
             type="button"
@@ -163,11 +181,11 @@ export default function TvPreview() {
               padding: "7px 12px",
               borderRadius: "12px",
               fontSize: "0.78rem",
-              fontWeight: 600,
+              fontWeight: 700,
               cursor: "pointer",
               background: "rgba(255, 255, 255, 0.08)",
               color: "#fff",
-              border: "1px solid rgba(255, 255, 255, 0.1)",
+              border: "1px solid rgba(255, 255, 255, 0.12)",
             }}
             title="Ver em Tela Cheia (16:9 de TV)"
           >
@@ -181,7 +199,16 @@ export default function TvPreview() {
       ───────────────────────────────────────────────────────────── */}
       <div style={{ flex: 1, position: "relative", overflow: "hidden", display: "flex", flexDirection: "column" }}>
         {selectedConcept === "electric" && (
-          <ConceptElectric
+          <ConceptElectricPolished
+            hasActiveSong={hasActiveSong}
+            rankingTab={rankingTab}
+            setRankingTab={setRankingTab}
+            currentTime={currentTime}
+          />
+        )}
+
+        {selectedConcept === "electric_banner" && (
+          <ConceptElectricBanner
             hasActiveSong={hasActiveSong}
             rankingTab={rankingTab}
             setRankingTab={setRankingTab}
@@ -212,9 +239,9 @@ export default function TvPreview() {
 }
 
 // ═════════════════════════════════════════════════════════════════════
-// PROPOSTA 1: "ELECTRIC STAGE" (Clima de Show Ao Vivo / Festival)
+// PROPOSTA 1 (POLIDA): "ELECTRIC STAGE" COM ALINHAMENTO CENTRAL PERFEITO
 // ═════════════════════════════════════════════════════════════════════
-function ConceptElectric({
+function ConceptElectricPolished({
   hasActiveSong,
   rankingTab,
   setRankingTab,
@@ -229,88 +256,118 @@ function ConceptElectric({
     <div
       style={{
         flex: 1,
-        padding: "24px 32px 16px 32px",
+        padding: "24px 36px 18px 36px",
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
-        background: "radial-gradient(circle at 50% -20%, rgba(255, 0, 128, 0.18) 0%, transparent 60%), #070709",
+        background: "radial-gradient(circle at 50% 0%, rgba(255, 0, 128, 0.2) 0%, transparent 65%), radial-gradient(circle at 85% 90%, rgba(250, 204, 21, 0.06) 0%, transparent 45%), #070709",
         minHeight: "calc(100vh - 65px)",
+        boxSizing: "border-box",
       }}
     >
-      {/* ── TOP HEADER MARQUEE ── */}
+      {/* ── 1. HEADER COM GRID 3 COLUNAS MATEMATICAMENTE CENTRALIZADO (1fr auto 1fr) ── */}
       <header
         style={{
-          display: "flex",
+          display: "grid",
+          gridTemplateColumns: "1fr auto 1fr",
           alignItems: "center",
-          justifyContent: "space-between",
-          padding: "10px 24px",
-          background: "rgba(18, 18, 24, 0.75)",
-          backdropFilter: "blur(24px)",
+          padding: "12px 28px",
+          background: "rgba(14, 14, 18, 0.82)",
+          backdropFilter: "blur(28px)",
+          WebkitBackdropFilter: "blur(28px)",
           borderRadius: "28px",
           border: "1px solid rgba(255, 255, 255, 0.1)",
-          boxShadow: "0 10px 30px rgba(0, 0, 0, 0.5)",
-          marginBottom: "20px",
+          boxShadow: "0 16px 40px -10px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.12)",
+          marginBottom: "24px",
+          width: "100%",
+          boxSizing: "border-box",
         }}
       >
-        {/* Left: Exit/Menu pill */}
-        <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+        {/* Coluna Esquerda: Sair + Status de Transmissão */}
+        <div style={{ justifySelf: "start", display: "flex", alignItems: "center", gap: "14px" }}>
           <div
             style={{
-              padding: "6px 14px",
+              padding: "8px 16px",
               borderRadius: "16px",
-              background: "rgba(255,255,255,0.06)",
-              border: "1px solid rgba(255,255,255,0.08)",
-              fontSize: "0.8rem",
+              background: "rgba(255, 255, 255, 0.05)",
+              border: "1px solid rgba(255, 255, 255, 0.08)",
+              fontSize: "0.82rem",
               fontWeight: 700,
-              color: "rgba(255,255,255,0.6)",
+              color: "rgba(255, 255, 255, 0.75)",
               display: "flex",
               alignItems: "center",
-              gap: "6px",
+              gap: "8px",
+              cursor: "pointer",
             }}
           >
-            <span>⏻</span> Sair da Sessão
+            <span style={{ color: "#FF0080" }}>⏻</span> Sair da TV
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.8rem", color: "rgba(255,255,255,0.45)" }}>
+            <span style={{ width: "7px", height: "7px", borderRadius: "50%", background: "#10b981", boxShadow: "0 0 8px #10b981" }} />
+            Telão Ativo
           </div>
         </div>
 
-        {/* Center: Logo + Radiant Stage Code Pill */}
-        <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-          <Logo width={180} style={{ marginBottom: 0 }} />
+        {/* Coluna Central: LOGO MAJESTOSO NO CENTRO EXATO + CÓDIGO DA SALA EMBAIXO */}
+        <div style={{ justifySelf: "center", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
+          <Logo width={220} style={{ marginBottom: "6px", marginTop: 0 }} />
           <div
             style={{
-              display: "flex",
+              display: "inline-flex",
               alignItems: "center",
               gap: "10px",
               background: "linear-gradient(135deg, rgba(255, 0, 128, 0.2), rgba(255, 0, 128, 0.05))",
               border: "1px solid rgba(255, 0, 128, 0.45)",
-              padding: "8px 20px",
               borderRadius: "999px",
-              boxShadow: "0 0 25px rgba(255, 0, 128, 0.3), inset 0 1px 0 rgba(255,255,255,0.2)",
+              padding: "5px 20px",
+              boxShadow: "0 0 20px rgba(255, 0, 128, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15)",
             }}
           >
-            <span style={{ fontSize: "0.78rem", fontWeight: 800, letterSpacing: "1.5px", color: "#FF0080", textTransform: "uppercase" }}>
+            <span style={{ fontSize: "0.72rem", fontWeight: 800, letterSpacing: "2px", color: "#FF0080", textTransform: "uppercase" }}>
               CÓDIGO DA SALA
             </span>
-            <span style={{ fontSize: "1.4rem", fontWeight: 900, letterSpacing: "3px", color: "#FFFFFF", fontFamily: "monospace" }}>
+            <span style={{ fontSize: "1.35rem", fontWeight: 900, letterSpacing: "3px", color: "#FFFFFF", fontFamily: "monospace" }}>
               {MOCK_ROOM}
             </span>
           </div>
         </div>
 
-        {/* Right: Live Participants Beacon & Time */}
-        <div style={{ display: "flex", alignItems: "center", gap: "18px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", background: "rgba(16, 185, 129, 0.12)", border: "1px solid rgba(16, 185, 129, 0.3)", padding: "6px 14px", borderRadius: "20px" }}>
-            <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#10b981", boxShadow: "0 0 10px #10b981", animation: "pulse 2s infinite" }} />
-            <span style={{ fontSize: "0.82rem", fontWeight: 700, color: "#10b981" }}>6 Cantores Online</span>
+        {/* Coluna Direita: Cantores Online + Relógio Digital */}
+        <div style={{ justifySelf: "end", display: "flex", alignItems: "center", gap: "16px" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              background: "rgba(16, 185, 129, 0.12)",
+              border: "1px solid rgba(16, 185, 129, 0.3)",
+              padding: "8px 16px",
+              borderRadius: "20px",
+            }}
+          >
+            <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#10b981", boxShadow: "0 0 10px #10b981" }} />
+            <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "#10b981" }}>6 Cantores na Sala</span>
           </div>
-          <span style={{ fontSize: "1.1rem", fontWeight: 800, color: "rgba(255, 255, 255, 0.9)", letterSpacing: "1px" }}>
+          <div
+            style={{
+              padding: "8px 18px",
+              borderRadius: "20px",
+              background: "rgba(255, 255, 255, 0.05)",
+              border: "1px solid rgba(255, 255, 255, 0.08)",
+              fontSize: "1.15rem",
+              fontWeight: 800,
+              color: "#fff",
+              letterSpacing: "1px",
+            }}
+          >
             {currentTime}
-          </span>
+          </div>
         </div>
       </header>
 
-      {/* ── MAIN STAGE SPLIT (Left 60% Arena / Right 40% Hall) ── */}
-      <div style={{ flex: 1, display: "grid", gridTemplateColumns: "1.35fr 1fr", gap: "24px", minHeight: "440px" }}>
-        {/* LEFT COLUMN: THE ARENA / PLAYER */}
+      {/* ── 2. MAIN STAGE SPLIT RIGOROSAMENTE ALINHADO (1.45fr Palco / 1fr Lateral) ── */}
+      <div style={{ flex: 1, display: "grid", gridTemplateColumns: "1.45fr 1fr", gap: "24px", minHeight: "520px" }}>
+        {/* LADO ESQUERDO: PALCO PRINCIPAL (ARENA) */}
         <div
           style={{
             background: "rgba(14, 14, 18, 0.8)",
@@ -324,109 +381,152 @@ function ConceptElectric({
             justifyContent: "space-between",
             position: "relative",
             overflow: "hidden",
+            boxSizing: "border-box",
           }}
         >
           {hasActiveSong ? (
             /* ACTIVE PLAYING VIEW */
-            <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <span style={{ background: "#FF0080", color: "#fff", fontSize: "0.75rem", fontWeight: 900, padding: "4px 10px", borderRadius: "8px", letterSpacing: "1px" }}>
-                    NO PALCO AGORA
+            <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+              {/* Header do Palco */}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "14px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                  <span style={{ background: "#FF0080", color: "#fff", fontSize: "0.75rem", fontWeight: 900, padding: "5px 12px", borderRadius: "10px", letterSpacing: "1.5px" }}>
+                    ● NO PALCO AGORA
                   </span>
-                  <span style={{ fontSize: "1rem", fontWeight: 700, color: "#fff" }}>🎤 Thiago & Mariana</span>
+                  <span style={{ fontSize: "1.1rem", fontWeight: 800, color: "#fff" }}>🎤 Thiago & Mariana</span>
                 </div>
-                <span style={{ fontSize: "0.85rem", color: "rgba(255,255,255,0.6)" }}>2:45 / 4:18</span>
+                <div style={{ fontSize: "0.9rem", color: "rgba(255,255,255,0.7)", fontWeight: 600 }}>2:45 / 4:18</div>
               </div>
 
-              {/* Video Simulated Frame */}
+              {/* Moldura Cinematográfica 16:9 */}
               <div
                 style={{
                   flex: 1,
-                  minHeight: "260px",
                   borderRadius: "20px",
-                  background: "linear-gradient(135deg, #111, #1a1a24)",
+                  background: "linear-gradient(135deg, #0e0d16, #161522)",
                   border: "1px solid rgba(255, 255, 255, 0.12)",
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
                   justifyContent: "center",
                   position: "relative",
-                  boxShadow: "0 0 40px rgba(255, 0, 128, 0.2)",
+                  boxShadow: "0 0 50px rgba(255, 0, 128, 0.25)",
                   overflow: "hidden",
+                  minHeight: "300px",
                 }}
               >
-                <div style={{ fontSize: "3rem", marginBottom: "8px" }}>🎬</div>
-                <div style={{ fontSize: "1.3rem", fontWeight: 800, color: "#fff" }}>Chitãozinho & Xororó - Evidências</div>
-                <div style={{ fontSize: "0.9rem", color: "#facc15", marginTop: "4px" }}>Letra de Karaokê Sincronizada</div>
-                {/* Simulated playback bar */}
+                <div style={{ fontSize: "3.2rem", marginBottom: "8px", filter: "drop-shadow(0 0 15px rgba(255,0,128,0.5))" }}>🎬</div>
+                <div style={{ fontSize: "1.45rem", fontWeight: 900, color: "#fff", textAlign: "center", padding: "0 20px" }}>
+                  Chitãozinho & Xororó - Evidências
+                </div>
+                <div style={{ fontSize: "0.95rem", color: "#facc15", marginTop: "6px", fontWeight: 700 }}>
+                  Letra de Karaokê Sincronizada
+                </div>
+                {/* Linha de progresso da música */}
                 <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "6px", background: "rgba(255,255,255,0.1)" }}>
                   <div style={{ width: "65%", height: "100%", background: "linear-gradient(90deg, #FF0080, #facc15)" }} />
                 </div>
               </div>
 
-              {/* Up Next Mini-Queue Ticker */}
-              <div style={{ marginTop: "16px", display: "flex", alignItems: "center", gap: "12px", background: "rgba(255,255,255,0.04)", padding: "10px 16px", borderRadius: "16px", border: "1px solid rgba(255,255,255,0.06)" }}>
-                <span style={{ fontSize: "0.75rem", fontWeight: 800, color: "#facc15", textTransform: "uppercase", letterSpacing: "1px" }}>
+              {/* Barra Inferior da Próxima Música */}
+              <div
+                style={{
+                  marginTop: "16px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "14px",
+                  background: "rgba(255,255,255,0.04)",
+                  padding: "12px 18px",
+                  borderRadius: "18px",
+                  border: "1px solid rgba(255,255,255,0.06)",
+                }}
+              >
+                <span style={{ fontSize: "0.78rem", fontWeight: 800, color: "#facc15", textTransform: "uppercase", letterSpacing: "1.5px" }}>
                   A Seguir:
                 </span>
-                <span style={{ fontSize: "0.9rem", fontWeight: 600, color: "#fff" }}>
+                <span style={{ fontSize: "0.95rem", fontWeight: 700, color: "#fff" }}>
                   Legião Urbana - Pais e Filhos
                 </span>
-                <span style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.5)", marginLeft: "auto" }}>
+                <span style={{ fontSize: "0.82rem", color: "rgba(255,255,255,0.5)", marginLeft: "auto" }}>
                   Cantor: Felipe Costa
                 </span>
               </div>
             </div>
           ) : (
-            /* EMPTY QUEUE VIEW: DYNAMIC CALL TO ACTION */
-            <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "20px" }}>
-              {/* Dynamic Neon Soundwave Animation */}
-              <div style={{ display: "flex", alignItems: "center", gap: "6px", height: "60px", marginBottom: "20px" }}>
-                {[30, 55, 75, 40, 90, 60, 80, 45, 70, 35].map((h, i) => (
+            /* EMPTY QUEUE: ALINHAMENTO CENTRAL PERFEITO COM CALL TO ACTION */
+            <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "30px 20px" }}>
+              {/* Concentric Microphone Halo */}
+              <div
+                style={{
+                  width: "90px",
+                  height: "90px",
+                  borderRadius: "50%",
+                  background: "radial-gradient(circle, rgba(255, 0, 128, 0.25) 0%, transparent 70%)",
+                  border: "1.5px solid rgba(255, 0, 128, 0.4)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "2.5rem",
+                  marginBottom: "20px",
+                  boxShadow: "0 0 35px rgba(255, 0, 128, 0.3)",
+                }}
+              >
+                🎤
+              </div>
+
+              {/* Soundwave Equalizer Animado */}
+              <div style={{ display: "flex", alignItems: "center", gap: "6px", height: "48px", marginBottom: "20px" }}>
+                {[30, 60, 85, 45, 95, 65, 80, 50, 70, 40, 85, 30].map((h, i) => (
                   <span
                     key={i}
                     style={{
-                      width: "6px",
+                      width: "5px",
                       height: `${h}%`,
                       borderRadius: "6px",
                       background: i % 2 === 0 ? "linear-gradient(180deg, #FF0080, #facc15)" : "linear-gradient(180deg, #10b981, #06b6d4)",
-                      animation: "pulseWave 1.2s ease-in-out infinite alternate",
-                      animationDelay: `${i * 0.1}s`,
                     }}
                   />
                 ))}
               </div>
 
-              <h2 style={{ fontSize: "2rem", fontWeight: 900, letterSpacing: "-0.02em", margin: "0 0 10px 0", color: "#FFFFFF" }}>
-                O Palco Está Livre! 🎤
+              <h2 style={{ fontSize: "2.3rem", fontWeight: 900, letterSpacing: "-0.02em", margin: "0 0 10px 0", color: "#FFFFFF" }}>
+                O Palco Está Livre!
               </h2>
-              <p style={{ fontSize: "1.05rem", color: "rgba(255, 255, 255, 0.7)", maxWidth: "420px", lineHeight: 1.5, margin: "0 0 24px 0" }}>
-                Conecte seu celular escaneando o QR Code ao lado e seja a próxima estrela da noite.
+              <p style={{ fontSize: "1.1rem", color: "rgba(255, 255, 255, 0.7)", maxWidth: "440px", lineHeight: 1.5, margin: "0 0 28px 0" }}>
+                Aproxime seu celular no QR Code ao lado para escolher sua música e ser a próxima estrela.
               </p>
 
-              {/* Instructions Pill */}
-              <div style={{ display: "flex", gap: "16px", background: "rgba(255,255,255,0.05)", padding: "12px 24px", borderRadius: "20px", border: "1px solid rgba(255,255,255,0.08)" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.85rem", color: "rgba(255,255,255,0.8)" }}>
-                  <span style={{ width: "22px", height: "22px", borderRadius: "50%", background: "#FF0080", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: "0.75rem" }}>1</span>
+              {/* Steps Horizontais com Alinhamento Concêntrico */}
+              <div
+                style={{
+                  display: "flex",
+                  gap: "20px",
+                  background: "rgba(255,255,255,0.05)",
+                  padding: "12px 28px",
+                  borderRadius: "24px",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.88rem", color: "rgba(255,255,255,0.85)", fontWeight: 600 }}>
+                  <span style={{ width: "24px", height: "24px", borderRadius: "50%", background: "#FF0080", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: "0.75rem" }}>1</span>
                   Aponte a Câmera
                 </div>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.85rem", color: "rgba(255,255,255,0.8)" }}>
-                  <span style={{ width: "22px", height: "22px", borderRadius: "50%", background: "#FF0080", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: "0.75rem" }}>2</span>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.88rem", color: "rgba(255,255,255,0.85)", fontWeight: 600 }}>
+                  <span style={{ width: "24px", height: "24px", borderRadius: "50%", background: "#FF0080", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: "0.75rem" }}>2</span>
                   Escolha a Música
                 </div>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.85rem", color: "rgba(255,255,255,0.8)" }}>
-                  <span style={{ width: "22px", height: "22px", borderRadius: "50%", background: "#FF0080", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: "0.75rem" }}>3</span>
-                  Suba no Palco!
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.88rem", color: "rgba(255,255,255,0.85)", fontWeight: 600 }}>
+                  <span style={{ width: "24px", height: "24px", borderRadius: "50%", background: "#FF0080", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: "0.75rem" }}>3</span>
+                  Cante no Palco!
                 </div>
               </div>
             </div>
           )}
         </div>
 
-        {/* RIGHT COLUMN: HALL DA FAMA & INTEGRATED QR DOCK */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-          {/* RANKING CARD */}
+        {/* LADO DIREITO: HALL DA FAMA + QR PASS DOCK */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "20px", height: "100%" }}>
+          {/* CARD 1: HALL DA FAMA */}
           <div
             style={{
               flex: 1,
@@ -435,29 +535,30 @@ function ConceptElectric({
               borderRadius: "28px",
               border: "1px solid rgba(255, 255, 255, 0.1)",
               boxShadow: "0 20px 50px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255,255,255,0.1)",
-              padding: "20px",
+              padding: "22px",
               display: "flex",
               flexDirection: "column",
+              boxSizing: "border-box",
             }}
           >
-            {/* Header: Title + Segments */}
+            {/* Header com Alinhamento Perfeito */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <span style={{ fontSize: "1.3rem" }}>🏆</span>
-                <span style={{ fontSize: "1.1rem", fontWeight: 900, letterSpacing: "1px", color: "#FFFFFF" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <span style={{ fontSize: "1.35rem" }}>🏆</span>
+                <span style={{ fontSize: "1.15rem", fontWeight: 900, letterSpacing: "1px", color: "#FFFFFF" }}>
                   HALL DA FAMA
                 </span>
               </div>
 
-              {/* Segmented Controls */}
+              {/* Segmented Buttons */}
               <div style={{ display: "flex", background: "rgba(255, 255, 255, 0.06)", padding: "3px", borderRadius: "16px" }}>
                 <button
                   type="button"
                   onClick={() => setRankingTab("solo")}
                   style={{
-                    padding: "5px 14px",
+                    padding: "6px 16px",
                     borderRadius: "12px",
-                    fontSize: "0.8rem",
+                    fontSize: "0.82rem",
                     fontWeight: 700,
                     cursor: "pointer",
                     background: rankingTab === "solo" ? "#FF0080" : "transparent",
@@ -472,9 +573,9 @@ function ConceptElectric({
                   type="button"
                   onClick={() => setRankingTab("duet")}
                   style={{
-                    padding: "5px 14px",
+                    padding: "6px 16px",
                     borderRadius: "12px",
-                    fontSize: "0.8rem",
+                    fontSize: "0.82rem",
                     fontWeight: 700,
                     cursor: "pointer",
                     background: rankingTab === "duet" ? "#FF0080" : "transparent",
@@ -488,8 +589,8 @@ function ConceptElectric({
               </div>
             </div>
 
-            {/* List */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px", overflowY: "auto" }}>
+            {/* Lista com Alinhamento em 3 Colunas Fixas */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px", overflowY: "auto", flex: 1 }}>
               {(rankingTab === "solo" ? MOCK_SOLO_RANKING : MOCK_DUET_RANKING).map((entry, idx) => (
                 <div
                   key={idx}
@@ -499,23 +600,23 @@ function ConceptElectric({
                     gap: "12px",
                     padding: "10px 14px",
                     borderRadius: "16px",
-                    background: idx === 0 ? "linear-gradient(135deg, rgba(250, 204, 21, 0.15), rgba(250, 204, 21, 0.04))" : "rgba(255, 255, 255, 0.03)",
-                    border: idx === 0 ? "1px solid rgba(250, 204, 21, 0.35)" : "1px solid rgba(255, 255, 255, 0.05)",
+                    background: idx === 0 ? "linear-gradient(135deg, rgba(250, 204, 21, 0.16), rgba(250, 204, 21, 0.04))" : "rgba(255, 255, 255, 0.03)",
+                    border: idx === 0 ? "1px solid rgba(250, 204, 21, 0.4)" : "1px solid rgba(255, 255, 255, 0.05)",
                   }}
                 >
-                  <span style={{ fontSize: idx < 3 ? "1.2rem" : "0.85rem", fontWeight: 800, width: "28px", textAlign: "center", color: idx === 0 ? "#facc15" : "rgba(255,255,255,0.7)" }}>
+                  <span style={{ fontSize: idx < 3 ? "1.25rem" : "0.9rem", fontWeight: 900, width: "32px", textAlign: "center", color: idx === 0 ? "#facc15" : "rgba(255,255,255,0.7)" }}>
                     {entry.badge}
                   </span>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: "0.95rem", fontWeight: 700, color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                       {"names" in entry ? entry.names.join(" & ") : entry.name}
                     </div>
-                    <div style={{ fontSize: "0.75rem", color: "rgba(255, 255, 255, 0.5)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    <div style={{ fontSize: "0.76rem", color: "rgba(255, 255, 255, 0.5)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                       {entry.song}
                     </div>
                   </div>
-                  <div style={{ textAlign: "right" }}>
-                    <span style={{ fontSize: "1.15rem", fontWeight: 900, color: idx === 0 ? "#facc15" : "#FF0080", letterSpacing: "-0.02em" }}>
+                  <div style={{ textAlign: "right", minWidth: "60px" }}>
+                    <span style={{ fontSize: "1.2rem", fontWeight: 900, color: idx === 0 ? "#facc15" : "#FF0080", letterSpacing: "-0.02em" }}>
                       {entry.score}
                     </span>
                     <span style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.4)", display: "block" }}>pts</span>
@@ -525,41 +626,188 @@ function ConceptElectric({
             </div>
           </div>
 
-          {/* INTEGRATED QR PASS CARD */}
+          {/* CARD 2: INTEGRATED QR PASS DOCK COM ENCAIXE EXATO */}
           <div
             style={{
-              background: "linear-gradient(135deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02))",
+              background: "linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02))",
               backdropFilter: "blur(20px)",
               borderRadius: "24px",
               border: "1px solid rgba(255, 255, 255, 0.12)",
               padding: "16px 20px",
               display: "flex",
               alignItems: "center",
-              gap: "18px",
+              gap: "20px",
+              boxSizing: "border-box",
             }}
           >
-            <div style={{ background: "#fff", padding: "6px", borderRadius: "16px", boxShadow: "0 6px 20px rgba(0,0,0,0.5)" }}>
-              <img src={MOCK_QR} alt="QR Code" style={{ width: "80px", height: "80px", display: "block", borderRadius: "10px" }} />
+            <div style={{ background: "#fff", padding: "6px", borderRadius: "16px", boxShadow: "0 8px 24px rgba(0,0,0,0.6)" }}>
+              <img src={MOCK_QR} alt="QR Code" style={{ width: "90px", height: "90px", display: "block", borderRadius: "10px" }} />
             </div>
             <div>
-              <div style={{ fontSize: "0.72rem", fontWeight: 800, color: "#FF0080", textTransform: "uppercase", letterSpacing: "1px" }}>
+              <div style={{ fontSize: "0.75rem", fontWeight: 800, color: "#FF0080", textTransform: "uppercase", letterSpacing: "1.5px" }}>
                 ENTRE PELO CELULAR
               </div>
-              <div style={{ fontSize: "1rem", fontWeight: 800, color: "#fff", marginTop: "2px" }}>
+              <div style={{ fontSize: "1.1rem", fontWeight: 800, color: "#fff", marginTop: "3px" }}>
                 Aponte a câmera para cantar
               </div>
-              <div style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.6)", marginTop: "3px" }}>
-                Ou acesse <strong>karaokefactory.org</strong> e digite <strong>{MOCK_ROOM}</strong>
+              <div style={{ fontSize: "0.82rem", color: "rgba(255,255,255,0.65)", marginTop: "4px" }}>
+                Acesse <strong>karaokefactory.org</strong> com a sala <strong style={{ color: "#FF0080" }}>{MOCK_ROOM}</strong>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* ── SUBTLE FOOTER ── */}
-      <footer style={{ marginTop: "18px", display: "flex", justifyContent: "space-between", fontSize: "0.78rem", color: "rgba(255, 255, 255, 0.4)", padding: "0 10px" }}>
-        <span>KARAOKE FACTORY • EXPERIÊNCIA SHOW AO VIVO</span>
-        <span>SOM DE ALTA FIDELIDADE & PONTUAÇÃO REAL</span>
+      {/* ── 3. FOOTER ── */}
+      <footer style={{ marginTop: "18px", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.8rem", color: "rgba(255, 255, 255, 0.4)", padding: "0 10px" }}>
+        <span>KARAOKE FACTORY • LIVE STAGE EXPERIENCE</span>
+        <span>SISTEMA DE PONTUAÇÃO AO VIVO • ALTA PRECISÃO</span>
+      </footer>
+    </div>
+  );
+}
+
+// ═════════════════════════════════════════════════════════════════════
+// PROPOSTA 1B: "ELECTRIC STAGE" VARIANTE HEADER PANORÂMICO
+// ═════════════════════════════════════════════════════════════════════
+function ConceptElectricBanner({
+  hasActiveSong,
+  rankingTab,
+  setRankingTab,
+  currentTime,
+}: {
+  hasActiveSong: boolean;
+  rankingTab: "solo" | "duet";
+  setRankingTab: (t: "solo" | "duet") => void;
+  currentTime: string;
+}) {
+  return (
+    <div
+      style={{
+        flex: 1,
+        padding: "24px 36px 18px 36px",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
+        background: "radial-gradient(circle at 50% 0%, rgba(255, 0, 128, 0.16) 0%, transparent 60%), #070709",
+        minHeight: "calc(100vh - 65px)",
+      }}
+    >
+      {/* ── HEADER PANORÂMICO SLIM ── */}
+      <header
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr auto 1fr",
+          alignItems: "center",
+          padding: "16px 28px",
+          background: "rgba(14, 14, 18, 0.82)",
+          backdropFilter: "blur(28px)",
+          borderRadius: "28px",
+          border: "1px solid rgba(255, 255, 255, 0.1)",
+          boxShadow: "0 16px 40px -10px rgba(0, 0, 0, 0.7)",
+          marginBottom: "24px",
+        }}
+      >
+        {/* Esquerda: Código da Sala em Destaque */}
+        <div style={{ justifySelf: "start", display: "flex", alignItems: "center", gap: "12px" }}>
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "8px",
+              background: "rgba(255, 0, 128, 0.15)",
+              border: "1px solid rgba(255, 0, 128, 0.4)",
+              borderRadius: "16px",
+              padding: "6px 16px",
+            }}
+          >
+            <span style={{ fontSize: "0.72rem", fontWeight: 800, color: "#FF0080", letterSpacing: "1px" }}>SALA</span>
+            <span style={{ fontSize: "1.2rem", fontWeight: 900, color: "#fff", fontFamily: "monospace", letterSpacing: "2px" }}>{MOCK_ROOM}</span>
+          </div>
+          <span style={{ fontSize: "0.8rem", color: "#10b981", fontWeight: 700 }}>● Conectado</span>
+        </div>
+
+        {/* Centro: LOGO Majestoso perfeitamente no centro sem nada ao lado */}
+        <div style={{ justifySelf: "center", display: "flex", justifyContent: "center" }}>
+          <Logo width={240} style={{ margin: 0 }} />
+        </div>
+
+        {/* Direita: Cantores + Hora */}
+        <div style={{ justifySelf: "end", display: "flex", alignItems: "center", gap: "14px" }}>
+          <div style={{ padding: "6px 14px", borderRadius: "16px", background: "rgba(255,255,255,0.06)", fontSize: "0.82rem", fontWeight: 700 }}>
+            👥 6 Cantores
+          </div>
+          <div style={{ fontSize: "1.15rem", fontWeight: 800, letterSpacing: "1px" }}>
+            {currentTime}
+          </div>
+        </div>
+      </header>
+
+      {/* Mesma arena polida */}
+      <div style={{ flex: 1, display: "grid", gridTemplateColumns: "1.45fr 1fr", gap: "24px", minHeight: "520px" }}>
+        <div
+          style={{
+            background: "rgba(14, 14, 18, 0.8)",
+            backdropFilter: "blur(24px)",
+            borderRadius: "28px",
+            border: "1px solid rgba(255, 255, 255, 0.1)",
+            padding: "24px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            textAlign: "center",
+          }}
+        >
+          {hasActiveSong ? (
+            <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+              <div style={{ fontSize: "3rem", marginBottom: "10px" }}>🎬</div>
+              <h3 style={{ fontSize: "1.5rem", fontWeight: 900, color: "#fff" }}>Evidências - Chitãozinho & Xororó</h3>
+              <p style={{ color: "#facc15", fontWeight: 700 }}>Thiago & Mariana no Microfone</p>
+            </div>
+          ) : (
+            <div>
+              <div style={{ fontSize: "3.5rem", marginBottom: "16px" }}>🎤</div>
+              <h2 style={{ fontSize: "2.3rem", fontWeight: 900, color: "#fff", margin: "0 0 10px 0" }}>O Palco Está Livre!</h2>
+              <p style={{ fontSize: "1.1rem", color: "rgba(255,255,255,0.7)", maxWidth: "440px", margin: "0 auto 24px auto" }}>
+                Escaneie o QR Code ao lado para escolher sua música e cantar.
+              </p>
+            </div>
+          )}
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+          <div style={{ flex: 1, background: "rgba(14, 14, 18, 0.8)", backdropFilter: "blur(24px)", borderRadius: "28px", border: "1px solid rgba(255, 255, 255, 0.1)", padding: "20px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px" }}>
+              <span style={{ fontSize: "1.1rem", fontWeight: 900 }}>🏆 HALL DA FAMA</span>
+              <div style={{ display: "flex", gap: "4px" }}>
+                <button type="button" onClick={() => setRankingTab("solo")} style={{ padding: "4px 12px", borderRadius: "10px", background: rankingTab === "solo" ? "#FF0080" : "transparent", border: "none", color: "#fff", fontWeight: 700, cursor: "pointer" }}>Solo</button>
+                <button type="button" onClick={() => setRankingTab("duet")} style={{ padding: "4px 12px", borderRadius: "10px", background: rankingTab === "duet" ? "#FF0080" : "transparent", border: "none", color: "#fff", fontWeight: 700, cursor: "pointer" }}>Duplas</button>
+              </div>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              {(rankingTab === "solo" ? MOCK_SOLO_RANKING.slice(0, 4) : MOCK_DUET_RANKING).map((entry, idx) => (
+                <div key={idx} style={{ display: "flex", justifyContent: "space-between", padding: "8px 12px", borderRadius: "12px", background: "rgba(255,255,255,0.03)" }}>
+                  <span>{entry.badge} {"names" in entry ? entry.names.join(" & ") : entry.name}</span>
+                  <span style={{ fontWeight: 900, color: "#facc15" }}>{entry.score} pts</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: "24px", border: "1px solid rgba(255,255,255,0.1)", padding: "16px 20px", display: "flex", alignItems: "center", gap: "18px" }}>
+            <img src={MOCK_QR} alt="QR" style={{ width: "85px", height: "85px", background: "#fff", padding: "4px", borderRadius: "12px" }} />
+            <div>
+              <div style={{ fontSize: "0.75rem", fontWeight: 800, color: "#FF0080" }}>ENTRE PELO CELULAR</div>
+              <div style={{ fontSize: "1.05rem", fontWeight: 800, color: "#fff" }}>Aponte a câmera para cantar</div>
+              <div style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.6)" }}>Sala: <strong>{MOCK_ROOM}</strong></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer style={{ marginTop: "16px", display: "flex", justifyContent: "space-between", fontSize: "0.75rem", color: "rgba(255,255,255,0.4)" }}>
+        <span>KARAOKE FACTORY</span>
+        <span>SHOW AO VIVO</span>
       </footer>
     </div>
   );
@@ -930,7 +1178,7 @@ function ConceptArcade({
             </div>
           ) : (
             <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center" }}>
-              <div style={{ fontSize: "3.5rem", marginBottom: "16px", animation: "pulse 1.5s infinite" }}>👾</div>
+              <div style={{ fontSize: "3.5rem", marginBottom: "16px" }}>👾</div>
               <h2 style={{ fontSize: "2.2rem", fontWeight: 900, color: "#facc15", letterSpacing: "1px", margin: "0 0 10px 0" }}>
                 READY PLAYER ONE?
               </h2>
