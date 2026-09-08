@@ -4,13 +4,7 @@ import { useTranslation } from "react-i18next";
 import toast, { Toaster } from "react-hot-toast";
 import { useAuth, getToken } from "../context/AuthContext";
 import { getDeviceFingerprint } from "../lib/deviceId";
-import TruncatedText from "../components/TruncatedText";
 import Logo from "../components/Logo";
-import {
-  IconTrash, IconPlus, IconMic, IconMusic, IconSearch, IconTrophy,
-  IconPlay, IconPause, IconSkipForward, IconTrendingUp, IconUser,
-  IconLibrary, IconHistory, IconShare, IconAlertTriangle
-} from "../components/Icons";
 import {
   connectWS,
   enqueue,
@@ -30,7 +24,6 @@ import {
   type SavedSong,
   type TopSong,
   type YouTubeSearchResult,
-  skipVote,
 } from "../api";
 
 interface Singer {
@@ -72,7 +65,6 @@ interface RoomState {
   duetRanking: DuetRankingEntry[];
   showingScore: boolean;
   ownerId: string;
-  skipVotes?: string[];
   lastEnqueueAt: Record<string, number>;
   history: QueueItem[];
 }
@@ -127,7 +119,319 @@ const CATEGORIZED_EMOJIS: Record<EmojiCategory, string[]> = {
   ]
 };
 
+// Icon components
+const IconTrash = ({ size = 16 }: { size?: number }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <polyline points="3 6 5 6 21 6"></polyline>
+    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+  </svg>
+);
 
+const IconPlus = ({ size = 16 }: { size?: number }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <line x1="12" y1="5" x2="12" y2="19"></line>
+    <line x1="5" y1="12" x2="19" y2="12"></line>
+  </svg>
+);
+
+const IconMic = ({ size = 16 }: { size?: number }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+    <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+    <line x1="12" y1="19" x2="12" y2="23"></line>
+    <line x1="8" y1="23" x2="16" y2="23"></line>
+  </svg>
+);
+
+const IconMusic = ({ size = 16 }: { size?: number }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M9 18V5l12-2v13"></path>
+    <circle cx="6" cy="18" r="3"></circle>
+    <circle cx="18" cy="16" r="3"></circle>
+  </svg>
+);
+
+const IconSearch = ({ size = 16 }: { size?: number }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <circle cx="11" cy="11" r="8"></circle>
+    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+  </svg>
+);
+
+
+const IconTrophy = ({ size = 16 }: { size?: number }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
+    <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
+    <path d="M4 22h16"></path>
+    <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path>
+    <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path>
+    <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
+  </svg>
+);
+
+const IconPlay = ({ size = 16 }: { size?: number }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    stroke="none"
+  >
+    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+  </svg>
+);
+
+const IconPause = ({ size = 16 }: { size?: number }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    stroke="none"
+  >
+    <rect x="6" y="4" width="4" height="16"></rect>
+    <rect x="14" y="4" width="4" height="16"></rect>
+  </svg>
+);
+
+const IconSkipForward = ({ size = 16 }: { size?: number }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    stroke="none"
+  >
+    <polygon points="5 4 15 12 5 20 5 4"></polygon>
+    <line
+      x1="19"
+      y1="5"
+      x2="19"
+      y2="19"
+      stroke="currentColor"
+      strokeWidth="2"
+    ></line>
+  </svg>
+);
+
+const IconTrendingUp = ({ size = 16 }: { size?: number }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+    <polyline points="17 6 23 6 23 12"></polyline>
+  </svg>
+);
+
+
+const IconUser = ({ size = 16 }: { size?: number }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+    <circle cx="12" cy="7" r="4"></circle>
+  </svg>
+);
+
+const IconLibrary = ({ size = 16 }: { size?: number }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+  </svg>
+);
+
+const IconHistory = ({ size = 16 }: { size?: number }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <polyline points="1 4 1 10 7 10"></polyline>
+    <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+    <polyline points="12 7 12 12 16 14"></polyline>
+  </svg>
+);
+
+const IconShare = ({ size = 16 }: { size?: number }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <circle cx="18" cy="5" r="3"></circle>
+    <circle cx="6" cy="12" r="3"></circle>
+    <circle cx="18" cy="19" r="3"></circle>
+    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+  </svg>
+);
+
+const IconAlertTriangle = ({ size = 16, style }: { size?: number; style?: React.CSSProperties }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    style={style}
+  >
+    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+    <line x1="12" y1="9" x2="12" y2="13"></line>
+    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+  </svg>
+);
+
+// Truncated text with tooltip on click/tap
+const TruncatedText = ({
+  text,
+  maxLength,
+  style,
+}: {
+  text: string;
+  maxLength: number;
+  style?: React.CSSProperties;
+}) => {
+  const [showTooltip, setShowTooltip] = useState(false);
+  const needsTruncation = text.length > maxLength;
+  const displayText = needsTruncation
+    ? text.slice(0, maxLength).trim() + "..."
+    : text;
+
+  if (!needsTruncation) {
+    return <span style={style}>{text}</span>;
+  }
+
+  return (
+    <span
+      style={{ position: "relative", cursor: "pointer", ...style }}
+      onClick={e => {
+        e.stopPropagation();
+        setShowTooltip(!showTooltip);
+      }}
+      onMouseEnter={() => setShowTooltip(true)}
+      onMouseLeave={() => setShowTooltip(false)}
+    >
+      {displayText}
+      {showTooltip && (
+        <span
+          style={{
+            position: "absolute",
+            bottom: "100%",
+            left: 0,
+            right: 0,
+            marginBottom: 8,
+            padding: "8px 12px",
+            background: "#333",
+            border: "1px solid #555",
+            borderRadius: 8,
+            fontSize: "0.85rem",
+            color: "#fff",
+            whiteSpace: "normal",
+            wordBreak: "break-word",
+            zIndex: 100,
+            boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+            minWidth: 200,
+            maxWidth: 280,
+          }}
+          onClick={e => e.stopPropagation()}
+        >
+          {text}
+        </span>
+      )}
+    </span>
+  );
+};
 
 export default function RoomMobile() {
   const { t } = useTranslation();
@@ -1136,7 +1440,7 @@ export default function RoomMobile() {
                   ?.map(s => (typeof s === "string" ? s : s.name))
                   .join(" e ") || state.nowPlaying.requestedBy}
               </div>
-              {isHost ? (
+              {isHost && (
                 <div style={{ display: "flex", gap: 8 }}>
                   <button
                     onClick={() => {
@@ -1178,41 +1482,6 @@ export default function RoomMobile() {
                     }}
                   >
                     <IconSkipForward size={16} /> {t("common.skip", "Skip")}
-                  </button>
-                </div>
-              ) : (
-                <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-                  <button
-                    onClick={async () => {
-                      if (code) {
-                        try {
-                          await skipVote(code, myUserId);
-                          toast.success(t("mobile.voteSkipSuccess", "Voto registrado!"));
-                        } catch {
-                          toast.error(t("mobile.voteSkipError", "Erro ao votar."));
-                        }
-                      }
-                    }}
-                    disabled={state.skipVotes?.includes(myUserId)}
-                    style={{
-                      flex: 1,
-                      background: state.skipVotes?.includes(myUserId) ? "rgba(255,255,255,0.1)" : "rgba(231, 76, 60, 0.2)",
-                      border: state.skipVotes?.includes(myUserId) ? "1px solid rgba(255,255,255,0.2)" : "1px solid #e74c3c",
-                      color: state.skipVotes?.includes(myUserId) ? "rgba(255,255,255,0.5)" : "#e74c3c",
-                      padding: "10px 16px",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 6,
-                      fontWeight: 700,
-                      borderRadius: 12
-                    }}
-                  >
-                    <IconSkipForward size={16} /> 
-                    {state.skipVotes?.includes(myUserId) 
-                      ? t("mobile.votedSkip", "Votou para Pular") 
-                      : t("mobile.voteSkip", "Votar para Pular")}
-                    {state.skipVotes && state.skipVotes.length > 0 && ` (${state.skipVotes.length})`}
                   </button>
                 </div>
               )}
@@ -1840,48 +2109,18 @@ export default function RoomMobile() {
               <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                 {Object.entries(state.ranking)
                   .sort(([, a], [, b]) => b.score - a.score)
-                  .map(([odUserId, entry], i) => {
-                    const isGold = i === 0;
-                    const isSilver = i === 1;
-                    const isBronze = i === 2;
-                    let bgColor = "rgba(255,255,255,0.1)";
-                    let color = "#fff";
-                    if (isGold) { bgColor = "#FFD700"; color = "#000"; }
-                    else if (isSilver) { bgColor = "#C0C0C0"; color = "#000"; }
-                    else if (isBronze) { bgColor = "#CD7F32"; color = "#000"; }
-                    
-                    return (
-                      <div key={odUserId} className="glass-card" style={{
-                        display: "flex", alignItems: "center", justifyContent: "space-between",
-                        padding: isGold ? "20px 16px" : "16px",
-                        background: isGold ? "linear-gradient(135deg, rgba(255,215,0,0.15), rgba(255,255,255,0.02))" : "rgba(255,255,255,0.03)",
-                        border: isGold ? "1px solid rgba(255,215,0,0.4)" : "1px solid rgba(255,255,255,0.08)",
-                        boxShadow: isGold ? "0 8px 32px rgba(255,215,0,0.15)" : "none",
-                        transform: isGold ? "scale(1.02)" : "scale(1)",
-                        transition: "all 0.3s ease"
-                      }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-                          <span style={{
-                            width: isGold ? "32px" : "28px", height: isGold ? "32px" : "28px", borderRadius: "50%",
-                            background: bgColor, display: "flex", alignItems: "center", justifyContent: "center",
-                            fontSize: isGold ? "0.95rem" : "0.85rem", fontWeight: "900", color,
-                            boxShadow: isGold || isSilver || isBronze ? `0 0 15px ${bgColor}80` : "none"
-                          }}>
-                            {i + 1}
-                          </span>
-                          <span style={{ fontWeight: "800", fontSize: isGold ? "1.1rem" : "1rem", color: isGold ? "#FFD700" : "#fff" }}>
-                            {entry.name}
-                          </span>
-                        </div>
-                        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
-                          <span style={{ fontWeight: "900", fontSize: isGold ? "1.2rem" : "1.05rem", color: isGold ? "#FFD700" : "#fff" }}>
-                            {entry.score}
-                          </span>
-                          <span style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: "1px" }}>pts</span>
-                        </div>
+                  .map(([odUserId, entry], i) => (
+                    <div key={odUserId} className="glass-card" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                        <span style={{
+                          width: "24px", height: "24px", borderRadius: "50%", background: i === 0 ? "#FFD700" : "rgba(255,255,255,0.1)",
+                          display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.75rem", fontWeight: "700", color: i === 0 ? "#000" : "#fff"
+                        }}>{i + 1}</span>
+                        <span style={{ fontWeight: "700" }}>{entry.name}</span>
                       </div>
-                    );
-                  })}
+                      <span style={{ fontWeight: "700" }}>{entry.score} pts</span>
+                    </div>
+                  ))}
               </div>
             )
           ) : (!state.duetRanking || state.duetRanking.length === 0) ? (
@@ -1896,53 +2135,23 @@ export default function RoomMobile() {
             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
               {[...state.duetRanking]
                 .sort((a, b) => b.score - a.score)
-                .map((duet, i) => {
-                  const isGold = i === 0;
-                  const isSilver = i === 1;
-                  const isBronze = i === 2;
-                  let bgColor = "rgba(255,255,255,0.1)";
-                  let color = "#fff";
-                  if (isGold) { bgColor = "#FFD700"; color = "#000"; }
-                  else if (isSilver) { bgColor = "#C0C0C0"; color = "#000"; }
-                  else if (isBronze) { bgColor = "#CD7F32"; color = "#000"; }
-                  
-                  return (
-                    <div key={duet.names.join("-")} className="glass-card" style={{
-                      display: "flex", alignItems: "center", justifyContent: "space-between",
-                      padding: isGold ? "20px 16px" : "16px",
-                      background: isGold ? "linear-gradient(135deg, rgba(255,215,0,0.15), rgba(255,255,255,0.02))" : "rgba(255,255,255,0.03)",
-                      border: isGold ? "1px solid rgba(255,215,0,0.4)" : "1px solid rgba(255,255,255,0.08)",
-                      boxShadow: isGold ? "0 8px 32px rgba(255,215,0,0.15)" : "none",
-                      transform: isGold ? "scale(1.02)" : "scale(1)",
-                      transition: "all 0.3s ease"
-                    }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-                        <span style={{
-                          width: isGold ? "32px" : "28px", height: isGold ? "32px" : "28px", borderRadius: "50%",
-                          background: bgColor, display: "flex", alignItems: "center", justifyContent: "center",
-                          fontSize: isGold ? "0.95rem" : "0.85rem", fontWeight: "900", color,
-                          boxShadow: isGold || isSilver || isBronze ? `0 0 15px ${bgColor}80` : "none"
-                        }}>
-                          {i + 1}
+                .map((duet, i) => (
+                  <div key={duet.names.join("-")} className="glass-card" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                      <span style={{
+                        width: "24px", height: "24px", borderRadius: "50%", background: i === 0 ? "#FFD700" : "rgba(255,255,255,0.1)",
+                        display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.75rem", fontWeight: "700", color: i === 0 ? "#000" : "#fff"
+                      }}>{i + 1}</span>
+                      <div style={{ display: "flex", flexDirection: "column" }}>
+                        <span style={{ fontWeight: "700" }}>{duet.names[0]} & {duet.names[1]}</span>
+                        <span style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.4)" }}>
+                          {duet.count} {duet.count > 1 ? t("mobile.songs", "músicas") : t("mobile.song", "música")}
                         </span>
-                        <div style={{ display: "flex", flexDirection: "column" }}>
-                          <span style={{ fontWeight: "800", fontSize: isGold ? "1.1rem" : "1rem", color: isGold ? "#FFD700" : "#fff" }}>
-                            {duet.names[0]} & {duet.names[1]}
-                          </span>
-                          <span style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.5)", marginTop: 2 }}>
-                            {duet.count} {duet.count > 1 ? t("mobile.songs", "músicas") : t("mobile.song", "música")}
-                          </span>
-                        </div>
-                      </div>
-                      <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
-                        <span style={{ fontWeight: "900", fontSize: isGold ? "1.2rem" : "1.05rem", color: isGold ? "#FFD700" : "#fff" }}>
-                          {duet.score}
-                        </span>
-                        <span style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: "1px" }}>pts</span>
                       </div>
                     </div>
-                  );
-                })}
+                    <span style={{ fontWeight: "700" }}>{duet.score} pts</span>
+                  </div>
+                ))}
             </div>
           )}
         </div>

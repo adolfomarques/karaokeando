@@ -279,6 +279,16 @@ export async function queueItemToTop(roomCode: string, itemId: string, userId?: 
 }
 
 // Called by TV when score overlay closes
+export async function skipVote(roomCode: string, deviceId: string) {
+  const res = await fetch(`${API_BASE}/api/rooms/${roomCode}/skip-vote`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({ deviceId })
+  });
+  if (!res.ok) throw new Error("Failed to vote skip");
+  return res.json();
+}
+
 export async function scoreDone(roomCode: string) {
   const res = await fetch(`${API_BASE}/api/rooms/${roomCode}/score-done`, {
     method: "POST",

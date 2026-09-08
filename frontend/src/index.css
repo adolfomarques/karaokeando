@@ -719,3 +719,105 @@ body:not(:has(.admin-layout)) .btn-ghost:hover {
 ::-webkit-scrollbar-track { background: #0A0A0A; }
 ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 10px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.22); }
+
+/* ════════════════════════════════════════════════════════
+   VIBRANT AURORA MESH - Option 3 Additions
+   ════════════════════════════════════════════════════════ */
+
+.aurora-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  background-color: #0c0014;
+}
+
+.aurora-bg::before,
+.aurora-bg::after,
+.aurora-blob {
+  content: "";
+  position: absolute;
+  width: 100vw;
+  height: 100vh;
+  border-radius: 50%;
+  filter: blur(120px);
+  opacity: 0.6;
+  animation: auroraFlow 20s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+}
+
+.aurora-bg::before {
+  background: radial-gradient(circle, #FF0080 0%, transparent 70%);
+  top: -20%;
+  left: -20%;
+}
+
+.aurora-bg::after {
+  background: radial-gradient(circle, #7928CA 0%, transparent 70%);
+  bottom: -20%;
+  right: -20%;
+  animation-delay: -5s;
+}
+
+.aurora-blob {
+  background: radial-gradient(circle, #FF4D6D 0%, transparent 60%);
+  top: 30%;
+  left: 30%;
+  width: 80vw;
+  height: 80vh;
+  animation-duration: 25s;
+  animation-delay: -10s;
+}
+
+@keyframes auroraFlow {
+  0% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(15vw, 15vh) scale(1.2); }
+  66% { transform: translate(-10vw, 20vh) scale(0.9); }
+  100% { transform: translate(-15vw, -15vh) scale(1.1); }
+}
+
+.soft-glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 32px;
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease;
+}
+
+.soft-glass-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 40px 80px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.vibrant-btn {
+  background: linear-gradient(135deg, #FF6B6B, #FF0080);
+  color: white;
+  border: none;
+  padding: 16px 32px;
+  border-radius: 100px;
+  font-weight: 800;
+  font-size: 1.1rem;
+  box-shadow: 0 10px 20px rgba(255, 0, 128, 0.3), inset 0 2px 0 rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.vibrant-btn:hover {
+  transform: scale(1.05) translateY(-2px);
+  box-shadow: 0 15px 30px rgba(255, 0, 128, 0.4), inset 0 2px 0 rgba(255, 255, 255, 0.3);
+}
+
+.vibrant-btn:active {
+  transform: scale(0.98);
+}
+
+.h-vibrant {
+  background: linear-gradient(135deg, #FFF, #FFA3C8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 4px 20px rgba(255, 0, 128, 0.2);
+}

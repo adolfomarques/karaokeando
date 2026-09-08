@@ -50,6 +50,7 @@ model Room {
   tvPasswordHash String   @map("tv_password_hash")
   uniqueVisitors Int      @default(0) @map("unique_visitors")
   createdAt      DateTime @default(now()) @map("created_at")
+  state          Json?
 
   // Relations
   owner User @relation("RoomOwner", fields: [ownerId], references: [id])

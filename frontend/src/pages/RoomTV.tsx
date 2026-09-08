@@ -1317,16 +1317,45 @@ export default function RoomTV() {
               </div>
               {state.queue.length > 0 && (
                 <div style={{ 
-                    color: "rgba(255,255,255,0.6)", 
-                    fontSize: "0.95rem", 
-                    fontWeight: 600,
-                    textTransform: "uppercase",
-                    letterSpacing: "1px"
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "flex-end",
+                    gap: "4px"
                 }}>
-                    <span style={{ color: "#FF0080" }}>{t("tv.nextSong", "Next song")}:</span>{" "}
-                  {state.queue[0].singers
-                    ?.map(s => (typeof s === "string" ? s : s.name))
-                    .join(` ${t("common.and")} `) || state.queue[0].requestedBy}
+                  <div style={{ 
+                      color: "rgba(255,255,255,0.6)", 
+                      fontSize: "0.85rem", 
+                      fontWeight: 600,
+                      textTransform: "uppercase",
+                      letterSpacing: "1px"
+                  }}>
+                      {t("tv.nextSong", "Next song")}
+                  </div>
+                  <div style={{
+                      color: "#fff",
+                      fontSize: "1.1rem",
+                      fontWeight: 800,
+                      textShadow: "0 2px 10px rgba(0,0,0,0.5)",
+                      maxWidth: "300px",
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis"
+                  }}>
+                      {state.queue[0].title}
+                  </div>
+                  <div style={{
+                      color: "#FF0080",
+                      fontSize: "0.95rem",
+                      fontWeight: 700,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px"
+                  }}>
+                    <IconMic size={14} />
+                    {state.queue[0].singers
+                      ?.map(s => (typeof s === "string" ? s : s.name))
+                      .join(` ${t("common.and")} `) || state.queue[0].requestedBy}
+                  </div>
                 </div>
               )}
             </div>
@@ -1999,7 +2028,25 @@ export default function RoomTV() {
                         .sort(([, a], [, b]) => b.score - a.score)
                         .slice(0, 6)
                         .map(([userId, entry], idx) => {
-                          const badge = idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : `${idx + 1}º`;
+                          const isGold = idx === 0;
+                          const isSilver = idx === 1;
+                          const isBronze = idx === 2;
+                          let bgColor = "rgba(255,255,255,0.1)";
+                          let color = "#fff";
+                          let borderColor = "rgba(255,255,255,0.05)";
+                          let bgGradient = "rgba(255, 255, 255, 0.03)";
+                          
+                          if (isGold) { 
+                            bgColor = "#facc15"; color = "#000"; borderColor = "rgba(250, 204, 21, 0.4)";
+                            bgGradient = "linear-gradient(135deg, rgba(250, 204, 21, 0.16), rgba(250, 204, 21, 0.04))";
+                          } else if (isSilver) { 
+                            bgColor = "#C0C0C0"; color = "#000"; borderColor = "rgba(192, 192, 192, 0.4)";
+                            bgGradient = "linear-gradient(135deg, rgba(192, 192, 192, 0.16), rgba(192, 192, 192, 0.04))";
+                          } else if (isBronze) { 
+                            bgColor = "#CD7F32"; color = "#000"; borderColor = "rgba(205, 127, 50, 0.4)";
+                            bgGradient = "linear-gradient(135deg, rgba(205, 127, 50, 0.16), rgba(205, 127, 50, 0.04))";
+                          }
+
                           return (
                             <div
                               key={userId}
@@ -2009,20 +2056,27 @@ export default function RoomTV() {
                                 gap: "12px",
                                 padding: "10px 14px",
                                 borderRadius: "16px",
-                                background: idx === 0 ? "linear-gradient(135deg, rgba(250, 204, 21, 0.16), rgba(250, 204, 21, 0.04))" : "rgba(255, 255, 255, 0.03)",
-                                border: idx === 0 ? "1px solid rgba(250, 204, 21, 0.4)" : "1px solid rgba(255, 255, 255, 0.05)",
+                                background: bgGradient,
+                                border: `1px solid ${borderColor}`,
+                                transform: isGold ? "scale(1.02)" : "scale(1)",
+                                boxShadow: isGold ? "0 4px 15px rgba(250, 204, 21, 0.1)" : "none",
                               }}
                             >
-                              <span style={{ fontSize: idx < 3 ? "1.25rem" : "0.9rem", fontWeight: 900, width: "32px", textAlign: "center", color: idx === 0 ? "#facc15" : "rgba(255,255,255,0.7)" }}>
-                                {badge}
+                              <span style={{ 
+                                width: "28px", height: "28px", borderRadius: "50%", background: bgColor,
+                                display: "flex", alignItems: "center", justifyContent: "center",
+                                fontSize: "0.85rem", fontWeight: "900", color,
+                                boxShadow: isGold || isSilver || isBronze ? `0 0 10px ${bgColor}80` : "none"
+                              }}>
+                                {idx + 1}
                               </span>
                               <div style={{ flex: 1, minWidth: 0 }}>
-                                <div style={{ fontSize: "0.95rem", fontWeight: 700, color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", textTransform: "uppercase" }}>
+                                <div style={{ fontSize: "0.95rem", fontWeight: 700, color: isGold ? "#facc15" : "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", textTransform: "uppercase" }}>
                                   {entry.name}
                                 </div>
                               </div>
                               <div style={{ textAlign: "right", minWidth: "60px" }}>
-                                <span style={{ fontSize: "1.2rem", fontWeight: 900, color: idx === 0 ? "#facc15" : "#FF0080", letterSpacing: "-0.02em" }}>
+                                <span style={{ fontSize: "1.2rem", fontWeight: 900, color: isGold ? "#facc15" : "#fff", letterSpacing: "-0.02em" }}>
                                   {entry.score}
                                 </span>
                                 <span style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.4)", display: "block" }}>pts</span>
@@ -2045,7 +2099,25 @@ export default function RoomTV() {
                         .sort((a, b) => b.score - a.score)
                         .slice(0, 6)
                         .map((duet, idx) => {
-                          const badge = idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : `${idx + 1}º`;
+                          const isGold = idx === 0;
+                          const isSilver = idx === 1;
+                          const isBronze = idx === 2;
+                          let bgColor = "rgba(255,255,255,0.1)";
+                          let color = "#fff";
+                          let borderColor = "rgba(255,255,255,0.05)";
+                          let bgGradient = "rgba(255, 255, 255, 0.03)";
+                          
+                          if (isGold) { 
+                            bgColor = "#facc15"; color = "#000"; borderColor = "rgba(250, 204, 21, 0.4)";
+                            bgGradient = "linear-gradient(135deg, rgba(250, 204, 21, 0.16), rgba(250, 204, 21, 0.04))";
+                          } else if (isSilver) { 
+                            bgColor = "#C0C0C0"; color = "#000"; borderColor = "rgba(192, 192, 192, 0.4)";
+                            bgGradient = "linear-gradient(135deg, rgba(192, 192, 192, 0.16), rgba(192, 192, 192, 0.04))";
+                          } else if (isBronze) { 
+                            bgColor = "#CD7F32"; color = "#000"; borderColor = "rgba(205, 127, 50, 0.4)";
+                            bgGradient = "linear-gradient(135deg, rgba(205, 127, 50, 0.16), rgba(205, 127, 50, 0.04))";
+                          }
+
                           return (
                             <div
                               key={duet.names.join("-")}
@@ -2055,15 +2127,22 @@ export default function RoomTV() {
                                 gap: "12px",
                                 padding: "10px 14px",
                                 borderRadius: "16px",
-                                background: idx === 0 ? "linear-gradient(135deg, rgba(250, 204, 21, 0.16), rgba(250, 204, 21, 0.04))" : "rgba(255, 255, 255, 0.03)",
-                                border: idx === 0 ? "1px solid rgba(250, 204, 21, 0.4)" : "1px solid rgba(255, 255, 255, 0.05)",
+                                background: bgGradient,
+                                border: `1px solid ${borderColor}`,
+                                transform: isGold ? "scale(1.02)" : "scale(1)",
+                                boxShadow: isGold ? "0 4px 15px rgba(250, 204, 21, 0.1)" : "none",
                               }}
                             >
-                              <span style={{ fontSize: idx < 3 ? "1.25rem" : "0.9rem", fontWeight: 900, width: "32px", textAlign: "center", color: idx === 0 ? "#facc15" : "rgba(255,255,255,0.7)" }}>
-                                {badge}
+                              <span style={{ 
+                                width: "28px", height: "28px", borderRadius: "50%", background: bgColor,
+                                display: "flex", alignItems: "center", justifyContent: "center",
+                                fontSize: "0.85rem", fontWeight: "900", color,
+                                boxShadow: isGold || isSilver || isBronze ? `0 0 10px ${bgColor}80` : "none"
+                              }}>
+                                {idx + 1}
                               </span>
                               <div style={{ flex: 1, minWidth: 0 }}>
-                                <div style={{ fontSize: "0.95rem", fontWeight: 700, color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", textTransform: "uppercase" }}>
+                                <div style={{ fontSize: "0.95rem", fontWeight: 700, color: isGold ? "#facc15" : "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", textTransform: "uppercase" }}>
                                   {duet.names[0]} & {duet.names[1]}
                                 </div>
                                 <div style={{ fontSize: "0.76rem", color: "rgba(255, 255, 255, 0.5)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
@@ -2071,7 +2150,7 @@ export default function RoomTV() {
                                 </div>
                               </div>
                               <div style={{ textAlign: "right", minWidth: "60px" }}>
-                                <span style={{ fontSize: "1.2rem", fontWeight: 900, color: idx === 0 ? "#facc15" : "#FF0080", letterSpacing: "-0.02em" }}>
+                                <span style={{ fontSize: "1.2rem", fontWeight: 900, color: isGold ? "#facc15" : "#fff", letterSpacing: "-0.02em" }}>
                                   {duet.score}
                                 </span>
                                 <span style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.4)", display: "block" }}>pts</span>

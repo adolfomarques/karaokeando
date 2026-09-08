@@ -150,31 +150,36 @@ export default function Home() {
   }
 
   return (
-    <div style={{ background: "var(--bg)", minHeight: "100vh" }}>
-      <LandingHeader />
+    <div style={{ background: "transparent", minHeight: "100vh" }}>
+      <div className="aurora-bg">
+        <div className="aurora-blob"></div>
+      </div>
+      
+      <div style={{ position: "relative", zIndex: 1 }}>
+        <LandingHeader />
 
-      {/* ── Hero Section ──────────────────────────────────── */}
-      <section style={{
-        padding: "28px 20px 0",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        textAlign: "center",
-        position: "relative",
-        zIndex: 1,
-      }}>
-        <h1 className="sr-only">{t("home.title", "Karaoke Factory")}</h1>
-        <div className="container" style={{ padding: "0 16px", animation: "fadeInUp 0.75s ease-out" }}>
+        {/* ── Hero Section ──────────────────────────────────── */}
+        <section style={{
+          padding: "28px 20px 0",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          textAlign: "center",
+          position: "relative",
+          zIndex: 1,
+        }}>
+          <h1 className="sr-only">{t("home.title", "Karaoke Factory")}</h1>
+          <div className="container" style={{ padding: "0 16px", animation: "fadeInUp 0.75s ease-out" }}>
 
           {/* Logo */}
           <Logo width={`min(384px, 85vw)`} style={{ marginBottom: "28px" }} />
 
           {/* Main glass card */}
-            <div className="glass-card card-padding" style={{
-              marginBottom: "48px",
-              textAlign: "left",
-            }}>
+          <div className="soft-glass-card card-padding" style={{
+            marginBottom: "48px",
+            textAlign: "left",
+          }}>
             {/* User greeting */}
             {user && (
               <div style={{
@@ -262,8 +267,8 @@ export default function Home() {
                 <button
                   onClick={joinRoom}
                   disabled={joining || !joinCode}
-                  className="glow-pulse"
-                  style={{ width: "100%", padding: "15px", fontSize: "1rem", fontWeight: "800" }}
+                  className="vibrant-btn glow-pulse"
+                  style={{ width: "100%", padding: "16px", fontSize: "1.05rem" }}
                 >
                   {joining ? t("common.wait", "Aguarde...") : `🚀 ${t("common.enter", "Entrar")}`}
                 </button>
@@ -286,7 +291,7 @@ export default function Home() {
                         myRooms.map(r => (
                           <div
                             key={r.code}
-                            className="glass-card"
+                            className="soft-glass-card"
                             style={{
                               display: "flex",
                               alignItems: "center",
@@ -339,11 +344,11 @@ export default function Home() {
                     </div>
                     <button
                       onClick={() => navigate("/create-room")}
-                      className="btn-ghost"
+                      className="vibrant-btn"
                       style={{
                         width: "100%",
-                        padding: "13px",
-                        fontSize: "0.95rem",
+                        padding: "16px",
+                        fontSize: "1.05rem",
                       }}
                     >
                       + {t("home.createRoom", "Criar Sala")}
@@ -360,7 +365,8 @@ export default function Home() {
                     </p>
                     <button
                       onClick={() => navigate(user ? "/complete-profile" : "/login")}
-                      style={{ width: "100%", padding: "14px" }}
+                      className="vibrant-btn"
+                      style={{ width: "100%", padding: "16px" }}
                     >
                       {user ? t("home.completeRegistration", "Ser Host") : t("auth.login", "Login")}
                     </button>
@@ -409,11 +415,8 @@ export default function Home() {
             margin: "0 auto",
           }}>
             {/* Step 1 */}
-            <div style={{
-              padding: "20px", borderRadius: "24px", textAlign: "left",
-              background: "linear-gradient(180deg, rgba(255,0,128,0.08) 0%, rgba(255,0,128,0.02) 100%)",
-              border: "1px solid rgba(255,0,128,0.15)",
-              transition: "all 0.4s cubic-bezier(0.22, 1, 0.36, 1)",
+            <div className="soft-glass-card" style={{
+              padding: "20px", textAlign: "left",
               display: "flex",
               flexDirection: "column",
             }}>
@@ -448,11 +451,8 @@ export default function Home() {
             </div>
 
             {/* Step 2 */}
-            <div style={{
-              padding: "20px", borderRadius: "24px", textAlign: "left",
-              background: "linear-gradient(180deg, rgba(121,40,202,0.08) 0%, rgba(121,40,202,0.02) 100%)",
-              border: "1px solid rgba(121,40,202,0.15)",
-              transition: "all 0.4s cubic-bezier(0.22, 1, 0.36, 1)",
+            <div className="soft-glass-card" style={{
+              padding: "20px", textAlign: "left",
               display: "flex",
               flexDirection: "column",
             }}>
@@ -487,11 +487,8 @@ export default function Home() {
             </div>
 
             {/* Step 3 */}
-            <div style={{
-              padding: "20px", borderRadius: "24px", textAlign: "left",
-              background: "linear-gradient(180deg, rgba(0,209,255,0.08) 0%, rgba(0,209,255,0.02) 100%)",
-              border: "1px solid rgba(0,209,255,0.15)",
-              transition: "all 0.4s cubic-bezier(0.22, 1, 0.36, 1)",
+            <div className="soft-glass-card" style={{
+              padding: "20px", textAlign: "left",
               display: "flex",
               flexDirection: "column",
             }}>
@@ -531,7 +528,7 @@ export default function Home() {
       {/* ── Stats Strip ───────────────────────────────────── */}
       <section style={{ padding: "0 20px 60px", position: "relative", zIndex: 1 }}>
         <div className="container" style={{ padding: 0 }}>
-          <div className="glass-card" style={{
+          <div className="soft-glass-card" style={{
             padding: "36px 40px",
             display: "flex",
             flexWrap: "wrap",
@@ -570,8 +567,8 @@ export default function Home() {
           </p>
           <button
             onClick={() => navigate(user ? "/create-room" : "/login")}
-            className="glow-pulse"
-            style={{ padding: "18px 48px", fontSize: "1.1rem", fontWeight: "800" }}
+            className="vibrant-btn glow-pulse"
+            style={{ padding: "18px 48px", fontSize: "1.1rem" }}
             onMouseEnter={e => e.currentTarget.style.transform = "scale(1.06)"}
             onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}
           >
@@ -693,6 +690,7 @@ export default function Home() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }
