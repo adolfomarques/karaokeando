@@ -25,6 +25,7 @@ const AdminPlaylists = lazy(() => import("./pages/admin/AdminPlaylists"));
 const AdminScoreConfig = lazy(() => import("./pages/admin/AdminScoreConfig"));
 const AdminBlockedChannels = lazy(() => import("./pages/admin/AdminBlockedChannels"));
 const AdminLogins = lazy(() => import("./pages/admin/AdminLogins"));
+const TvPreview = lazy(() => import("./pages/TvPreview"));
 
 function PageLoader() {
   return (
@@ -74,6 +75,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
               <Route path="/join/:code" element={<JoinRedirect />} />
               <Route path="/room/:code/tv" element={<RoomTV />} />
               <Route path="/room/:code/tv/login" element={<TvLogin />} />
+              <Route path="/tv-preview" element={<TvPreview />} />
               <Route path="/room/:code" element={<RoomMobile />} />
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/songs" element={<AdminSongs />} />
