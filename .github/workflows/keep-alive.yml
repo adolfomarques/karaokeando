@@ -1,0 +1,25 @@
+name: Keep Backend Alive
+
+on:
+  schedule:
+    # Executa a cada 14 minutos para evitar que o Render hiberne (o limite do Render é 15 minutos)
+    - cron: '*/14 * * * *'
+  workflow_dispatch: # Permite disparar manualmente pelo painel do GitHub
+
+jobs:
+  ping:
+    name: Ping Render Backend
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Send keep-alive ping to Render
+        run: |
+          URL="https://karaokeando.onrender.com/health"
+          echo "Enviando ping de keep-alive para $URL..."
+          RESPONSE=$(curl -s -w "%{http_code}" --connect-timeout 30 --max-time 60 "$URL" -o /dev/null)
+          echo "Status HTTP recebido: $RESPONSE"
+          if [ "$RESPONSE" -eq 200 ]; then
+            echo "✅ Servidor acordado e respondendo normalmente!"
+          else
+            echo "⚠️ Servidor respondeu com status $RESPONSE (pode estar iniciando ou ocupado)."
+          fi

@@ -44,6 +44,16 @@ const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "YOUR_GOOGLE_C
 import Terms from "./pages/Terms";
 import ParticleBackground from "./components/ParticleBackground";
 
+// Silent background warmup: acorda o backend no Render em segundo plano assim que o usuário abre o site
+const WARMUP_URL = `${import.meta.env.VITE_API_URL || ""}/health`;
+if (typeof window !== "undefined" && WARMUP_URL.startsWith("http")) {
+  try {
+    fetch(WARMUP_URL, { method: "GET", mode: "no-cors", cache: "no-cache" }).catch(() => {});
+  } catch {
+    // Silencia erros de pré-aquecimento
+  }
+}
+
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
