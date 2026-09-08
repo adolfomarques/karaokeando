@@ -13,7 +13,11 @@
     "backToHome": "← Back to home",
     "welcome": "Welcome",
     "and": "and",
-    "close": "Close"
+    "close": "Close",
+    "resume": "Resume",
+    "remove": "Remove",
+    "tryAgain": "Try Again",
+    "backToLogin": "← Back to login"
   },
   "home": {
     "title": "KARAOKE FACTORY",
@@ -96,12 +100,37 @@
     "singDuetToAppear": "Sing a duet to appear here!",
     "newSongToast": "New song in queue",
     "requestedBy": "Requested by",
-    "queueTitle": "Playback Queue",
+    "queueTitle": "WAITING QUEUE",
     "remaining": "remaining",
-    "songsInQueue": "SONGS IN QUEUE",
-    "participants": "Participants",
+    "songsInQueue": "songs in queue",
+    "participants": "Singers in Room",
     "songs": "Songs",
-    "song": "Song"
+    "song": "Song",
+    "exitTv": "Exit TV",
+    "liveStatus": "Active Stage",
+    "roomCode": "ROOM CODE",
+    "participant": "Singer in Room",
+    "exitFullscreen": "Exit Full Screen",
+    "fullscreen": "Full Screen",
+    "nextUp": "UP NEXT ON STAGE",
+    "nextSongTitle": "Selected Song",
+    "removeFromQueue": "Remove from queue",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "moveToTop": "Move to top",
+    "emptyQueueTitle": "The Stage is Open!",
+    "emptyQueueDesc": "Scan the QR Code on the right with your phone to pick a song and be the next star.",
+    "step1": "Point Camera",
+    "step2": "Pick a Song",
+    "step3": "Sing on Stage!",
+    "rankingTitle": "HALL OF FAME",
+    "joinMobile": "JOIN VIA MOBILE",
+    "scanToSing": "Point camera to sing",
+    "accessRoom": "Access",
+    "withRoom": "with room code",
+    "footerLive": "KARAOKE FACTORY • LIVE STAGE EXPERIENCE",
+    "footerScoring": "LIVE SCORING SYSTEM • HIGH PRECISION",
+    "reconnecting": "Reconnecting to room..."
   },
   "mobile": {
     "invalidCode": "Go back and enter a valid code.",
@@ -158,10 +187,8 @@
     "embedDisabledWarning": "This video may not play in the app",
     "manySearching": "Many people searching now...",
     "searchQueuePosition": "You are position {{position}} of {{total}} in the search queue.",
-    "manySearching": "Many people searching now...",
     "searchCongested": "Search Congested",
     "searchCongestedDesc": "Many people are searching right now. To go faster, paste the YouTube link directly in the search field.",
-    "embedDisabledWarning": "This video may not play in the app",
     "upNextList": "Up next",
     "soloOrDuet": "Solo or duet?",
     "anonymous": "Anonymous",
@@ -192,7 +219,14 @@
     "rateDescription": "Give a score for the current performance:",
     "confirmScore": "Submit Score",
     "scoreHint": "Slide or tap to adjust score precisely",
-    "scoreSent": "Score sent!"
+    "scoreSent": "Score sent!",
+    "almostReady": "Almost ready...",
+    "analyzingResults": "Analyzing performance...",
+    "confirmRemove": "Remove this song from queue?",
+    "library": "Song Library",
+    "reactionsBar": "Reactions and Rating Bar",
+    "reconnecting": "Reconnecting to room...",
+    "searchError": "Failed to search songs"
   },
   "tvLogin": {
     "title": "📺 TV Mode",
@@ -226,7 +260,8 @@
     "error": "Error creating account",
     "creating": "Creating account...",
     "createBtn": "Create account and continue",
-    "orEmail": "or use your email"
+    "orEmail": "or use your email",
+    "googleBtn": "Sign up with Google"
   },
   "guestReg": {
     "yourName": "Your Name",
@@ -723,6 +758,28 @@
     "backgroundCreated": "Background added",
     "backgroundDeleted": "Background removed",
     "phraseCreated": "Phrase added",
-    "phraseDeleted": "Phrase removed"
+    "phraseDeleted": "Phrase removed",
+    "refresh": "Refresh",
+    "blockedChannels": "Blocked Channels",
+    "logins": "User Logins",
+    "allUsers": "All Registered Users",
+    "addSuccess": "Channel blocked successfully",
+    "addError": "Failed to block channel",
+    "prewarmTitle": "Stage Pre-Warm",
+    "prewarmDesc": "Awaken backend servers ahead of time",
+    "prewarmStart": "Pre-warm Servers",
+    "prewarmError": "Failed to pre-warm server",
+    "user": {
+      "name": "Name",
+      "email": "Email",
+      "phone": "Phone",
+      "city": "City",
+      "birthDate": "Birth Date",
+      "gender": "Gender",
+      "rooms": "Rooms",
+      "isAdmin": "Admin",
+      "canHost": "Host Permitted",
+      "createdAt": "Created At"
+    }
   }
 }

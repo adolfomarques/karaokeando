@@ -13,7 +13,11 @@
     "backToHome": "← Voltar ao início",
     "welcome": "Olá",
     "and": "e",
-    "close": "Fechar"
+    "close": "Fechar",
+    "resume": "Retomar",
+    "remove": "Remover",
+    "tryAgain": "Tentar novamente",
+    "backToLogin": "← Voltar ao login"
   },
   "home": {
     "title": "KARAOKE FACTORY",
@@ -96,12 +100,37 @@
     "singDuetToAppear": "Cante em dupla para aparecer aqui!",
     "newSongToast": "Nova música na fila",
     "requestedBy": "Pedido por",
-    "queueTitle": "Fila de Reprodução",
-    "remaining": "restantes",
-    "songsInQueue": "MÚSICAS NA FILA",
-    "participants": "Participantes",
+    "queueTitle": "FILA DE ESPERA",
+    "remaining": "músicas",
+    "songsInQueue": "músicas na fila",
+    "participants": "Cantores na Sala",
     "songs": "Músicas",
-    "song": "Música"
+    "song": "Música",
+    "exitTv": "Sair da TV",
+    "liveStatus": "Telão Ativo",
+    "roomCode": "CÓDIGO DA SALA",
+    "participant": "Cantor na Sala",
+    "exitFullscreen": "Sair da Tela Cheia",
+    "fullscreen": "Tela Cheia",
+    "nextUp": "PRÓXIMO NO PALCO",
+    "nextSongTitle": "Música Selecionada",
+    "removeFromQueue": "Remover da fila",
+    "moveUp": "Subir",
+    "moveDown": "Descer",
+    "moveToTop": "Mover para o topo",
+    "emptyQueueTitle": "O Palco Está Livre!",
+    "emptyQueueDesc": "Aproxime seu celular no QR Code ao lado para escolher sua música e ser a próxima estrela.",
+    "step1": "Aponte a Câmera",
+    "step2": "Escolha a Música",
+    "step3": "Cante no Palco!",
+    "rankingTitle": "HALL DA FAMA",
+    "joinMobile": "ENTRE PELO CELULAR",
+    "scanToSing": "Aponte a câmera para cantar",
+    "accessRoom": "Acesse",
+    "withRoom": "com a sala",
+    "footerLive": "KARAOKE FACTORY • LIVE STAGE EXPERIENCE",
+    "footerScoring": "SISTEMA DE PONTUAÇÃO AO VIVO • ALTA PRECISÃO",
+    "reconnecting": "Reconectando à sala..."
   },
   "mobile": {
     "invalidCode": "Volte e entre com um código válido.",
@@ -190,7 +219,14 @@
     "rateDescription": "Dê uma nota para a performance atual:",
     "confirmScore": "Enviar Nota",
     "scoreHint": "Arraste ou toque para ajustar a nota com precisão",
-    "scoreSent": "Nota enviada!"
+    "scoreSent": "Nota enviada!",
+    "almostReady": "Quase pronto...",
+    "analyzingResults": "Analisando performance...",
+    "confirmRemove": "Remover esta música da fila?",
+    "library": "Biblioteca de Músicas",
+    "reactionsBar": "Barra de Reações e Avaliação",
+    "reconnecting": "Reconectando à sala...",
+    "searchError": "Erro ao buscar músicas"
   },
   "tvLogin": {
     "title": "📺 Modo TV",
@@ -224,7 +260,8 @@
     "error": "Erro ao criar conta",
     "creating": "Criando conta...",
     "createBtn": "Criar conta e continuar",
-    "orEmail": "ou use seu email"
+    "orEmail": "ou use seu email",
+    "googleBtn": "Criar conta com Google"
   },
   "guestReg": {
     "yourName": "Seu Nome",
@@ -722,10 +759,28 @@
     "backgroundDeleted": "Background removido",
     "phraseCreated": "Frase adicionada",
     "phraseDeleted": "Frase removida",
-    "prewarmTitle": "Aquecimento de Cache (Pre-warm)",
-    "prewarmDesc": "Faz a busca automática das músicas mais populares para deixar o sistema rápido antes do evento.",
-    "prewarmStart": "Começar Aquecimento",
+    "prewarmTitle": "Pré-Aquecimento do Palco",
+    "prewarmDesc": "Acordar os servidores do backend antecipadamente",
+    "prewarmStart": "Pré-Aquecer Servidores",
     "prewarmSuccess": "Aquecimento concluído com sucesso!",
-    "prewarmError": "Erro ao realizar aquecimento"
+    "prewarmError": "Falha ao pré-aquecer servidor",
+    "refresh": "Atualizar",
+    "blockedChannels": "Canais Bloqueados",
+    "logins": "Acessos de Usuários",
+    "allUsers": "Todos os Usuários Cadastrados",
+    "addSuccess": "Canal bloqueado com sucesso",
+    "addError": "Erro ao bloquear canal",
+    "user": {
+      "name": "Nome",
+      "email": "E-mail",
+      "phone": "Telefone",
+      "city": "Cidade",
+      "birthDate": "Data de Nascimento",
+      "gender": "Gênero",
+      "rooms": "Salas",
+      "isAdmin": "Admin",
+      "canHost": "Pode Criar Sala",
+      "createdAt": "Criado em"
+    }
   }
 }

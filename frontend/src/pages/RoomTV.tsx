@@ -13,6 +13,7 @@ import {
 } from "../api";
 import ScoreOverlay from "../components/ScoreOverlay";
 import Logo from "../components/Logo";
+import LanguageSwitcher from "../components/LanguageSwitcher";
 import toast, { Toaster } from "react-hot-toast";
 
 // Declare global YouTube IFrame API types
@@ -1125,7 +1126,7 @@ export default function RoomTV() {
           padding: "8px 18px", borderRadius: 12, fontSize: "14px", fontWeight: 700,
           boxShadow: "0 4px 20px rgba(0,0,0,0.6)"
         }}>
-          ⚠️ Reconectando à sala...
+          ⚠️ {t("tv.reconnecting", "Reconectando à sala...")}
         </div>
       )}
 
@@ -1168,7 +1169,7 @@ export default function RoomTV() {
               width: 96,
               height: 96,
               borderRadius: "50%",
-              background: "linear-gradient(135deg, #FF0080, #7928CA)",
+              background: "linear-gradient(135deg, #FF0080, #FF4D6D)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -1186,7 +1187,7 @@ export default function RoomTV() {
             </p>
             <button
               style={{
-                background: "linear-gradient(135deg, #FF0080, #7928CA)",
+                background: "linear-gradient(135deg, #FF0080, #FF4D6D)",
                 color: "#fff",
                 border: "none",
                 padding: "14px 40px",
@@ -1541,10 +1542,10 @@ export default function RoomTV() {
                   cursor: "pointer",
                 }}
                 className="tv-action-btn"
-                title={t("auth.logout", "Sair da TV")}
+                title={t("tv.exitTv", "Sair da TV")}
               >
                 <IconSkipBack size={14} />
-                {t("auth.logout", "Sair da TV")}
+                {t("tv.exitTv", "Sair da TV")}
               </button>
               <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "0.8rem", color: "rgba(255,255,255,0.45)", fontWeight: 600 }}>
                 <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#10b981", boxShadow: "0 0 10px #10b981" }} />
@@ -1576,8 +1577,8 @@ export default function RoomTV() {
               </div>
             </div>
 
-            {/* Coluna Direita: Cantores na Sala + Relógio Digital + Tela Cheia */}
-            <div style={{ justifySelf: "end", display: "flex", alignItems: "center", gap: "14px" }}>
+            {/* Coluna Direita: Cantores na Sala + Relógio Digital + Seletor de Idioma + Tela Cheia */}
+            <div style={{ justifySelf: "end", display: "flex", alignItems: "center", gap: "12px" }}>
               <div
                 style={{
                   display: "flex",
@@ -1608,6 +1609,7 @@ export default function RoomTV() {
               >
                 {currentTime}
               </div>
+              <LanguageSwitcher />
               <button
                 type="button"
                 onClick={toggleFullscreen}
@@ -1811,10 +1813,10 @@ export default function RoomTV() {
                                 </div>
                               </div>
                               <div style={{ display: "flex", gap: 5 }}>
-                                <button className="tv-action-btn" style={{ padding: 6, borderRadius: 8, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", cursor: "pointer" }} onClick={() => handleQueueMove(item.id, "up")} title="Subir"><IconChevronUp /></button>
-                                <button className="tv-action-btn" style={{ padding: 6, borderRadius: 8, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", cursor: "pointer" }} onClick={() => handleQueueMove(item.id, "down")} title="Descer"><IconChevronDown /></button>
-                                <button className="tv-action-btn" style={{ padding: 6, borderRadius: 8, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", cursor: "pointer" }} onClick={() => handleQueueToTop(item.id)} title="Mover para o topo"><IconChevronsUp /></button>
-                                <button className="tv-action-btn" style={{ padding: 6, borderRadius: 8, background: "rgba(255,0,0,0.1)", border: "1px solid rgba(255,80,80,0.3)", color: deletingId === item.id ? "rgba(255,0,0,0.8)" : "rgba(255,255,255,0.8)", cursor: "pointer" }} onClick={() => handleQueueRemove(item.id, item.title)} disabled={deletingId === item.id} title="Remover"><IconTrash size={14} /></button>
+                                <button className="tv-action-btn" style={{ padding: 6, borderRadius: 8, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", cursor: "pointer" }} onClick={() => handleQueueMove(item.id, "up")} title={t("tv.moveUp", "Subir")}><IconChevronUp /></button>
+                                <button className="tv-action-btn" style={{ padding: 6, borderRadius: 8, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", cursor: "pointer" }} onClick={() => handleQueueMove(item.id, "down")} title={t("tv.moveDown", "Descer")}><IconChevronDown /></button>
+                                <button className="tv-action-btn" style={{ padding: 6, borderRadius: 8, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", cursor: "pointer" }} onClick={() => handleQueueToTop(item.id)} title={t("tv.moveToTop", "Mover para o topo")}><IconChevronsUp /></button>
+                                <button className="tv-action-btn" style={{ padding: 6, borderRadius: 8, background: "rgba(255,0,0,0.1)", border: "1px solid rgba(255,80,80,0.3)", color: deletingId === item.id ? "rgba(255,0,0,0.8)" : "rgba(255,255,255,0.8)", cursor: "pointer" }} onClick={() => handleQueueRemove(item.id, item.title)} disabled={deletingId === item.id} title={t("common.remove", "Remover")}><IconTrash size={14} /></button>
                               </div>
                             </div>
                           );
@@ -2113,10 +2115,10 @@ export default function RoomTV() {
                     {t("tv.joinMobile", "ENTRE PELO CELULAR")}
                   </div>
                   <div style={{ fontSize: "1.1rem", fontWeight: 800, color: "#fff", marginTop: "3px" }}>
-                    {t("tv.scanToAdd", "Aponte a câmera para cantar")}
+                    {t("tv.scanToSing", "Aponte a câmera para cantar")}
                   </div>
                   <div style={{ fontSize: "0.82rem", color: "rgba(255,255,255,0.65)", marginTop: "4px" }}>
-                    Acesse <strong style={{ color: "#fff" }}>karaokefactory.org</strong> com a sala <strong style={{ color: "#FF0080" }}>{code}</strong>
+                    {t("tv.accessRoom", "Acesse")} <strong style={{ color: "#fff" }}>karaokefactory.org</strong> {t("tv.withRoom", "com a sala")} <strong style={{ color: "#FF0080" }}>{code}</strong>
                   </div>
                 </div>
               </div>
@@ -2137,8 +2139,8 @@ export default function RoomTV() {
               textTransform: "uppercase",
             }}
           >
-            <span>KARAOKE FACTORY • LIVE STAGE EXPERIENCE</span>
-            <span>SISTEMA DE PONTUAÇÃO AO VIVO • ALTA PRECISÃO</span>
+            <span>{t("tv.footerLive", "KARAOKE FACTORY • LIVE STAGE EXPERIENCE")}</span>
+            <span>{t("tv.footerScoring", "SISTEMA DE PONTUAÇÃO AO VIVO • ALTA PRECISÃO")}</span>
           </footer>
         </div>
       )}
