@@ -284,7 +284,7 @@ export default function Home() {
                     <h3 style={{ fontSize: "1.1rem", fontWeight: "700", marginBottom: "18px", color: "rgba(255,255,255,0.9)" }}>
                       🎟️ {t("home.myRooms", "Minhas Salas")}
                     </h3>
-                    <div style={{ maxHeight: "230px", overflowY: "auto", marginBottom: "16px", padding: "12px", margin: "-12px" }}>
+                    <div style={{ maxHeight: "250px", overflowY: "auto", marginBottom: "16px", padding: "20px", margin: "-20px" }}>
                       {myRooms.length === 0 ? (
                         <p style={{ color: "rgba(255,255,255,0.55)", fontSize: "0.9rem" }}>{t("home.noRoomsYet", "Sem salas ainda")}</p>
                       ) : (
