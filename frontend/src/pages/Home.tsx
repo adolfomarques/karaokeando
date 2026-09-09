@@ -291,7 +291,7 @@ export default function Home() {
                         myRooms.map(r => (
                           <div
                             key={r.code}
-                            className="soft-glass-card"
+                            className="list-glass-card"
                             style={{
                               display: "flex",
                               alignItems: "center",
