@@ -2013,7 +2013,7 @@ export default function RoomTV() {
                 </div>
 
                 {/* Lista de Ranking com 3 Colunas Fixas */}
-                <div style={{ display: "flex", flexDirection: "column", gap: "8px", overflowY: "auto", flex: 1, minHeight: 0 }} className="custom-tv-scrollbar">
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px", overflowY: "auto", flex: 1, minHeight: 0, padding: "16px", margin: "-16px" }} className="custom-tv-scrollbar">
                   {rankingView === "solo" ? (
                     Object.keys(state.ranking).length === 0 ? (
                       <div style={{ padding: "30px 20px", textAlign: "center", color: "rgba(255,255,255,0.4)", fontSize: "0.95rem", lineHeight: 1.6 }}>
