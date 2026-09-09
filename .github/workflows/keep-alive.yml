@@ -10,16 +10,19 @@ jobs:
   ping:
     name: Ping Render Backend
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 5
     steps:
       - name: Send keep-alive ping to Render
         run: |
           URL="https://karaokeando.onrender.com/health"
           echo "Enviando ping de keep-alive para $URL..."
-          RESPONSE=$(curl -s -w "%{http_code}" --connect-timeout 30 --max-time 60 "$URL" -o /dev/null)
+          RESPONSE=$(curl -s -w "%{http_code}" --connect-timeout 30 --max-time 90 "$URL" -o /dev/null || echo "TIMEOUT_OR_ERROR")
           echo "Status HTTP recebido: $RESPONSE"
-          if [ "$RESPONSE" -eq 200 ]; then
+          if [ "$RESPONSE" = "200" ]; then
             echo "✅ Servidor acordado e respondendo normalmente!"
+          elif [ "$RESPONSE" = "TIMEOUT_OR_ERROR" ] || [ "$RESPONSE" = "000" ]; then
+            echo "⏰ O servidor demorou a responder (cold start em andamento), mas a requisição de despertar foi entregue ao Render."
           else
-            echo "⚠️ Servidor respondeu com status $RESPONSE (pode estar iniciando ou ocupado)."
+            echo "ℹ️ Servidor respondeu com status $RESPONSE."
           fi
+          exit 0
