@@ -631,6 +631,18 @@
       "step3Title": "Sing Together",
       "step3Desc": "Choose songs, build the queue and have fun singing in real time!"
     },
+    "features": {
+      "title": "The complete KTV experience",
+      "subtitle": "Forget the old songbooks. KaraokeFactory modernizes the party.",
+      "phoneTitle": "Your Phone is the Remote",
+      "phoneDesc": "Search for songs, add them to the queue and choose duets directly from your phone, without interrupting the singer.",
+      "tvTitle": "The TV is the Stage",
+      "tvDesc": "The big screen is kept clear for perfectly synced lyrics, HD videos, and vibrant party animations.",
+      "duetTitle": "Solos and Duets",
+      "duetDesc": "Sing solo or invite anyone in the room for a real-time duet. It's your party.",
+      "scoreTitle": "Scoring and Ranking",
+      "scoreDesc": "At the end of each song, the karaoke gods give a score and the room ranking is instantly updated."
+    },
     "stats": {
       "fun": "FUN",
       "songs": "∞ SONGS",

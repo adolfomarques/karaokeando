@@ -524,6 +524,74 @@ export default function Home() {
           </div>
         </div>
       </section>
+      {/* ── Features / Diferenciais ────────────────────────── */}
+      <section style={{ padding: "0 20px 100px", position: "relative", zIndex: 1 }}>
+        <div className="container" style={{ position: "relative", zIndex: 1 }}>
+          <div style={{ textAlign: "center", marginBottom: "60px" }}>
+            <h2 style={{
+              fontSize: "clamp(2rem, 6vw, 3.5rem)", fontWeight: 900, color: "#fff",
+              letterSpacing: "-0.03em", lineHeight: 1.1, marginBottom: "12px",
+            }}>
+              {t("landing.features.title", "A experiência completa de KTV")}
+            </h2>
+            <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "1rem" }}>
+              {t("landing.features.subtitle", "Esqueça o caderninho de músicas. O KaraokeFactory moderniza a festa.")}
+            </p>
+          </div>
+
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+            gap: "24px",
+            maxWidth: "1100px",
+            margin: "0 auto",
+          }}>
+            {/* Phone */}
+            <div className="soft-glass-card" style={{ padding: "32px 24px", textAlign: "left", borderRadius: "20px" }}>
+              <div style={{ fontSize: "2.5rem", marginBottom: "20px", display: "inline-block", background: "rgba(255,0,128,0.15)", borderRadius: "16px", padding: "12px", border: "1px solid rgba(255,0,128,0.3)" }}>📱</div>
+              <h3 style={{ fontSize: "1.15rem", fontWeight: 800, color: "#fff", marginBottom: "12px", letterSpacing: "-0.02em" }}>
+                {t("landing.features.phoneTitle", "Celular é o Controle")}
+              </h3>
+              <p style={{ color: "rgba(255,255,255,0.65)", fontSize: "0.9rem", lineHeight: 1.6, margin: 0 }}>
+                {t("landing.features.phoneDesc", "Busque músicas, adicione na fila e escolha duetos diretamente do seu celular, sem atrapalhar quem está cantando.")}
+              </p>
+            </div>
+
+            {/* TV */}
+            <div className="soft-glass-card" style={{ padding: "32px 24px", textAlign: "left", borderRadius: "20px" }}>
+              <div style={{ fontSize: "2.5rem", marginBottom: "20px", display: "inline-block", background: "rgba(121,40,202,0.15)", borderRadius: "16px", padding: "12px", border: "1px solid rgba(121,40,202,0.3)" }}>📺</div>
+              <h3 style={{ fontSize: "1.15rem", fontWeight: 800, color: "#fff", marginBottom: "12px", letterSpacing: "-0.02em" }}>
+                {t("landing.features.tvTitle", "A TV é o Palco")}
+              </h3>
+              <p style={{ color: "rgba(255,255,255,0.65)", fontSize: "0.9rem", lineHeight: 1.6, margin: 0 }}>
+                {t("landing.features.tvDesc", "A tela grande fica livre para letras perfeitamente sincronizadas, vídeos em HD e animações vibrantes de festa.")}
+              </p>
+            </div>
+
+            {/* Duets */}
+            <div className="soft-glass-card" style={{ padding: "32px 24px", textAlign: "left", borderRadius: "20px" }}>
+              <div style={{ fontSize: "2.5rem", marginBottom: "20px", display: "inline-block", background: "rgba(0,209,255,0.15)", borderRadius: "16px", padding: "12px", border: "1px solid rgba(0,209,255,0.3)" }}>🎤</div>
+              <h3 style={{ fontSize: "1.15rem", fontWeight: 800, color: "#fff", marginBottom: "12px", letterSpacing: "-0.02em" }}>
+                {t("landing.features.duetTitle", "Solos e Duetos")}
+              </h3>
+              <p style={{ color: "rgba(255,255,255,0.65)", fontSize: "0.9rem", lineHeight: 1.6, margin: 0 }}>
+                {t("landing.features.duetDesc", "Cante sozinho ou convide qualquer pessoa da sala para um dueto em tempo real. A festa é de vocês.")}
+              </p>
+            </div>
+
+            {/* Score */}
+            <div className="soft-glass-card" style={{ padding: "32px 24px", textAlign: "left", borderRadius: "20px" }}>
+              <div style={{ fontSize: "2.5rem", marginBottom: "20px", display: "inline-block", background: "rgba(46,204,113,0.15)", borderRadius: "16px", padding: "12px", border: "1px solid rgba(46,204,113,0.3)" }}>🏆</div>
+              <h3 style={{ fontSize: "1.15rem", fontWeight: 800, color: "#fff", marginBottom: "12px", letterSpacing: "-0.02em" }}>
+                {t("landing.features.scoreTitle", "Avaliação e Pontuação")}
+              </h3>
+              <p style={{ color: "rgba(255,255,255,0.65)", fontSize: "0.9rem", lineHeight: 1.6, margin: 0 }}>
+                {t("landing.features.scoreDesc", "Ao final de cada música, os deuses do karaokê dão a nota e o ranking da sala é atualizado instantaneamente.")}
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* ── Stats Strip ───────────────────────────────────── */}
       <section style={{ padding: "0 20px 60px", position: "relative", zIndex: 1 }}>

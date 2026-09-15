@@ -631,6 +631,18 @@
       "step3Title": "Cantem Juntos",
       "step3Desc": "Escolha as músicas, monte a fila e divirtam-se cantando em tempo real!"
     },
+    "features": {
+      "title": "A experiência completa de KTV",
+      "subtitle": "Esqueça o caderninho de músicas. O KaraokeFactory moderniza a festa.",
+      "phoneTitle": "Celular é o Controle",
+      "phoneDesc": "Busque músicas, adicione na fila e escolha duetos diretamente do seu celular, sem atrapalhar quem está cantando.",
+      "tvTitle": "A TV é o Palco",
+      "tvDesc": "A tela grande fica livre para letras perfeitamente sincronizadas, vídeos em HD e animações vibrantes de festa.",
+      "duetTitle": "Solos e Duetos",
+      "duetDesc": "Cante sozinho ou convide qualquer pessoa da sala para um dueto em tempo real. A festa é de vocês.",
+      "scoreTitle": "Avaliação e Pontuação",
+      "scoreDesc": "Ao final de cada música, os deuses do karaokê dão a nota e o ranking da sala é atualizado instantaneamente."
+    },
     "stats": {
       "fun": "DIVERSÃO",
       "songs": "∞ MÚSICAS",
