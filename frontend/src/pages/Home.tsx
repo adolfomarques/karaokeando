@@ -16,26 +16,6 @@ export default function Home() {
   const navigate = useNavigate();
   const { user, loading: authLoading, logout, registerGuest } = useAuth();
 
-  // Scroll reveal animation effect
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("visible");
-            // Optional: observer.unobserve(entry.target); to make it animate only once
-          }
-        });
-      },
-      { threshold: 0, rootMargin: "0px 0px -20px 0px" }
-    );
-
-    const elements = document.querySelectorAll(".reveal");
-    elements.forEach((el) => observer.observe(el));
-
-    return () => observer.disconnect();
-  }, []);
-
   const [myRooms, setMyRooms] = useState<MyRoom[]>([]);
   const [joinCode, setJoinCode] = useState(() => localStorage.getItem("karaokefactory_last_room") || "");
   const [joining, setJoining] = useState(false);
@@ -412,7 +392,7 @@ export default function Home() {
         <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
           <div style={{ position: "absolute", width: "500px", height: "500px", top: "10%", left: "50%", transform: "translateX(-50%)", borderRadius: "50%", background: "radial-gradient(circle, rgba(255,0,128,0.06) 0%, transparent 70%)", filter: "blur(80px)", animation: "pulseGlow 4s ease-in-out infinite" }} />
         </div>
-        <div className="container reveal" style={{ position: "relative", zIndex: 1 }}>
+        <div className="container" style={{ position: "relative", zIndex: 1 }}>
           <div style={{ textAlign: "center", marginBottom: "60px" }}>
             <h2 style={{
               fontSize: "clamp(2rem, 6vw, 3.5rem)", fontWeight: 900, color: "#fff",
@@ -602,7 +582,7 @@ export default function Home() {
       `}</style>
       <section style={{ padding: "40px 20px 80px", position: "relative", zIndex: 1 }}>
         <div className="features-bg"></div>
-        <div className="container reveal" style={{ position: "relative", zIndex: 1 }}>
+        <div className="container" style={{ position: "relative", zIndex: 1 }}>
           <div style={{ textAlign: "center", marginBottom: "70px" }}>
             <h2 style={{
               fontSize: "clamp(2rem, 6vw, 3.5rem)", fontWeight: 900, color: "#fff",
@@ -687,7 +667,7 @@ export default function Home() {
 
       {/* ── Stats Strip ───────────────────────────────────── */}
       <section style={{ padding: "0 20px 40px", position: "relative", zIndex: 1 }}>
-        <div className="container reveal" style={{ padding: 0 }}>
+        <div className="container" style={{ padding: 0 }}>
           <div className="soft-glass-card" style={{
             padding: "36px 40px",
             display: "flex",
@@ -713,7 +693,7 @@ export default function Home() {
 
       {/* ── CTA Section ───────────────────────────────────── */}
       <section style={{ padding: "40px 20px 80px", textAlign: "center", position: "relative", zIndex: 1 }}>
-        <div className="container reveal">
+        <div className="container">
           <h2
             className="cta-heading"
             style={{ fontSize: "clamp(2.5rem, 9vw, 5.5rem)", fontWeight: "900", color: "#fff", marginBottom: "24px", letterSpacing: "-2px", lineHeight: "1" }}
