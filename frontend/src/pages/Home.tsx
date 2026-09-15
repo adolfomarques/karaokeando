@@ -525,69 +525,143 @@ export default function Home() {
         </div>
       </section>
       {/* ── Features / Diferenciais ────────────────────────── */}
-      <section style={{ padding: "0 20px 100px", position: "relative", zIndex: 1 }}>
+      <style>{`
+        @keyframes floatIcon {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-12px); }
+        }
+        .feature-card {
+          transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+          overflow: hidden;
+          position: relative;
+          display: flex;
+          flex-direction: column;
+          min-height: 480px;
+        }
+        .feature-card:hover {
+          transform: translateY(-8px) scale(1.02);
+        }
+        .feature-img-wrapper {
+          height: 240px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          position: relative;
+          z-index: 2;
+        }
+        .feature-img {
+          width: 220px;
+          height: 220px;
+          object-fit: contain;
+          animation: floatIcon 5s ease-in-out infinite;
+          filter: drop-shadow(0 20px 30px rgba(0,0,0,0.5));
+        }
+        .feature-content {
+          padding: 0 32px 40px;
+          position: relative;
+          z-index: 2;
+        }
+        .feature-card::before {
+          content: "";
+          position: absolute;
+          top: 30%;
+          left: 0;
+          right: 0;
+          height: 100%;
+          background: radial-gradient(ellipse at center, var(--glow-color) 0%, transparent 70%);
+          opacity: 0.15;
+          z-index: 0;
+          pointer-events: none;
+        }
+        .features-bg {
+          position: absolute;
+          inset: 0;
+          background: radial-gradient(circle at 20% 50%, rgba(255,0,128,0.06) 0%, transparent 40%),
+                      radial-gradient(circle at 80% 80%, rgba(121,40,202,0.06) 0%, transparent 40%);
+          z-index: -1;
+          pointer-events: none;
+        }
+      `}</style>
+      <section style={{ padding: "80px 20px 120px", position: "relative", zIndex: 1 }}>
+        <div className="features-bg"></div>
         <div className="container" style={{ position: "relative", zIndex: 1 }}>
-          <div style={{ textAlign: "center", marginBottom: "60px" }}>
+          <div style={{ textAlign: "center", marginBottom: "70px" }}>
             <h2 style={{
               fontSize: "clamp(2rem, 6vw, 3.5rem)", fontWeight: 900, color: "#fff",
-              letterSpacing: "-0.03em", lineHeight: 1.1, marginBottom: "12px",
+              letterSpacing: "-0.03em", lineHeight: 1.1, marginBottom: "16px",
             }}>
               {t("landing.features.title", "A experiência completa de KTV")}
             </h2>
-            <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "1rem" }}>
+            <p style={{ color: "rgba(255,255,255,0.6)", fontSize: "1.1rem" }}>
               {t("landing.features.subtitle", "Esqueça o caderninho de músicas. O KaraokeFactory moderniza a festa.")}
             </p>
           </div>
 
           <div style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-            gap: "24px",
-            maxWidth: "1100px",
+            gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+            gap: "28px",
+            maxWidth: "1200px",
             margin: "0 auto",
           }}>
             {/* Phone */}
-            <div className="soft-glass-card" style={{ padding: "32px 24px", textAlign: "left", borderRadius: "20px" }}>
-              <div style={{ fontSize: "2.5rem", marginBottom: "20px", display: "inline-block", background: "rgba(255,0,128,0.15)", borderRadius: "16px", padding: "12px", border: "1px solid rgba(255,0,128,0.3)" }}>📱</div>
-              <h3 style={{ fontSize: "1.15rem", fontWeight: 800, color: "#fff", marginBottom: "12px", letterSpacing: "-0.02em" }}>
-                {t("landing.features.phoneTitle", "Celular é o Controle")}
-              </h3>
-              <p style={{ color: "rgba(255,255,255,0.65)", fontSize: "0.9rem", lineHeight: 1.6, margin: 0 }}>
-                {t("landing.features.phoneDesc", "Busque músicas, adicione na fila e escolha duetos diretamente do seu celular, sem atrapalhar quem está cantando.")}
-              </p>
+            <div className="soft-glass-card feature-card" style={{ padding: 0, textAlign: "left", borderRadius: "24px", border: "1px solid rgba(255,0,128,0.4)", "--glow-color": "rgba(255,0,128,1)" } as React.CSSProperties}>
+              <div className="feature-img-wrapper">
+                <img src="/images/phone_3d.jpg" alt="Phone Remote" className="feature-img" style={{ animationDelay: "0s", mixBlendMode: "lighten" }} />
+              </div>
+              <div className="feature-content">
+                <h3 style={{ fontSize: "1.25rem", fontWeight: 800, color: "#fff", marginBottom: "12px", letterSpacing: "-0.02em" }}>
+                  {t("landing.features.phoneTitle", "Celular é o Controle")}
+                </h3>
+                <p style={{ color: "rgba(255,255,255,0.65)", fontSize: "0.95rem", lineHeight: 1.6, margin: 0 }}>
+                  {t("landing.features.phoneDesc", "Busque músicas, adicione na fila e escolha duetos diretamente do seu celular, sem atrapalhar quem está cantando.")}
+                </p>
+              </div>
             </div>
 
             {/* TV */}
-            <div className="soft-glass-card" style={{ padding: "32px 24px", textAlign: "left", borderRadius: "20px" }}>
-              <div style={{ fontSize: "2.5rem", marginBottom: "20px", display: "inline-block", background: "rgba(121,40,202,0.15)", borderRadius: "16px", padding: "12px", border: "1px solid rgba(121,40,202,0.3)" }}>📺</div>
-              <h3 style={{ fontSize: "1.15rem", fontWeight: 800, color: "#fff", marginBottom: "12px", letterSpacing: "-0.02em" }}>
-                {t("landing.features.tvTitle", "A TV é o Palco")}
-              </h3>
-              <p style={{ color: "rgba(255,255,255,0.65)", fontSize: "0.9rem", lineHeight: 1.6, margin: 0 }}>
-                {t("landing.features.tvDesc", "A tela grande fica livre para letras perfeitamente sincronizadas, vídeos em HD e animações vibrantes de festa.")}
-              </p>
+            <div className="soft-glass-card feature-card" style={{ padding: 0, textAlign: "left", borderRadius: "24px", border: "1px solid rgba(46,204,113,0.4)", "--glow-color": "rgba(46,204,113,1)" } as React.CSSProperties}>
+              <div className="feature-img-wrapper">
+                <img src="/images/tv_3d.jpg" alt="TV Stage" className="feature-img" style={{ animationDelay: "1s", mixBlendMode: "lighten" }} />
+              </div>
+              <div className="feature-content">
+                <h3 style={{ fontSize: "1.25rem", fontWeight: 800, color: "#fff", marginBottom: "12px", letterSpacing: "-0.02em" }}>
+                  {t("landing.features.tvTitle", "A TV é o Palco")}
+                </h3>
+                <p style={{ color: "rgba(255,255,255,0.65)", fontSize: "0.95rem", lineHeight: 1.6, margin: 0 }}>
+                  {t("landing.features.tvDesc", "A tela grande fica livre para letras perfeitamente sincronizadas, vídeos em HD e animações vibrantes de festa.")}
+                </p>
+              </div>
             </div>
 
             {/* Duets */}
-            <div className="soft-glass-card" style={{ padding: "32px 24px", textAlign: "left", borderRadius: "20px" }}>
-              <div style={{ fontSize: "2.5rem", marginBottom: "20px", display: "inline-block", background: "rgba(0,209,255,0.15)", borderRadius: "16px", padding: "12px", border: "1px solid rgba(0,209,255,0.3)" }}>🎤</div>
-              <h3 style={{ fontSize: "1.15rem", fontWeight: 800, color: "#fff", marginBottom: "12px", letterSpacing: "-0.02em" }}>
-                {t("landing.features.duetTitle", "Solos e Duetos")}
-              </h3>
-              <p style={{ color: "rgba(255,255,255,0.65)", fontSize: "0.9rem", lineHeight: 1.6, margin: 0 }}>
-                {t("landing.features.duetDesc", "Cante sozinho ou convide qualquer pessoa da sala para um dueto em tempo real. A festa é de vocês.")}
-              </p>
+            <div className="soft-glass-card feature-card" style={{ padding: 0, textAlign: "left", borderRadius: "24px", border: "1px solid rgba(121,40,202,0.4)", "--glow-color": "rgba(121,40,202,1)" } as React.CSSProperties}>
+              <div className="feature-img-wrapper">
+                <img src="/images/mic_3d.jpg" alt="Solos and Duets" className="feature-img" style={{ animationDelay: "2s", mixBlendMode: "lighten" }} />
+              </div>
+              <div className="feature-content">
+                <h3 style={{ fontSize: "1.25rem", fontWeight: 800, color: "#fff", marginBottom: "12px", letterSpacing: "-0.02em" }}>
+                  {t("landing.features.duetTitle", "Solos e Duetos")}
+                </h3>
+                <p style={{ color: "rgba(255,255,255,0.65)", fontSize: "0.95rem", lineHeight: 1.6, margin: 0 }}>
+                  {t("landing.features.duetDesc", "Cante sozinho ou convide qualquer pessoa da sala para um dueto em tempo real. A festa é de vocês.")}
+                </p>
+              </div>
             </div>
 
             {/* Score */}
-            <div className="soft-glass-card" style={{ padding: "32px 24px", textAlign: "left", borderRadius: "20px" }}>
-              <div style={{ fontSize: "2.5rem", marginBottom: "20px", display: "inline-block", background: "rgba(46,204,113,0.15)", borderRadius: "16px", padding: "12px", border: "1px solid rgba(46,204,113,0.3)" }}>🏆</div>
-              <h3 style={{ fontSize: "1.15rem", fontWeight: 800, color: "#fff", marginBottom: "12px", letterSpacing: "-0.02em" }}>
-                {t("landing.features.scoreTitle", "Avaliação e Pontuação")}
-              </h3>
-              <p style={{ color: "rgba(255,255,255,0.65)", fontSize: "0.9rem", lineHeight: 1.6, margin: 0 }}>
-                {t("landing.features.scoreDesc", "Ao final de cada música, os deuses do karaokê dão a nota e o ranking da sala é atualizado instantaneamente.")}
-              </p>
+            <div className="soft-glass-card feature-card" style={{ padding: 0, textAlign: "left", borderRadius: "24px", border: "1px solid rgba(255,165,0,0.4)", "--glow-color": "rgba(255,165,0,1)" } as React.CSSProperties}>
+              <div className="feature-img-wrapper">
+                <img src="/images/trophy_3d.jpg" alt="Score and Ranking" className="feature-img" style={{ animationDelay: "3s", mixBlendMode: "lighten" }} />
+              </div>
+              <div className="feature-content">
+                <h3 style={{ fontSize: "1.25rem", fontWeight: 800, color: "#fff", marginBottom: "12px", letterSpacing: "-0.02em" }}>
+                  {t("landing.features.scoreTitle", "Avaliação e Pontuação")}
+                </h3>
+                <p style={{ color: "rgba(255,255,255,0.65)", fontSize: "0.95rem", lineHeight: 1.6, margin: 0 }}>
+                  {t("landing.features.scoreDesc", "Ao final de cada música, os deuses do karaokê dão a nota e o ranking da sala é atualizado instantaneamente.")}
+                </p>
+              </div>
             </div>
           </div>
         </div>
