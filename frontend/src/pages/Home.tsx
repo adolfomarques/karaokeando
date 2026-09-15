@@ -390,7 +390,7 @@ export default function Home() {
       </section>
 
       {/* ── The Experience ────────────────────────────────── */}
-      <section style={{ padding: "100px 20px", position: "relative", zIndex: 1, overflow: "hidden" }}>
+      <section style={{ padding: "80px 20px 40px", position: "relative", zIndex: 1, overflow: "hidden" }}>
         <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
           <div style={{ position: "absolute", width: "500px", height: "500px", top: "10%", left: "50%", transform: "translateX(-50%)", borderRadius: "50%", background: "radial-gradient(circle, rgba(255,0,128,0.06) 0%, transparent 70%)", filter: "blur(80px)", animation: "pulseGlow 4s ease-in-out infinite" }} />
         </div>
@@ -582,7 +582,7 @@ export default function Home() {
           pointer-events: none;
         }
       `}</style>
-      <section style={{ padding: "80px 20px 120px", position: "relative", zIndex: 1 }}>
+      <section style={{ padding: "40px 20px 80px", position: "relative", zIndex: 1 }}>
         <div className="features-bg"></div>
         <div className="container" style={{ position: "relative", zIndex: 1 }}>
           <div style={{ textAlign: "center", marginBottom: "70px" }}>
@@ -668,7 +668,7 @@ export default function Home() {
       </section>
 
       {/* ── Stats Strip ───────────────────────────────────── */}
-      <section style={{ padding: "0 20px 60px", position: "relative", zIndex: 1 }}>
+      <section style={{ padding: "0 20px 40px", position: "relative", zIndex: 1 }}>
         <div className="container" style={{ padding: 0 }}>
           <div className="soft-glass-card" style={{
             padding: "36px 40px",
@@ -694,7 +694,7 @@ export default function Home() {
       </section>
 
       {/* ── CTA Section ───────────────────────────────────── */}
-      <section style={{ padding: "80px 20px 100px", textAlign: "center", position: "relative", zIndex: 1 }}>
+      <section style={{ padding: "40px 20px 80px", textAlign: "center", position: "relative", zIndex: 1 }}>
         <div className="container">
           <h2
             className="cta-heading"
