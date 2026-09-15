@@ -51,7 +51,7 @@ export default function Home() {
   }, [user]);
 
   useEffect(() => {
-    document.title = "Karaoke Factory | Free Online Karaoke Party";
+    document.title = "Karaoke Factory | Online Karaoke Party";
     const metaDesc = window.document.querySelector('meta[name="description"]');
     if (metaDesc) {
       metaDesc.setAttribute("content", "Cante seus sucessos favoritos com amigos! Karaoke Factory é a plataforma definitiva para festas de karaokê colaborativas.");
@@ -537,7 +537,7 @@ export default function Home() {
             borderRadius: "24px",
           }}>
             {[
-              { value: "100%", label: t("landing.stats.free") },
+              { value: "100%", label: t("landing.stats.fun") },
               { value: "∞",    label: t("landing.stats.songs") },
               { value: "QR",   label: t("landing.stats.qr") },
               { value: "⚡",   label: t("landing.stats.realtime") },
